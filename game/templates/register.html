@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>注册</title>
+	{% load static %}
+	<link rel="stylesheet" type="text/css" href="{%static 'css/blog.css'%}">
+	<script type="text/javascript" src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+	<script src="{% static 'js/react_regist.js' %}"></script>
+
+</head>
+<body>
+	<div align="left">
+		<div style="position: relative; left: 40%; color: #575757;">
+		<img id="step_2" src="{%static 'images/title_register.png' %}"/>
+		<form method="post" action="/regist/">
+			{% csrf_token %}
+			<grewh>
+				用户名称 ：
+				<input id="usnme" class="grewline" tyep="text" name="username" placeholder="请输入用户名">
+				<br>
+				登录密码 ：
+				<input id="psin" class="grewline"  type="password" name="password" placeholder="请输入不少于6位的字符">
+				<br>
+				密码确认 ：
+				<input id="psre" class="grewline" type="password" name="repassword" placeholder="两次密码一致">
+				<br>
+			</grewh>
+			<br>
+			<input id="submit" value="" style="background:url({%static 'images/check_regist.png'%});border: none;width:150px; height:46px;">
+			<a class="blogurl" href="/login/">返回登录</a>
+		</form>	
+		</div>
+	</div>
+</body>
+</html>

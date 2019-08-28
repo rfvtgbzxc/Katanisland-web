@@ -1,0 +1,21 @@
+$(document).ready(function(){
+	//创建新房间
+	$("#create_room").click(function(){
+		$.ajax({
+	        async:true,
+	        url:"/ajax/create_room/",
+	        type:"get",
+	        success:function(result){
+	            if(result!='false')
+	            {
+	            	alert("创建成功！");
+	            	window.location.href="/room/?room="+result;
+	            }
+	            else
+	            {
+	            	alert("创建失败！");
+	            }
+	        },
+	    });
+	});
+});

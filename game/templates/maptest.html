@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>地图测试</title>
+	{% load static %}
+	<link rel="stylesheet" type="text/css" href="{%static 'css/map.css'%}">
+	<script type="text/javascript" src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+	<script src="{% static 'js/react_map_test.js' %}"></script>	
+</head>
+<body>
+	<div id="create_map" style="cursor:pointer;display: inline;">生成随机地图</div>
+	<div >随机数种：<span id="seed_id"></span></div>
+	<div id="plc_info"></div>
+	<!--地图模块-->
+	<map>
+		<!--六边形层-->
+		<div id="places">
+		</div>
+		<!--边层-->
+		<div id="edges">
+		</div>
+		<!--海港层-->
+		<div id="harbors">
+		</div>
+		<!--点层-->
+		<div id="points">
+		</div>
+	</map>
+</body>
+</html>

@@ -1,0 +1,76 @@
+.grewline
+{
+	background:;
+	border-left: 0; 
+	border-right: 0; 
+	border-bottom-width: 1px; 
+	border-top: 0; b
+	order-bottom-color: #949494; 
+}
+
+warn
+{
+	color:red;
+	font-size:12px;
+	display:inline;
+}
+.shape {
+    position: absolute;
+    width: 139px; height: 120px;
+    background-color: currentColor;
+    shape-outside: polygon(35px 0, 105px 0px, 139px 60px, 105px 120px, 35px 120px, 0 60px);
+    clip-path: polygon(35px 0, 105px 0px, 139px 60px, 105px 120px, 35px 120px, 0 60px);
+    color: #cd0000;
+}
+.edge_selector_0
+{
+	position: absolute;
+    width: 35px; height: 60px;
+    shape-outside: polygon(25px 0, 35px 0, 35px 10px, 10px 60px, 0 60px, 0 50px);
+    clip-path: polygon(25px 0, 35px 0, 35px 10px, 10px 60px, 0 60px, 0 50px);
+}
+.edge_selector_1
+{
+	position: absolute;
+    width: 70px; height: 15px;
+}
+.edge_selector_2
+{
+	position: absolute;
+    width: 35px; height: 60px;
+    shape-outside: polygon(0 0, 10px 0, 35px 50px, 35px 60px, 25px 60px, 0 10px);
+    clip-path: polygon(0 0, 10px 0, 35px 50px, 35px 60px, 25px 60px, 0 10px);
+    
+}
+.edge_selected
+{
+	background-color: currentColor;
+	opacity:0.5;
+    color: yellow;
+}
+.pt_selector
+{
+	width:60px;height:60px;
+	shape-outside: circle(30px);
+	clip-path:circle(30px);
+	background-color: currentColor;
+    color: green;
+}
+
+step_list
+{
+	width: 40px;
+    height: 40px;
+    background-color: #efefef; /* Can be set to transparent */
+    border: 5px #a72525 solid;
+    border-radius: 40px;
+    position: absolute;
+}
+step_list.ownround
+{
+	width: 60px;
+    height: 60px;
+    border: 7px #a72525 solid;
+}
+a.blogurl:visited {color:#3399cc;}
+a.blogurl:hover {color:#ff3333;}

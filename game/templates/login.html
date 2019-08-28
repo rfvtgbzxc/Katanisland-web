@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>登录</title>
+	{% load static %}
+	<link rel="stylesheet" type="text/css" href="{%static 'css/blog.css'%}">
+	
+</head>
+<body>
+	<div style="position:relative;left:40%;">
+		<h1>卡坦岛网页版</h1>
+		<form method="post" action="/login/">
+			{% csrf_token %}
+			 用户名:<br>
+			<input class="grewline" type="text" name="username" placeholder="请输入登录账号" value="{{usernamex}}">
+			<warn>{{ info_username }}</warn>
+			<br>
+			 密码:<br>
+			<input class="grewline" type="password" value="{{base_password}}" name="password" placeholder="请输入登录密码">
+			<warn>{{ info_password }}</warn>
+			<br><br>
+			<input type="checkbox" name="memory" value="1" {{st_check}}/> 记住我
+			<br><br>
+			<input type="submit" value="" style="background:url({%static 'images/trylogin.png'%});border: none;width:151px; height:60px;">
+			<a class="blogurl" href="/regist/">立刻注册</a>
+			<a class="blogurl" href="/maptest/">地图测试</a>
+			<a class="blogurl" href="/gametest/">游戏测试</a>
+		</form>
+	<div>
+</body>
+</html>

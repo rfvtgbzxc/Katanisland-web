@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>测试用</title>
+	{% load static %}
+	<script type="text/javascript" src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
+	<script>
+	$(document).ready(function(){
+		$(".shape").hover(
+	    function(){
+	        alert("你进入了 p1!");
+	    },
+	    function(){
+	        alert("拜拜! 现在你离开了 p1!");
+	    }
+);
+	});
+	</script>
+	<link rel="stylesheet" type="text/css" href="{%static 'css/blog.css'%}">
+</head>
+<body>
+	<h1>六边形div测试</h1>
+
+	<div class="edge_selector_0" style="left:0">></div>
+	<div class="edge_selector_1" style="left:35px"></div>
+	<div class="edge_selector_2" style="left:105px"></div>
+	<div class="pt_selector"></div>
+	<h1>顺序轮盘测试</h1>
+	<step_list class=""></step_list>
+	<step_list class="ownround" style="top:400px"></step_list>
+</body>
+</html>

@@ -1,0 +1,97 @@
+.plc
+{
+	position: absolute;
+}
+/*地块选择器*/
+.plc_selector
+{
+	position: absolute;
+    width: 139px; height: 120px;
+    shape-outside: polygon(35px 0, 105px 0px, 139px 60px, 105px 120px, 35px 120px, 0 60px);
+    clip-path: polygon(35px 0, 105px 0px, 139px 60px, 105px 120px, 35px 120px, 0 60px);
+}
+.plc_selected
+{
+	background-color: currentColor;
+	opacity:0.5;
+    color: yellow;
+}
+.plc_cnt_select
+{
+	background-color: currentColor;
+	opacity:0.5;
+    color: red;
+}
+/*边选择器，顺序：左上，上，右上*/
+.edge_selector
+{
+	position: absolute;
+}
+.dir_0
+{
+	
+    width: 35px; height: 60px;
+    shape-outside: polygon(25px 0, 35px 0, 35px 10px, 10px 60px, 0 60px, 0 50px);
+    clip-path: polygon(25px 0, 35px 0, 35px 10px, 10px 60px, 0 60px, 0 50px);
+}
+.dir_1
+{
+    width: 70px; height: 15px;
+    shape-outside: polygon(0 7px, 7px 0, 63px 0, 70px 7px, 63px 15px, 7px 15px);
+    clip-path: polygon(0 7px, 7px 0, 63px 0, 70px 7px, 63px 15px, 7px 15px);
+}
+.dir_2
+{
+    width: 35px; height: 60px;
+    shape-outside: polygon(0 0, 10px 0, 35px 50px, 35px 60px, 25px 60px, 0 10px);
+    clip-path: polygon(0 0, 10px 0, 35px 50px, 35px 60px, 25px 60px, 0 10px);
+    
+}
+.edge_selected
+{
+	background-color: currentColor;
+    color: green;
+}
+
+/*点选择器*/
+.pt_selector
+{
+	position: absolute;
+	width:60px;height:60px;
+	shape-outside: circle(60px);
+	clip-path:circle(30px);
+}
+
+.pt_selected
+{
+	background-color: currentColor;
+	opacity:0.5;
+    color: green;
+}
+
+.backpic
+{
+	position: absolute;
+}
+.numpic
+{
+	position: absolute;
+}
+.harbor
+{
+	position: absolute;
+}
+.hb_icon
+{
+	position: absolute;
+}
+.hb_num
+{
+	position: absolute;
+}
+map
+{
+	position: absolute;
+	left: 300px;
+	top:0;
+}

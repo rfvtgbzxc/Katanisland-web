@@ -1,0 +1,431 @@
+.plc
+{
+	position: absolute;
+}
+/*地块选择器*/
+.plc_selector
+{
+	position: absolute;
+    width: 139px; height: 120px;
+    shape-outside: polygon(35px 0, 105px 0px, 139px 60px, 105px 120px, 35px 120px, 0 60px);
+    clip-path: polygon(35px 0, 105px 0px, 139px 60px, 105px 120px, 35px 120px, 0 60px);
+}
+.plc_selected
+{
+	background-color: currentColor;
+	opacity:0.5;
+    color: yellow;
+}
+.plc_cnt_select
+{
+	background-color: currentColor;
+	opacity:0.5;
+    color: red;
+}
+/*边选择器，顺序：左上，上，右上*/
+.edge_selector
+{
+	position: absolute;
+}
+.dir_0
+{
+	
+    width: 35px; height: 60px;
+    shape-outside: polygon(25px 0, 35px 0, 35px 10px, 10px 60px, 0 60px, 0 50px);
+    clip-path: polygon(25px 0, 35px 0, 35px 10px, 10px 60px, 0 60px, 0 50px);
+}
+.dir_1
+{
+    width: 70px; height: 15px;
+    shape-outside: polygon(0 7px, 7px 0, 63px 0, 70px 7px, 63px 15px, 7px 15px);
+    clip-path: polygon(0 7px, 7px 0, 63px 0, 70px 7px, 63px 15px, 7px 15px);
+}
+.dir_2
+{
+    width: 35px; height: 60px;
+    shape-outside: polygon(0 0, 10px 0, 35px 50px, 35px 60px, 25px 60px, 0 10px);
+    clip-path: polygon(0 0, 10px 0, 35px 50px, 35px 60px, 25px 60px, 0 10px);
+    
+}
+.edge_selected
+{
+	background-color: currentColor;
+	opacity:0.7;
+    color: green;
+}
+.edge_displaying
+{
+	background-color: currentColor;
+    color: green;
+}
+/*点选择器*/
+.pt_selector
+{
+	position: absolute;
+	width:60px;height:60px;
+	shape-outside: circle(60px);
+	clip-path:circle(30px);
+}
+
+.pt_selected
+{
+	background-color: currentColor;
+	opacity:0.5;
+    color: green;
+}
+
+/*道路*/
+.road
+{
+	position: absolute;
+}
+/*城市*/
+.city
+{
+	position: absolute;
+}
+/*菜单选项*/
+button.active:after
+{
+	position: absolute;
+	content: "";
+	width: 17px;
+	height: 20px;
+	left: calc(100% + 3px);
+	top: calc(50% - 10px);
+	shape-outside: polygon(0 0, 17px 10px,0 20px);
+    clip-path: polygon(0 0, 17px 10px,0 20px);
+    background: inherit;
+    cursor:default;
+
+}
+/*骰子*/
+dice
+{
+	position: fixed;
+	top: 30px;
+	height: 50px;
+	width: 50px;	
+	background: url(/media/img/dice_num0.png);
+}
+dice.num1
+{
+	background: url(/media/img/dice_num1.png);
+}
+dice.num2
+{
+	background: url(/media/img/dice_num2.png);
+}
+dice.num3
+{
+	background: url(/media/img/dice_num3.png);
+}
+dice.num4
+{
+	background: url(/media/img/dice_num4.png);
+}
+dice.num5
+{
+	background: url(/media/img/dice_num5.png);
+}
+dice.num6
+{
+	background: url(/media/img/dice_num6.png);
+}
+/*回合显示*/
+rounds
+{
+	height:100px;
+	bottom:0;
+	position:fixed;
+}
+img.rounds
+{
+	position:absolute;
+	top:18px;
+	left:8px;
+}
+#rounds
+{
+	position:absolute;
+	top:38px;
+	left:8px;
+	font-size:20px;
+}
+/*行动列表*/
+steper
+{
+	width: 40px;
+    height: 40px;
+    top: 12px;
+    background-color: #efefef; /* Can be set to transparent */
+    border: 5px solid;
+    border-radius: 40px;
+    position: absolute;
+    border-color: currentColor;
+}
+steper.ownround
+{
+	top: 0;
+	width: 60px;
+    height: 60px;
+    border: 7px solid;
+}
+steper.self:after
+{
+	content: "";
+	/*width: 1px;
+	height: 1px;
+	border-bottom: 20px solid gray;　　   
+    border-top: 20px solid rgb(255,255,255);　　　
+    border-right: 20px solid rgb(255,255,255);　　   
+    border-left: 20px solid rgb(255,255,255);  */ 
+    width: 20px;
+	height: 17px;	
+	shape-outside: polygon(0 17px, 10px 0, 20px 17px);
+    clip-path: polygon(0 17px, 10px 0, 20px 17px);
+	background:currentColor;
+	color: inherit;
+	position: absolute;
+	top:calc(100% + 10px);
+	left:calc(50% - 10px);
+}
+
+/*玩家状态栏*/
+player
+{
+	width:211px;
+	height:158px;
+	/*用于让名称等信息定位*/
+	position:absolute;
+	right:0;
+	font-size:15px;
+}
+player.self
+{
+	width:274px;
+	height:205px;
+	font-size:20px;
+}
+playername
+{
+	left:73px;
+	top:30px;
+	position:absolute;
+	
+}
+playername.self
+{
+	left:95px;
+	top:39px;
+	position:absolute;
+	
+}
+/*主参数*/
+vp_state
+{
+	left:125px;
+	top:52px;
+	cursor: pointer;
+	position:absolute;
+}
+vp_state.self
+{
+	left:163px;
+	top:66px;
+}
+src_state
+{
+	left:87px;
+	top:71px;
+	position:absolute;
+}
+src_state.self
+{
+	left:113px;
+	top:91px;	
+}
+dev_state
+{
+	left:87px;
+	top:90px;
+	position:absolute;
+}
+dev_state.self
+{
+	left:113px;
+	top:115px;
+}
+city0_state
+{
+	left:87px;
+	top:107px;
+	position:absolute;
+}
+city0_state.self
+{
+	left:113px;
+	top:138px;
+}
+city1_state
+{
+	left:71px;
+	top:126px;
+	position:absolute;
+}
+city1_state.self
+{
+	left:93px;
+	top:162px;
+}
+
+longest_road
+{
+	left:117px;
+	top:70px;
+	width: 75px;
+	height: 20px;
+	cursor: pointer;
+	position: absolute;
+}
+longest_road.self
+{
+	width: 100px;
+	height: 27px;
+	left:150px;
+	top:90px;
+}
+longest_road.active
+{
+	background: url(/media/img/longest_road_active.png);
+	background-size: cover;
+	background-repeat: no-repeat;
+}
+
+max_minitory
+{
+	left:117px;
+	top:94px;
+	width: 75px;
+	height: 20px;
+	cursor: pointer;
+	position: absolute;
+}
+max_minitory.self
+{
+	width: 100px;
+	height: 27px;
+	left:150px;
+	top:123px;
+}
+max_minitory.active
+{
+	background: url(/media/img/max_minitory_active.png);
+	background-size: cover;
+	background-repeat: no-repeat;
+}
+
+score_card
+{
+	left:117px;
+	top:118px;
+	width: 75px;
+	height: 20px;
+	cursor: pointer;
+	position: absolute;
+}
+score_card.self
+{
+	width: 100px;
+	height: 27px;
+	left:150px;
+	top:154px;
+}
+score_card.active
+{
+	background: url(/media/img/score_card_active.png);
+	background-size: cover;
+	background-repeat: no-repeat;
+}
+
+/*"自己"的图片放大率*/
+img.self
+{
+	width: 100%;  
+    height: 100%;  
+}
+.backpic
+{
+	position: absolute;
+}
+.numpic
+{
+	position: absolute;
+}
+.harbor
+{
+	position: absolute;
+}
+.hb_icon
+{
+	position: absolute;
+}
+.hb_num
+{
+	position: absolute;
+}
+#players
+{
+	width:215px;
+	position: fixed;
+	right:0;
+	top:0;
+	z-index:4000;
+	-webkit-user-select:none;
+
+     -moz-user-select:none;
+
+     -ms-user-select:none;
+
+     user-select:none;
+}
+map
+{
+	position: absolute;
+	left: 300px;
+	top:0;
+}
+actions0
+{
+	position:fixed;
+	left:10px;
+	top:100px;
+	width: 100px
+}
+actions1
+{
+	position:absolute;
+	left:123px;
+	top:0;
+	width: 160px;
+}
+step_list
+{
+	width:300px;
+	position: fixed;
+	left:55px;
+	bottom:calc(0% + 80px);
+	z-index:4000;
+}
+info_window{
+	position: absolute;
+	z-index:5000;
+	background: white;
+	-webkit-user-select:none;
+
+     -moz-user-select:none;
+
+     -ms-user-select:none;
+
+     user-select:none;
+}

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{room.name}}</title>
+	{% load static %}
+	<link rel="stylesheet" type="text/css" href="{%static 'css/blog.css'%}">
+	<script type="text/javascript" src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+	<script src="{% static 'js/react_room.js' %}"></script>	
+</head>
+<body>
+	<a href="/hall/" id="leave_room" room_id="{{room.id}}" stlyle="cursor:pointer;">离开房间</a>
+	<div id="player1"></div>
+	<div id="player2" style="display: none;"></div>
+	<div id="player3" style="display: none;"></div>
+	<div id="player4" style="display: none;"></div>
+	<div id="player5" style="display: none;"></div>
+	<div id="player6" style="display: none;"></div>
+	<div id="start_game" style="cursor:pointer;display: none;">开始游戏</div>
+</body>
+</html>
