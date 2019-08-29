@@ -255,9 +255,12 @@ def t_load_game(request):
 	return HttpResponse(json.dumps(gm_temp.game_info()))
 
 def t_virtual_websocket(request):
-	print(request.GET.get("data"))
-	#只有
-	return HttpResponse("ok")
+	evt=json.loads(request.GET.get("data"))
+	#只有随机数请求会被特殊化响应
+	if(evt["message"]["val"][0]==0 and evt["message"]["val"][1]==0):
+		msg={"data":{"type":"mes_action","message":{"val":[0,1,random.randint(1,6),random.randint(1,6)]}}}
+		return HttpResponse(json.dumps(msg))
+	return HttpResponse(json.dumps(request.GET))
 
 def gotoGameTest(request):
 	return render(request,'gametest.html')

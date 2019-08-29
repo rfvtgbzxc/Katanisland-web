@@ -54,7 +54,7 @@ vp_info_text=[
 // 交互元素基本响应
 //--------------------------------------------------------
 $(document).ready(function(){
-	ws.sendmsg("user","test");
+	//ws.sendmsg("user","test");
 	//隐藏UI
 	$("actions0").hide();
 	$("actions1").children().hide();
@@ -135,8 +135,8 @@ $(document).ready(function(){
 		//首先关闭其他可能的1级选项,取消其他可能的0级选项
 		$("actions1").children().hide();
 		$("actions0").children().not("actions1").children().removeClass("active");
-		//激活自己
-		$(this).addClass("active");
+		//发送消息
+		ws.sendmsg("mes_action",{"val":[0,0]});
 	});
 	//--------------------------------------------------------
 	// UI：建设选项
@@ -157,9 +157,13 @@ $(document).ready(function(){
 		$("actions1").css("top",$(this).position().top-3*25);
 	});
 	//--------------------------------------------------------
-	// UI：建设选项
+	// UI：结束回合
 	// 层级：0  值：1
 	//--------------------------------------------------------
+	$("#action_end_turn").click(function(){
+		//发送消息
+		ws.sendmsg("mes_action",{"val":[6]});
+	});
 	//--------------------------------------------------------
 	// UI：vp详细信息
 	//--------------------------------------------------------
@@ -537,7 +541,7 @@ function load_game(){
 		var player_index=game_info.step_index+parseInt($(this).attr("pos"));
 		if(player_index<0){player_index+=game_info.step_list.length;}
 		if(player_index>game_info.step_list.length-1){player_index-=game_info.step_list.length;}
-
+		//干得漂亮(无视我的疯言疯语)
 		player_index=step_list[player_index];
 		if(player_index==user_index){
 

@@ -61,10 +61,10 @@ test_game_info={
 	"longest_road":0,
 	"max_minitory":1,
 	"play_turns": 3,
-	"dice_num":[1,2],
+	"dice_num":[0,0],
 	"owner": 233,
 	"step_list": [1, 2],
-	"online_list": [1, 2],
+	"online_list": [1,2],
 	"player_list": {
 		"1": [233,"解忧唯杜康"],
 		"2": [666,"Fade into fate"]

@@ -1,0 +1,29 @@
+//根据game_info处理画面的刷新，此部分只能对已经存在的DOM元素进行操作。
+function update_Graphic(){
+	//刷新骰子,其关联菜单的显示内容
+	//清除所有class
+	$("dice").removeClass();
+	$("actions0").children().filter(".fst_action").children().removeClass("disabled");
+	//根据dice_num来判断目前是否已经投完骰子
+	//为0说明是新的回合,额外判断UI显示
+	if(game_info.dice_num[0]==0)
+	{
+		//alert("新的回合");
+		//如果不是玩家自己的回合,隐藏菜单
+		if(game_info.step_list[game_info.step_index]==user_index){
+			$("actions0").show();
+		}
+		else{
+			$("actions0").hide();		
+		}
+		$("actions0").children().not(".fst_action").hide();
+	}
+	else
+	{
+		$("dice").each(function(){
+			$(this).addClass("num"+game_info.dice_num[$(this).attr("dice_id")]);
+		});
+		$("actions0").children().not(".fst_action").show();
+		$("actions0").children().filter(".fst_action").children().addClass("disabled");
+	}
+}
