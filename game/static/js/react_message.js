@@ -65,6 +65,8 @@ function set_dice(num1,num2){
 //--------------------------------------------------------
 function new_turn()
 {
+	//记录当前值
+	last_step_index=game_info.step_index;
 	//寻找没有掉线的下一位玩家
 	//最差也能找到自己吧
 	var index=game_info.step_index+1;

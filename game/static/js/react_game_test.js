@@ -14,6 +14,7 @@ places={};
 edge_size=67;
 xsize=0;
 ysize=0;
+last_step_index=0;
 //个人标记（测试版本默认为第二位玩家）
 user_id=666;
 user_index=2;
@@ -544,7 +545,6 @@ function load_game(){
 		//干得漂亮(无视我的疯言疯语)
 		player_index=step_list[player_index];
 		if(player_index==user_index){
-
 			$(this).addClass("self");
 		}
 		$(this).css("color",color_reflection_hex[color_reflection[player_index]]);
