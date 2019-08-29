@@ -596,6 +596,7 @@ function init_ui(){
 	$(".edge_selector").hide();
 	$(".pt_selector").hide();
 	$("dice").show();
+	$("his_window").show();
 	if(!debug){
 		$("#debuging").hide();
 	}

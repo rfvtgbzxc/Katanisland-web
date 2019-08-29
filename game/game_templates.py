@@ -64,7 +64,7 @@ test_game_info={
 	"dice_num":[0,0],
 	"owner": 233,
 	"step_list": [1, 2],
-	"online_list": [1],
+	"online_list": [1,2],
 	"player_list": {
 		"1": [233,"解忧唯杜康"],
 		"2": [666,"Fade into fate"]

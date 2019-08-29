@@ -24,6 +24,7 @@ ws.onmessage=function(evt){
 	handle_msg(data);
 };
 //不管,肯定不是多此一举
+//解读信息
 function handle_msg(msg){
 	//alert(msg.message.val);
 	switch(msg.type){

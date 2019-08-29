@@ -410,6 +410,30 @@ actions1
 	top:0;
 	width: 160px;
 }
+
+his_window
+{
+	position:fixed;
+	top:400px;
+	width:200px;
+	height:150px;
+	transition:top 1s;
+	background:red;
+}
+his_window:hover
+{
+	top:100px;
+	height:450px;
+}
+his_title
+{
+	position:absolute;
+	height:20px;
+	top:0;
+	font-size:10px;
+	color:white;
+	background:blue;
+}
 step_list
 {
 	width:300px;
