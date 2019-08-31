@@ -46,6 +46,25 @@
 		</div>
 	</map>
 	<!--非地图UI模块-->
+	<!--确认窗口-->
+	<confirm_window>
+		<confirm_back></confirm_back>
+		<confirm_content>
+			<confirm_title></confirm_title>
+			<alert_text></alert_text>
+			<confirm_action>
+				<button class="btn-success" id="confirm_action">确认</button>&nbsp;&nbsp;&nbsp;&nbsp;<button class="btn-danger" id="cancel_action">取消</button>
+			</confirm_action>
+		</confirm_content>
+	</confirm_window>
+	<!--资源栏(暂定为静态资源,而非动态加载)-->
+	<source_list>
+		<img src="/media/img/harbor_icon_1.png" width="25px"><span class="src_brick">0</span>
+		<img src="/media/img/harbor_icon_2.png" width="25px"><span class="src_wood">0</span>
+		<img src="/media/img/harbor_icon_3.png" width="25px"><span class="src_wool">0</span>
+		<img src="/media/img/harbor_icon_4.png" width="25px"><span class="src_grain">0</span>
+		<img src="/media/img/harbor_icon_5.png" width="25px"><span class="src_ore">0</span>
+	</source_list>
 	<!--骰子-->
 	<dice dice_id="0" style="left:10px;"></dice>
 	<dice dice_id="1" style="left:63px;"></dice>
@@ -66,16 +85,20 @@
 	  	</div>
 	  	<!--1级菜单-->
 	  	<actions1 class="list-group">
-	  		<button type="button" id="action_build_road" class="list-group-item">建设道路</button>
-	  		<button type="button" id="action_build_city0" class="list-group-item">建立定居点</button>
-	  		<button type="button" id="action_build_city1" class="list-group-item">建设新城市</button>
-	  		<button type="button" id="action_buy_dev_card" class="list-group-item">抽取发展卡</button>
+	  		<button type="button" id="action_build_road" class="list-group-item">建设道路<cost class="brick">1</cost><cost class="wood">1</cost></button>
+	  		<button type="button" id="action_build_city0" class="list-group-item">建立定居点<cost class="brick">1</cost><cost class="wood">1</cost><cost class="wool">1</cost><cost class="grain">1</cost></button>
+	  		<button type="button" id="action_build_city1" class="list-group-item">建设新城市<cost class="grain">2</cost><cost class="ore">3</cost></button>
+	  		<button type="button" id="action_buy_dev_card" class="list-group-item">抽取发展卡<cost class="wool">1</cost><cost class="grain">1</cost><cost class="ore">1</cost></button>
 	  		<button type="button" class="list-group-item">多余项</button>
 	  	</actions1>
   	</actions0>
   	<!--历史窗口-->
   	<his_window style="display: none;">
   		<his_title>历史记录</his_title>
+  		<his_text_window>
+	  		<his_text>
+	  		</his_text>
+  		</his_text_window>
   	</his_window>
 	<!--顺序列表-->
 	<step_list>

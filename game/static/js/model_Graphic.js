@@ -1,16 +1,17 @@
-//根据game_info处理画面的刷新，此部分只能对已经存在的DOM元素进行操作。
-function update_Graphic(){
+//根据game_info处理画面的刷新，此部分只能对已经存在的DOM元素进行操作,且不对动画进行处理。
+function update_static_Graphic(){
 	//刷新骰子,其关联菜单的显示内容
 	//清除所有class
 	$("dice").removeClass();
 	$("actions0").children().filter(".fst_action").children().removeClass("disabled");
-	//根据dice_num来判断目前是否已经投完骰子
+	$("actions1").children().removeClass("active");
+	//根据dice_num来判断目前是否已经投完骰子,以此对菜单UI的显示与否进行管理
 	//为0说明是新的回合,额外判断UI显示
 	if(game_info.dice_num[0]==0)
 	{
 		//alert("新的回合");
 		//如果不是玩家自己的回合,隐藏菜单
-		if(game_info.step_list[game_info.step_index]==user_index){
+		if(game_info.step_list[game_info.step_index]==user_index || debug){
 			$("actions0").show();
 		}
 		else{
@@ -19,8 +20,6 @@ function update_Graphic(){
 		$("actions0").children().not(".fst_action").hide();
 		//刷新回合数
 		$("#rounds").text(('00'+game_info.play_turns).slice(-2));
-		//回合指示轮盘跳转
-		turn_rounds();
 	}
 	else
 	{
@@ -30,6 +29,27 @@ function update_Graphic(){
 		$("actions0").children().not(".fst_action").show();
 		$("actions0").children().filter(".fst_action").children().addClass("disabled");
 	}
+	//加载玩家自己所有资源的数字
+	var self_player=game_info.players[user_index];
+	for(var i=1;i<6;i++){
+		$(".src_"+order[i]).text(""+self_player[order[i]+"_num"]);
+	}
+	//刷新全玩家状态卡
+	$("player").each(function(){
+		var player_id=$(this).attr("id")
+		var player=game_info.players[player_id];
+		var attrs=$(this).children();
+		attrs.filter("src_state").text(""+all_src_num(player));
+		attrs.filter("vp_state").text(""+vp_num(player_id));	
+	});
+
+}
+//--------------------------------------------------------
+// 清除选择器
+//--------------------------------------------------------
+function clear_selectors(){
+	//清除边选择器
+	$("edge_selector").removeClass("active selected disabled displaying").hide();
 }
 
 //--------------------------------------------------------

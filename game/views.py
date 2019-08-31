@@ -259,6 +259,7 @@ def t_virtual_websocket(request):
 	#只有随机数请求会被特殊化响应
 	if(evt["message"]["val"][0]==0 and evt["message"]["val"][1]==0):
 		msg={"data":{"type":"mes_action","message":{"val":[0,1,random.randint(1,6),random.randint(1,6)]}}}
+		#msg={"data":{"type":"mes_action","message":{"val":[0,1,3,6]}}}
 		return HttpResponse(json.dumps(msg))
 	return HttpResponse(json.dumps(request.GET))
 

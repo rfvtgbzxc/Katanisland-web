@@ -63,7 +63,7 @@ test_game_info={
 	"play_turns": 3,
 	"dice_num":[0,0],
 	"owner": 233,
-	"step_list": [1, 2],
+	"step_list": [1,2],
 	"online_list": [1,2],
 	"player_list": {
 		"1": [233,"解忧唯杜康"],
@@ -75,7 +75,6 @@ test_game_info={
 	},
 	"players": {
 		"1": {
-			"vp": 2,
 			"index": 1,
 			"brick_num": 1,
 			"wool_num": 2,
@@ -93,9 +92,8 @@ test_game_info={
 			"own_cities": [28, 44]
 		},
 		"2": {
-			"vp": 2,
 			"index": 2,
-			"brick_num": 0,
+			"brick_num": 1,
 			"wool_num": 1,
 			"wood_num": 1,
 			"grain_num": 2,
@@ -107,7 +105,7 @@ test_game_info={
 			"plenty_num": 0,
 			"monopoly_num": 0,
 			"road_maker_num": 0,
-			"road_longest": [81],
+			"road_longest": [79,78],
 			"own_cities": [53, 54]
 		}
 	},
@@ -143,18 +141,21 @@ test_game_info={
 		"81": {
 			"owner": 2
 		},
+		"78": {
+			"owner": 2
+		},
 		"79": {
 			"owner": 2
 		}
 	},
 	"cards": {
-		"brick_num": 18,
+		"brick_num": 17,
 		"wool_num": 16,
 		"wood_num": 18,
 		"grain_num": 19,
 		"ore_num": 19,
 		"soldier_num": 14,
-		"score_cards": ["阿尔忒弥斯神庙", "牛津大学", "巴拿马运河", "紫禁城", "圣瓦西里主教堂"],
+		"score_cards": ["阿尔忒弥斯神庙", "牛津大学", "巴拿马运河", "紫禁城", "圣米歇尔山"],
 		"plenty_num": 2,
 		"monopoly_num": 2,
 		"road_maker_num": 2
