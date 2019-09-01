@@ -35,6 +35,15 @@ function handle_msg(msg){
 				case 0:
 					set_dice(val[2],val[3]);
 					break;
+				//建造
+				case 1:
+					switch(val[1]){
+						//建造道路
+						case 1:
+							build_road(val[2],msg.message.starter);
+							break;
+					}
+					break;
 				//结束回合
 				case 6:
 					new_turn();
@@ -95,6 +104,21 @@ function set_dice(num1,num2){
 	//alert("end");
 }
 //--------------------------------------------------------
+// 建造道路
+//--------------------------------------------------------
+function build_road(edge_id,player_index){
+	var player=game_info.players[player_index];
+	//扣除资源
+	player.brick_num--;
+	player.wood_num--;
+	//安置道路(更新game_info)
+	game_info.roads[edge_id]=new Road(player_index);
+	his_window.push(game_info.player_list[player_index][1]+" 建造了一条道路");
+	//此处可以添加动画
+	//安置道路(更新画面)
+	add_road(edge_id);
+}
+//--------------------------------------------------------
 // 新的回合
 //--------------------------------------------------------
 function new_turn()
@@ -126,4 +150,14 @@ function new_turn()
 	his_window.push("----------回合结束----------");
 	his_window.push("第 "+game_info.play_turns+" 回合,轮到 "+game_info.player_list[game_info.step_list[game_info.step_index]][1]+" 行动");
 	//emmm好像没什么要做的了= =||
+}
+
+//--------------------------------------------------------
+// 数据构造函数
+//--------------------------------------------------------
+//--------------------------------------------------------
+// 新的道路
+//--------------------------------------------------------
+function Road(owner_index) {
+  this.owner = owner_index;
 }

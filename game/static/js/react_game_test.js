@@ -10,6 +10,7 @@ ws={"send":function(msg){
 //历史消息
 his_window={
 	"push":function(text){$("his_text").append("<div>"+text+"</div>");},
+	"clear":function(){$("his_text").empty();}
 };
 //确认窗口
 confirm_window={
@@ -27,7 +28,9 @@ xsize=0;
 ysize=0;
 last_step_index=0;
 //临时数据
-action_now=false;
+game_temp={
+	"action_now":false
+};
 //个人标记（测试版本默认为第二位玩家）
 user_id=666;
 user_index=2;
@@ -85,6 +88,8 @@ $(document).ready(function(){
 		return $(this).attr("action_lv")==1;
 	}).filter("#1").hide();
 	$("dice").hide();
+	$("confirm_window").hide();
+	$("source_list").hide();
 	//--------------------------------------------------------
 	// 加载游戏
 	//--------------------------------------------------------
@@ -102,7 +107,22 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	// UI：确认窗口
 	//--------------------------------------------------------
-	
+	$("#confirm_action").click(function(){
+		//关闭窗口
+		$("confirm_window").hide();
+		//alert("?");
+		//发送消息
+		switch(game_temp.action_now){
+			case "action_build_road":
+				ws.sendmsg("mes_action",{"starter":user_index,"val":[1,1,game_temp.selected_edge]});
+				break;
+		}
+	});
+	$("#cancel_action").click(function(){
+		//关闭窗口
+		$("confirm_window").hide();
+		cancel_selectors();
+	});
 	//--------------------------------------------------------
 	// UI：图块选择器
 	//--------------------------------------------------------
@@ -128,42 +148,65 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	$("#edges").on("mouseenter","edge_selector",
 	    function(){
-			$(this).addClass("selected");
 			$("#plc_info").text("边id："+$(this).attr("id"));
-			if($(this).hasClass("disabled")){
+			if($(this).attr("tip")!=""){
 				$("info_window").empty();
-				$("info_window").append("<div>资源不足</div>");
+				$("info_window").append("<div>"+$(this).attr("tip")+"</div>");
 				$("info_window").show();
 			}	
 	    }
 	);
 	$("#edges").on("click","edge_selector",
 	    function(){
+	    	//无效的边无法确认
+	    	if($(this).hasClass("selector_disabled")){
+	    		return;
+	    	}
+	    	game_temp.selected_edge=parseInt($(this).attr("id"));
 	    	//打开确认窗口
 	    	confirm_window.clear();
 	    	confirm_window.set("要在此处建造道路吗?");
-	    	$(this).addClass("selected"); 
+	    	$(this).addClass("selector_selected"); 
 	    	confirm_window.show();
 	    }
 	);
 	$("#edges").on("mouseleave","edge_selector",
 	    function(){
-			$(this).removeClass("selected");
+			//$(this).removeClass("selected");
 			$("info_window").hide();	
 	    }
 	);
 	//--------------------------------------------------------
 	// UI：点选择器
 	//--------------------------------------------------------
-	$("#points").on("mouseenter",".pt_selector",
-	    function(){
-			$(this).addClass("pt_selected");
+	$("#points").on("mouseenter","pt_selector",
+	    function(){				
 			$("#plc_info").text("点id："+$(this).attr("id"));	
+			if($(this).attr("tip")!=""){
+				$("info_window").empty();
+				$("info_window").append("<div>"+$(this).attr("tip")+"</div>");
+				$("info_window").show();
+			}
 	    }
 	);
-	$("#points").on("mouseleave",".pt_selector",
+	$("#points").on("click","pt_selector",
 	    function(){
-			$(this).removeClass("pt_selected");	
+	    	//无效的点无法确认
+	    	if($(this).hasClass("selector_disabled")){
+	    		return;
+	    	}
+	    	game_temp.selected_point=parseInt($(this).attr("id"));
+	    	//打开确认窗口
+	    	confirm_window.clear();
+	    	confirm_window.set("要在此处建立定居点吗?");
+	    	$(this).addClass("selector_selected"); 
+	    	confirm_window.show();
+	    }
+	);
+	$("#points").on("mouseleave","pt_selector",
+	    function(){
+			//$(this).removeClass("pt_selected");	
+			$("info_window").hide();
 	    }
 	);
 	//--------------------------------------------------------
@@ -174,9 +217,6 @@ $(document).ready(function(){
 	// 层级：0  值：0
 	//--------------------------------------------------------
 	$("#action_dice").click(function(){
-		//首先关闭其他可能的1级选项,取消其他可能的0级选项
-		$("actions1").children().hide();
-		$("actions0").children().not("actions1").children().removeClass("active");
 		//发送消息
 		ws.sendmsg("mes_action",{"val":[0,0]});
 	});
@@ -185,6 +225,8 @@ $(document).ready(function(){
 	// 层级：0  值：1
 	//--------------------------------------------------------
 	$("#action_contribute").click(function(){
+		//清除选择器
+		clear_selectors();
 		//如果已处于激活状态则关闭
 		if($(this).hasClass("active"))
 		{
@@ -193,7 +235,7 @@ $(document).ready(function(){
 			return;
 		}
 		//首先关闭其他可能的1级选项,取消其他可能的0级选项
-		$("actions1").children().hide();
+		$("actions1").children().removeClass("active").hide();
 		$("actions0").children().not("actions1").children().removeClass("active");
 		//激活自己
 		$(this).addClass("active");
@@ -217,50 +259,24 @@ $(document).ready(function(){
 			$(this).removeClass("active");
 			return;
 		}
+		//取消激活其他的0级选项
+		$("actions1").children().removeClass("active");
 		//当前行动记为"action_build_road"
-		action_now="action_build_road";
+		game_temp.action_now="action_build_road";
 		//激活道路选择器,只激活可以建设道路的地方
-		var roads=all_roads(user_index);
-		var available_edges_from_road={};
-		var available_edges_all=[];
-		for(var base_road_index in roads){
-			var base_road_id=roads[base_road_index];
-			available_edges_from_road[base_road_id]=edge_round_edges(base_road_id,"edge_with_pt");
-		}
-		//无视有其他玩家已坐城点的备选道路
-		for(var base_road_id in available_edges_from_road){
-			for(var available_pt in available_edges_from_road[base_road_id]){
-				if(game_info.cities.hasOwnProperty(available_pt) && game_info.cities[available_pt].owner!=user_index){
-					//delete available_edges[available_pt];
-					continue;
-				}
-				else{
-					var t_edges=available_edges_from_road[base_road_id][available_pt];
-					available_edges_all=union(available_edges_all,t_edges);
-					/*for(i in t_edges){
-						//已有道路的边无法选择
-						if(game_info.roads.hasOwnProperty(t_edges[i])){continue;}
-						$("edge_selector").filter("#"+t_edges[i]).addClass("active").show();
-					}*/
-				}
-			}			
-		}
-		//自己城市周边的三条边可以放置道路,已有道路的边无法选择
-		var cities=all_cities(user_index);
-		var available_edges_from_city=[];
-		for(var base_pt in cities){
-			available_edges_from_city=union(available_edges_from_city,pt_round_edges(cities[base_pt]));
-		}
-		available_edges_all=union(available_edges_all,available_edges_from_city);
+		var edges=avaliable_edges(user_index);
 		//资源消耗提示
 		var player=game_info.players[user_index];
-		for(var i in available_edges_all){
-			//已有道路的边无法选择,资源不够显示红色
-			if(game_info.roads.hasOwnProperty(available_edges_all[i])){continue;}
-			var selector=$("edge_selector").filter("#"+available_edges_all[i])
+		for(var i in edges){
+			var selector=$("edge_selector").filter("#"+edges[i])
 			selector.addClass("active").show();
+			//资源不足则改变样式
 			if(player.brick_num==0 || player.wood_num==0){
-				selector.addClass("disabled");
+				selector.attr("tip","资源不足").addClass("selector_disabled");
+			}
+			else
+			{
+				selector.addClass("selector_avaliable");
 			}
 		}
 		//激活自己
@@ -268,12 +284,45 @@ $(document).ready(function(){
 
 	});
 	//--------------------------------------------------------
+	// UI：建立定居点
+	// 层级：1  值：2
+	//--------------------------------------------------------
+	$("#action_build_city0").click(function(){
+		//清除选择器
+		clear_selectors();
+		//如果处于已激活状态则取消激活
+		if($(this).hasClass("active")){
+			$(this).removeClass("active");
+			return;
+		}
+		//取消激活其他的0级选项
+		$("actions1").children().removeClass("active");
+		//当前行动记为"action_build_city0"
+		game_temp.action_now="action_build_city0";
+		//激活点选择器,只激活可以定居的地方
+		var points=avaliable_points(user_index);
+		//资源消耗提示
+		var player=game_info.players[user_index];
+		for(var i in points){
+			var selector=$("pt_selector").filter("#"+points[i])
+			selector.addClass("active").show();
+			//资源不足则改变样式
+			if(player.brick_num==0 || player.wood_num==0 || player.wool_num==0 || player.grain_num==0){
+				selector.attr("tip","资源不足").addClass("selector_disabled");
+			}
+			else
+			{
+				selector.addClass("selector_avaliable");
+			}
+		}
+		//激活自己
+		$(this).addClass("active");
+	});
+	//--------------------------------------------------------
 	// UI：结束回合
 	// 层级：0  值：1
 	//--------------------------------------------------------
 	$("#action_end_turn").click(function(){
-		//清除选择器
-		clear_selectors();
 		//发送消息
 		ws.sendmsg("mes_action",{"val":[6]});
 	});
@@ -458,268 +507,15 @@ function create_map(){
 	init_ui();
 }
 //--------------------------------------------------------
-// 地图数据加载(含地图UI)
-//--------------------------------------------------------
-function load_map(){
-	//alert(map_info.rand_seed);
-	$("#seed_id").text(""+map_info.rand_seed);
-	places=map_info.places;
-	edges=map_info.edges;
-	points=map_info.points;
-	harbors=map_info.harbors;
-	cities=game_info.cities;
-	roads=game_info.roads;
-	xsize=map_info.xsize;
-	ysize=map_info.ysize;
-	//将所有的六边形块放置于正确的位置
-	for(var place_id in places){
-		var xi=parseInt(place_id/ysize);
-		var yi=place_id%ysize;
-		var place=places[place_id];
-		var x=Math.round(xi*edge_size*1.5);
-		var y=Math.round(yi*edge_size*1.732+(xi%2)*0.5*1.732*edge_size);
-		var dx=0,dy=0;
-		$("#places").append("<img class='plc' id='"+place_id+"' src='/media/img/hexagon.png'/>");
-		plc=$(".plc").filter("#"+place_id);
-		//放置图块选择器
-		plc.after("<div class='plc_selector' id='"+place_id+"'></div>");
-		//放置背景图
-		plc.after("<img class='backpic' id='"+place_id+"' src='/media/img/"+order[place.create_type]+".png'/>");
-		//放置数字图
-		if(place.create_num!=0){
-			plc.after("<img class='numpic' id='"+place_id+"' src='/media/img/num_"+place.create_num+".png'/>");
-		}
-		//调整位置
-		plc.css({"left":x+"px","top":y+"px","z-index":"500"});
-		$(".plc_selector").filter("#"+place_id).css({"left":x+"px","top":y+"px","z-index":"2000"});
-		$(".backpic").filter("#"+place_id).css({"left":x+"px","top":y+"px","z-index":"200"});
-		$(".numpic").filter("#"+place_id).css({"left":x+"px","top":y+"px","z-index":"300"});
-
-	}
-	//放置边选择器与道路
-	for(var edge_index in edges)
-	{
-		var edge_id=edges[edge_index];
-		var place_id=parseInt(edge_id/3);
-		var xi=parseInt(place_id/ysize);
-		var yi=place_id%ysize;
-		var place=places[place_id];
-		var x=Math.round(xi*edge_size*1.5);
-		var y=Math.round(yi*edge_size*1.732+(xi%2)*0.5*1.732*edge_size);
-		var dx,dy;
-		$("#edges").append("<edge_selector class='dir_"+edge_id%3+"' id='"+edge_id+"'></edge_selector>");
-		//放置道路
-		if(roads.hasOwnProperty(edge_id))
-		{
-			road=roads[edge_id];
-			$("#roads").append("<img class='road' id='"+edge_id+"' src='/media/img/road_dir"+edge_id%3+"_"+color_reflection[road.owner]+".png'/>");
-		}
-		switch(edge_id%3)
-		{
-			case 0:
-				dx=0;
-				dy=0;
-				break;
-			case 1:
-				dx=Math.round(0.5*edge_size);
-				dy=-6;
-				break;
-			case 2:
-				dx=Math.round(1.5*edge_size);
-				dy=0;
-				break;
-		}
-		//调整位置
-		$("edge_selector").filter("#"+edge_id).css({"left":(x+dx)+"px","top":(y+dy)+"px","z-index":"3000"})
-		$(".road").filter("#"+edge_id).css({"left":x+"px","top":y+"px","z-index":"600"})
-	}
-	//放置点选择器与城市
-	for(var pt_index in points)
-	{
-		var point_id=points[pt_index];
-		//alert(point_id)
-		var place_id=parseInt(point_id/2);
-		var xi=parseInt(place_id/ysize);
-		var yi=place_id%ysize;
-		var place=places[place_id];
-		var x=Math.round(xi*edge_size*1.5);
-		var y=Math.round(yi*edge_size*1.732+(xi%2)*0.5*1.732*edge_size);
-		var dx,dy;
-		$("#points").append("<div class='pt_selector' id='"+point_id+"'></div>");
-		//放置城市
-		if(cities.hasOwnProperty(point_id))
-		{
-			city=cities[point_id];
-			$("#cities").append("<img class='city' id='"+point_id+"' src='/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png'/>");
-		}
-		switch(point_id%2)
-		{
-			case 0:
-				dx=Math.round(0.5*edge_size)-29;
-				dy=-30;
-				break;
-			case 1:
-				dx=Math.round(1.5*edge_size)-28;
-				dy=-30;
-				break;
-		}
-		//alert(x+dx);
-		//调整位置
-		$(".pt_selector").filter("#"+point_id).css({"left":(x+dx)+"px","top":(y+dy)+"px","z-index":"3000"})
-		$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"800"})
-	}
-	//放置海港层
-	for(var i=0;i<harbors.length;i++)
-	{
-		var harbor=harbors[i];
-		var place_id=harbor.place_id;
-		var xi=parseInt(place_id/ysize);
-		var yi=place_id%ysize;
-		var place=places[place_id];
-		var x=Math.round(xi*edge_size*1.5);
-		var y=Math.round(yi*edge_size*1.732+(xi%2)*0.5*1.732*edge_size);
-		var dx=0,dy=0;
-		//放置海港
-		$("#harbors").append("<img class='harbor' id='"+i+"' src='/media/img/harbor_"+harbor.direct+".png'/>");
-		hbr=$(".harbor").filter("#"+i);
-		var num;
-		if(harbor.ex_type!=6){
-			num=2;
-		}
-		else{
-			num=3;
-		}
-		//放置数字
-		hbr.after("<img class='hb_num' id='"+i+"' src='/media/img/harbor_num"+num+"_"+harbor.direct+".png'/>");
-		//放置图标
-		hbr.after("<img class='hb_icon' id='"+i+"' src='/media/img/harbor_icon_"+harbor.ex_type+".png'/>");
-		switch(harbor.direct){
-			case "up":
-				dx=182;
-				dy=5;
-				break;
-			case "dn":
-				dx=175;
-				dy=295;
-				break;
-			case "lu":
-				dx=55;
-				dy=73;
-				break;
-			case "ld":
-				dx=52;
-				dy=223;
-				break;
-			case "ru":
-				dx=305;
-				dy=78;
-				break;
-			case "rd":
-				dx=301;
-				dy=227;
-				break;
-		}
-		//调整位置
-		var hbx=x-2*edge_size;
-		var hby=Math.round(y-1.732*edge_size);
-		$(".harbor").filter("#"+i).css({"left":hbx+"px","top":hby+"px","z-index":"400"});
-		$(".hb_num").filter("#"+i).css({"left":hbx+"px","top":hby+"px","z-index":"400"});
-		$(".hb_icon").filter("#"+i).css({"left":(hbx+dx)+"px","top":(hby+dy)+"px","z-index":"400"});
-
-	}
-}
-//--------------------------------------------------------
-// 游戏数据加载(非地图UI)
-//--------------------------------------------------------
-function load_game(){
-	var player_list=game_info.player_list;
-	var players=game_info.players;
-	var self_player=players[user_index];
-	//加载所有资源的数字
-	for(var i=1;i<5;i++){
-		$(".src_"+order[i]).text(""+self_player[order[i]+"_num"]);
-	}
-	//显示回合数
-	$("#rounds").text(('00'+game_info.play_turns).slice(-2));
-	//加载行动列表
-	//确定行动列表宽度
-	var step_list=game_info.step_list;
-	var step_list_width=parseInt(game_info.step_list.length/2);
-	var dx=0;
-	for(var i=-1*step_list_width;i<step_list_width+1;i++)
-	{
-		$("step_list").append("<steper pos='"+i+"'></steper>");
-		$("steper").filter(function(){return $(this).attr("pos")==i}).css({
-			"left":dx
-		});
-		if(i==0){
-			$("steper").filter(function(){return $(this).attr("pos")==i}).addClass("ownround");
-			dx+=65;
-		}
-		else{
-			dx+=45;
-		}
-	}
-	//设置颜色与自我标记
-	$("steper").each(function(){
-		var player_index=game_info.step_index+parseInt($(this).attr("pos"));
-		if(player_index<0){player_index+=game_info.step_list.length;}
-		if(player_index>game_info.step_list.length-1){player_index-=game_info.step_list.length;}
-		//干得漂亮(无视我的疯言疯语)
-		player_index=step_list[player_index];
-		if(player_index==user_index){
-			$(this).addClass("self");
-		}
-		$(this).css("color",color_reflection_hex[color_reflection[player_index]]);
-	});
-	//加载玩家状态栏
-	var dy=0;
-	dy+=205;
-	for(var player_index in player_list){
-		$("#players").append("<player id='"+player_index+"'></player>");
-		var player_state=$("player").filter("#"+player_index);
-		player_state.append("<img class='player_back' id='"+player_index+"' src='/media/img/player_back_"+color_reflection[player_index]+".png'/>");	
-		player_state.append("<playername id='"+player_index+"'>"+player_list[player_index][1]+"</playername>");
-		player_state.append("<vp_state id='"+player_index+"'>"+vp_num(player_index)+"</vp_state>");
-		player_state.append("<src_state>"+all_src_num(players[player_index])+"</src_state>")
-		player_state.append("<dev_state>"+all_dev_num(players[player_index])+"</dev_state>")
-		player_state.append("<city0_state>"+city_num(players[player_index],0)+"</city0_state>")
-		player_state.append("<city1_state>"+city_num(players[player_index],1)+"</city1_state>")
-		player_state.append("<longest_road id='"+player_index+"'></longest_road>")
-		player_state.append("<max_minitory id='"+player_index+"'></max_minitory>")
-		player_state.append("<score_card id='"+player_index+"'></score_card>")
-		//调整位置
-		if(player_index==user_index){
-			player_state.addClass("self")
-			player_state.children().addClass("self");
-		}
-		else
-		{
-			player_state.css({"top":dy+"px"});
-			dy+=158;
-		}	
-		//调整颜色
-		player_state.css({
-			"color":color_reflection_hex[color_reflection[player_index]]
-		});	
-		//设置激活标记
-		if(game_info.longest_road==player_index){$("longest_road").filter("#"+player_index).addClass("active")};
-		if(game_info.max_minitory==player_index){$("max_minitory").filter("#"+player_index).addClass("active")};
-		if(players[player_index].score_shown!=0){$("score_card").filter("#"+player_index).addClass("active")};	
-	}
-
-	//加载文字
-	$youziku.submit("playername_update");
-}
-//--------------------------------------------------------
 // UI初始化
 //--------------------------------------------------------
 function init_ui(){
 	$(".plc_selector").hide();
 	$("edge_selector").hide();
-	$(".pt_selector").hide();
+	$("pt_selector").hide();
 	$("dice").show();
 	$("his_window").show();
+	$("source_list").show();
 	if(!debug){
 		$("#debuging").hide();
 	}
@@ -824,6 +620,88 @@ function all_roads(player_index){
 	return roads;
 }
 //--------------------------------------------------------
+// 获取玩家可修路的边
+//--------------------------------------------------------
+function avaliable_edges(player_index){
+	var roads=all_roads(player_index);
+	var available_edges_from_road={};
+	var available_edges_all=[];
+	for(var base_road_index in roads){
+		var base_road_id=roads[base_road_index];
+		available_edges_from_road[base_road_id]=edge_round_edges(base_road_id,"edge_with_pt");
+	}
+	//无视有其他玩家已坐城点的备选道路
+	for(var base_road_id in available_edges_from_road){
+		for(var available_pt in available_edges_from_road[base_road_id]){
+			if(game_info.cities.hasOwnProperty(available_pt) && game_info.cities[available_pt].owner!=user_index){
+				//delete available_edges[available_pt];
+				continue;
+			}
+			else{
+				var t_edges=available_edges_from_road[base_road_id][available_pt];
+				available_edges_all=union(available_edges_all,t_edges);
+				/*for(i in t_edges){
+					//已有道路的边无法选择
+					if(game_info.roads.hasOwnProperty(t_edges[i])){continue;}
+					$("edge_selector").filter("#"+t_edges[i]).addClass("active").show();
+				}*/
+			}
+		}			
+	}
+	//自己城市周边的三条边可以放置道路,已有道路的边无法选择
+	var cities=all_cities(player_index);
+	var available_edges_from_city=[];
+	for(var base_pt in cities){
+		available_edges_from_city=union(available_edges_from_city,pt_round_edges(cities[base_pt]));
+	}
+	available_edges_all=union(available_edges_all,available_edges_from_city);
+	//删除已有道路的边
+	for(var i in available_edges_all){
+		if(game_info.roads.hasOwnProperty(available_edges_all[i])){
+			delete available_edges_all[i];
+			continue;
+		}			
+	}
+	return available_edges_all;
+}
+//--------------------------------------------------------
+// 获取玩家可定居的点
+//--------------------------------------------------------
+function avaliable_points(player_index){
+	var roads=all_roads(player_index);
+	var avaliable_points_all=[];
+	//获取自己所有道路的端点
+	for(var i in roads){
+		avaliable_points_all=union(avaliable_points_all,edge_round_points(roads[i]));	
+	}
+	//alert(avaliable_points_all);
+	//alert(pt_round_points(38))
+	//删除自己或周围有其他城市的点
+	var i=0;
+	while(i<avaliable_points_all.length){
+		//alert("1");
+		var can_settle=true;
+		if(game_info.cities.hasOwnProperty(avaliable_points_all[i])){
+			avaliable_points_all.splice(i,1);
+			continue;
+		}
+		var near_pts=pt_round_points(avaliable_points_all[i]);	
+		for(var j in near_pts){
+			if(game_info.cities.hasOwnProperty(near_pts[j])){
+				avaliable_points_all.splice(i,1);
+				//alert(avaliable_points_all)
+				can_settle=false;
+				break;
+			}
+		}
+		if(can_settle){
+			i++;
+		}
+		//alert("2");				
+	}
+	return avaliable_points_all;
+}
+//--------------------------------------------------------
 // 获取玩家所有城市
 //--------------------------------------------------------
 function all_cities(player_index){
@@ -836,6 +714,63 @@ function all_cities(player_index){
 	return cities;
 }
 //--------------------------------------------------------
+// 获取地块对应方向的地块id
+// place_id：地块id ,dir：方向 0~5从上顺时针计数
+//--------------------------------------------------------
+function plc_near_places(place_id,dir=[0,1,2,3,4,5]){
+	place_id=parseInt(place_id);
+	var is_single=false;
+	//非str视为数组
+	if(typeof(dir)!="object"){
+		is_single=true;
+		need=[dir];
+	}
+	else{
+		need=dir;
+	}
+	var xi=parseInt(place_id/ysize);
+	var yi=place_id%ysize;
+	places=[];
+	for(i in need){
+		switch(need[i]){
+			case 0:
+				places.push(place_id-1);
+				break;
+			case 1:
+				places.push((xi+1)*ysize+yi+xi%2-1);
+				break;
+			case 2:
+				places.push((xi+1)*ysize+yi+xi%2);
+				break;
+			case 3:
+				places.push(place_id+1);
+				break;
+			case 4:
+				places.push((xi-1)*ysize+yi+xi%2);
+				break;
+			case 5:
+				places.push((xi-1)*ysize+yi+xi%2-1);
+				break;
+		}
+	}
+	//删除不存在的地块
+	var i=0;
+	while(i<places.length){
+		if(map_info.places.hasOwnProperty(places[i])==false){
+			places.splice(i,1);
+			continue;
+		}
+		i++;			
+	}
+	if(is_single){
+		return places[0];
+	}
+	else
+	{
+		return places;
+	}
+}
+//--------------------------------------------------------
 // 获取地块对应的所有点的id
 // place_id：地块id
 //--------------------------------------------------------
@@ -844,7 +779,7 @@ function plc_round_points(place_id){
 	var y=place_id%ysize;
 	var place_id=parseInt(place_id);
 	var points=[place_id*2,place_id*2+1,place_id*2+2,place_id*2+3,(place_id-ysize+x%2)*2+1,(place_id+ysize+x%2)*2]
-	//删除不存在的
+	//删除不存在的点
 	var i=0;
 	while(i<points.length){
 		if(map_info.points.indexOf(points[i])==-1){
@@ -855,34 +790,6 @@ function plc_round_points(place_id){
 	}
 	//alert(points);
 	return points;
-}
-//--------------------------------------------------------
-// 获取一个点周围所有边的id
-// point_id：点id
-//--------------------------------------------------------
-function pt_round_edges(point_id){
-	point_id=parseInt(point_id);
-	var place_id=parseInt(point_id/2);
-	var xi=parseInt(place_id/ysize);
-	var yi=place_id%ysize;
-	var pos=point_id%2;
-	var edges;
-	if(pos==0){
-		edges=[3*place_id,3*place_id+1,3*((xi-1)*ysize+ysize-1+xi%2)+2];
-	}
-	else{
-		edges=[3*place_id+1,3*place_id+2,3*((xi+1)*ysize+ysize-1+xi%2)];
-	}
-	//删除不存在的边
-	var i=0;
-	while(i<edges.length){
-		if(map_info.edges.indexOf(edges[i])==-1){
-			edges.splice(i,1);
-			continue;
-		}
-		i++;			
-	}
-	return edges;
 }
 //--------------------------------------------------------
 // 获取一条边周围所有边的id
@@ -919,14 +826,14 @@ function edge_round_edges(edge_id,type="edge"){
 		edges={};
 		if(dir==0){
 			edges[2*place_id]=[edge_id+1,3*((xi-1)*ysize+yi+xi%2-1)+2];
-			edges[3*((xi-1)*ysize+yi+xi%2)+1]=[3*((xi-1)*ysize+yi+xi%2)+1,3*((xi-1)*ysize+yi+xi%2)+1];
+			edges[2*((xi-1)*ysize+yi+xi%2)+1]=[3*((xi-1)*ysize+yi+xi%2)+1,3*((xi-1)*ysize+yi+xi%2)+2];
 		}
 		else if(dir==1){
 			edges[2*place_id]=[edge_id-1,3*((xi-1)*ysize+yi+xi%2-1)+2];
 			edges[2*place_id+1]=[edge_id+1,3*((xi+1)*ysize+yi+xi%2-1)];
 		}
 		else{
-			edges[2*place_id]=[edge_id-1,3*((xi+1)*ysize+yi+xi%2-1)];
+			edges[2*place_id+1]=[edge_id-1,3*((xi+1)*ysize+yi+xi%2-1)];
 			edges[2*((xi+1)*ysize+yi+xi%2)]=[3*((xi+1)*ysize+yi+xi%2),3*((xi+1)*ysize+yi+xi%2)+1];
 		}
 		//删除不存在的边
@@ -934,6 +841,10 @@ function edge_round_edges(edge_id,type="edge"){
 		{
 			var i=0;
 			var t_edges=edges[edges_index];
+			/*if(edge_id==44){
+				alert(t_edges)
+			}*/
+			//alert(t_edges);
 			while(i<t_edges.length){
 				if(map_info.edges.indexOf(t_edges[i])==-1){
 					t_edges.splice(i,1);
@@ -986,6 +897,88 @@ function edge_round_edges(edge_id,type="edge"){
 		i++;			
 	}
 	return edges;
+}
+//--------------------------------------------------------
+// 获取一条边端点的id
+// edge_id：边id
+//--------------------------------------------------------
+function edge_round_points(edge_id){
+	edge_id=parseInt(edge_id);
+	var place_id=parseInt(edge_id/3);
+	var points;
+	switch(edge_id%3){
+		case 0:
+			points=[2*place_id,2*plc_near_places(place_id,4)+1];
+			break;
+		case 1:
+			points=[2*place_id,2*place_id+1];
+			break;
+		case 2:
+			points=[2*place_id+1,2*plc_near_places(place_id,2)];
+	}
+	//删除不存在的点
+	var i=0;
+	while(i<points.length){
+		if(map_info.points.indexOf(points[i])==-1){
+			points.splice(i,1);
+			continue;
+		}
+		i++;			
+	}
+	return points;
+}
+//--------------------------------------------------------
+// 获取一个点周围所有边的id
+// point_id：点id
+//--------------------------------------------------------
+function pt_round_edges(point_id){
+	point_id=parseInt(point_id);
+	var place_id=parseInt(point_id/2);
+	var xi=parseInt(place_id/ysize);
+	var yi=place_id%ysize;
+	var pos=point_id%2;
+	var edges;
+	if(pos==0){
+		edges=[3*place_id,3*place_id+1,3*((xi-1)*ysize+ysize-1+xi%2)+2];
+	}
+	else{
+		edges=[3*place_id+1,3*place_id+2,3*((xi+1)*ysize+ysize-1+xi%2)];
+	}
+	//删除不存在的边
+	var i=0;
+	while(i<edges.length){
+		if(map_info.edges.indexOf(edges[i])==-1){
+			edges.splice(i,1);
+			continue;
+		}
+		i++;			
+	}
+	return edges;
+}
+//--------------------------------------------------------
+// 获取一个点周围所有点的id
+// point_id：点id
+//--------------------------------------------------------
+function pt_round_points(point_id){
+	point_id=parseInt(point_id);
+	var place_id=parseInt(point_id/2);
+	var points;
+	if(point_id%2==0){
+		points=[point_id+1,2*plc_near_places(place_id,5)+1,2*plc_near_places(place_id,4)+1];
+	}
+	else{
+		points=[point_id-1,2*plc_near_places(place_id,1),2*plc_near_places(place_id,2)];
+	}
+	//删除不存在的点
+	var i=0;
+	while(i<points.length){
+		if(map_info.points.indexOf(points[i])==-1){
+			points.splice(i,1);
+			continue;
+		}
+		i++;			
+	}
+	return points;
 }
 //--------------------------------------------------------
 // 取并集

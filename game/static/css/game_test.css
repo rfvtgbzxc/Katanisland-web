@@ -2,6 +2,34 @@
 {
 	position: absolute;
 }
+/*选择器通用*/
+.selector_avaliable
+{
+	background-color: currentColor;
+	opacity:0.7;
+    color: green;
+}
+.selector_avaliable:hover
+{
+	background-color: currentColor;
+	opacity:1;
+    color: green;
+}
+.selector_selected
+{
+	background-color: currentColor;
+	opacity:1;
+}
+.selector_disabled
+{
+	background-color: red;
+	opacity:0.7;
+}
+.selector_displaying
+{
+	background-color: currentColor;
+	opacity:1;
+}
 /*地块选择器*/
 .plc_selector
 {
@@ -47,43 +75,14 @@ edge_selector.dir_2
     clip-path: polygon(0 0, 10px 0, 35px 50px, 35px 60px, 25px 60px, 0 10px);
     
 }
-edge_selector.active
-{
-	background-color: currentColor;
-	opacity:0.7;
-    color: green;
-}
-edge_selector.selected
-{
-	background-color: currentColor;
-	opacity:1;
-}
-edge_selector.disabled
-{
-	background-color: red;
-	opacity:0.7;
-}
-edge_selector.displaying
-{
-	background-color: currentColor;
-	opacity:1;
-}
 /*点选择器*/
-.pt_selector
+pt_selector
 {
 	position: absolute;
 	width:60px;height:60px;
 	shape-outside: circle(60px);
 	clip-path:circle(30px);
 }
-
-.pt_selected
-{
-	background-color: currentColor;
-	opacity:0.5;
-    color: green;
-}
-
 /*道路*/
 .road
 {
@@ -495,7 +494,7 @@ source_list
 	width:500px;
 	height:25px;
 	top:0;
-	z-index:-1;
+	z-index:4000;
 	background:white;
 }
 actions0
@@ -503,7 +502,8 @@ actions0
 	position:fixed;
 	left:10px;
 	top:100px;
-	width: 100px
+	width: 100px;
+	z-index:4000;
 }
 actions1
 {
@@ -523,6 +523,7 @@ his_window
 	background:white;
 	border:2px solid black;
 	font-size:10px;
+	z-index:4000;
 }
 his_window.nothing
 {
