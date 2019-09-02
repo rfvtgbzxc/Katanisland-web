@@ -69,6 +69,14 @@ color_reflection_hex={
 	"light-purple":"#a3159a",
 	"light-green":"#81ff38"
 }
+dir_reflection={
+	"up":0,
+	"ru":1,
+	"rd":2,
+	"dn":3,
+	"ld":4,
+	"lu":5
+}
 vp_info_text=[
 "拥有的城市：",
 "拥有的定居点：",
@@ -374,7 +382,7 @@ $(document).ready(function(){
 			//显示对应的道路
 			$("edge_selector").filter(function(){
 				return roads.indexOf(parseInt(($(this).attr("id"))))!=-1;
-			}).css({"color":color_reflection_hex[color_reflection[$(this).attr("id")]]}).addClass("displaying").show();
+			}).css({"color":color_reflection_hex[color_reflection[$(this).attr("id")]]}).addClass("selector_displaying").show();
 			$("info_window").fadeIn("fast");
 	    }
 	);
@@ -730,7 +738,7 @@ function plc_near_places(place_id,dir=[0,1,2,3,4,5]){
 	}
 	var xi=parseInt(place_id/ysize);
 	var yi=place_id%ysize;
-	places=[];
+	var places=[];
 	for(i in need){
 		switch(need[i]){
 			case 0:
@@ -768,6 +776,63 @@ function plc_near_places(place_id,dir=[0,1,2,3,4,5]){
 	else
 	{
 		return places;
+	}
+}
+//--------------------------------------------------------
+// 获取地块对应方向的边id
+// place_id：地块id ,dir：方向 0~5从上顺时针计数
+//--------------------------------------------------------
+function plc_round_edges(place_id,dir=[0,1,2,3,4,5]){
+	place_id=parseInt(place_id);
+	var is_single=false;
+	//非str视为数组
+	if(typeof(dir)!="object"){
+		is_single=true;
+		need=[dir];
+	}
+	else{
+		need=dir;
+	}
+	var xi=parseInt(place_id/ysize);
+	var yi=place_id%ysize;
+	var edges=[];
+	for(i in need){
+		switch(need[i]){
+			case 0:
+				edges.push(3*place_id+1);
+				break;
+			case 1:
+				edges.push(3*place_id+2);
+				break;
+			case 2:
+				edges.push(3*plc_near_places(place_id,2));
+				break;
+			case 3:
+				edges.push(3*(place_id+1)+1);
+				break;
+			case 4:
+				edges.push(3*plc_near_places(place_id,4)+2);
+				break;
+			case 5:
+				edges.push(3*place_id);
+				break;
+		}
+	}
+	//删除不存在的边
+	var i=0;
+	while(i<edges.length){
+		if(map_info.edges.indexOf(edges[i])==-1){
+			edges.splice(i,1);
+			continue;
+		}
+		i++;			
+	}
+	if(is_single){
+		return edges[0];
+	}
+	else
+	{
+		return edges;
 	}
 }
 //--------------------------------------------------------

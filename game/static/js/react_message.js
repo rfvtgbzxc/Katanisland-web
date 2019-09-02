@@ -42,6 +42,9 @@ function handle_msg(msg){
 						case 1:
 							build_road(val[2],msg.message.starter);
 							break;
+						//建立定居点
+						case 2:
+							build_city0(val[2],msg.message.starter);
 					}
 					break;
 				//结束回合
@@ -119,6 +122,31 @@ function build_road(edge_id,player_index){
 	add_road(edge_id);
 }
 //--------------------------------------------------------
+// 建立定居点
+//--------------------------------------------------------
+function build_city0(point_id,player_index){
+	var player=game_info.players[player_index];
+	//扣除资源
+	player.brick_num--;
+	player.wood_num--;
+	player.wool_num--;
+	player.grain_num--;
+	//建立新定居点(更新game_info)
+	var ex_type=0;
+	//检查该点附近是否有港口
+	for(var harbor_index in map_info.harbors){
+		var harbor=map_info.harbors[harbor_index];
+		var about_points=plc_round_edges(harbor.place_id,dir_reflection[harbor.direct]);
+		if(about_points.indexOf(point_id)==-1){continue;}
+		//添加交易能力
+		ex_type=harbor.ex_type;
+	}
+	game_info.cities[point_id]=new City(player_index,ex_type);
+	//此处可以添加动画
+	//建立新定居点(更新画面)
+	add_road(edge_id);
+}
+//--------------------------------------------------------
 // 新的回合
 //--------------------------------------------------------
 function new_turn()
@@ -159,5 +187,13 @@ function new_turn()
 // 新的道路
 //--------------------------------------------------------
 function Road(owner_index) {
-  this.owner = owner_index;
+	this.owner = owner_index;
+}
+//--------------------------------------------------------
+// 新的定居点
+//--------------------------------------------------------
+function City(owner_index,ex_type) {
+	this.ex_type=ex_type;
+	this.level=0;
+	this.owner=owner_index;
 }
