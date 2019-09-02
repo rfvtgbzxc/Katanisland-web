@@ -124,6 +124,9 @@ $(document).ready(function(){
 			case "action_build_road":
 				ws.sendmsg("mes_action",{"starter":user_index,"val":[1,1,game_temp.selected_edge]});
 				break;
+			case "action_build_city0":
+				ws.sendmsg("mes_action",{"starter":user_index,"val":[1,2,game_temp.selected_point]});
+				break;
 		}
 	});
 	$("#cancel_action").click(function(){
@@ -736,11 +739,20 @@ function plc_near_places(place_id,dir=[0,1,2,3,4,5]){
 	else{
 		need=dir;
 	}
+	//输入检查
+	if(isNaN(place_id)){
+		if(is_single){
+			return null;
+		}
+		else{
+			return [];
+		}	
+	}
 	var xi=parseInt(place_id/ysize);
 	var yi=place_id%ysize;
 	var places=[];
 	for(i in need){
-		switch(need[i]){
+		switch(parseInt(need[i])){
 			case 0:
 				places.push(place_id-1);
 				break;
@@ -793,11 +805,20 @@ function plc_round_edges(place_id,dir=[0,1,2,3,4,5]){
 	else{
 		need=dir;
 	}
+	//输入检查
+	if(isNaN(place_id)){
+		if(is_single){
+			return null;
+		}
+		else{
+			return [];
+		}	
+	}
 	var xi=parseInt(place_id/ysize);
 	var yi=place_id%ysize;
 	var edges=[];
 	for(i in need){
-		switch(need[i]){
+		switch(parseInt(need[i])){
 			case 0:
 				edges.push(3*place_id+1);
 				break;
@@ -811,6 +832,10 @@ function plc_round_edges(place_id,dir=[0,1,2,3,4,5]){
 				edges.push(3*(place_id+1)+1);
 				break;
 			case 4:
+				//alert("?");
+				//alert(place_id);
+				//alert(plc_near_places(place_id,4));
+				//alert(3*plc_near_places(place_id,4)+2);
 				edges.push(3*plc_near_places(place_id,4)+2);
 				break;
 			case 5:
@@ -841,6 +866,10 @@ function plc_round_edges(place_id,dir=[0,1,2,3,4,5]){
 //--------------------------------------------------------
 function plc_round_points(place_id){
 	var x=parseInt(place_id/ysize);
+	//输入检查
+	if(isNaN(place_id)){
+		return [];
+	}
 	var y=place_id%ysize;
 	var place_id=parseInt(place_id);
 	var points=[place_id*2,place_id*2+1,place_id*2+2,place_id*2+3,(place_id-ysize+x%2)*2+1,(place_id+ysize+x%2)*2]
@@ -880,8 +909,11 @@ function edge_round_edges(edge_id,type="edge"){
 			need=0;
 			break;
 	}
-	//获取所有边
+	//输入检查
 	edge_id=parseInt(edge_id);
+	if(isNaN(edge_id)){
+		return [];
+	}
 	var place_id=parseInt(edge_id/3);
 	var xi=parseInt(place_id/ysize);
 	var yi=place_id%ysize;
@@ -968,7 +1000,11 @@ function edge_round_edges(edge_id,type="edge"){
 // edge_id：边id
 //--------------------------------------------------------
 function edge_round_points(edge_id){
+	//输入检查
 	edge_id=parseInt(edge_id);
+	if(isNaN(edge_id)){
+		return [];
+	}
 	var place_id=parseInt(edge_id/3);
 	var points;
 	switch(edge_id%3){
@@ -998,6 +1034,10 @@ function edge_round_points(edge_id){
 //--------------------------------------------------------
 function pt_round_edges(point_id){
 	point_id=parseInt(point_id);
+	//检查输入
+	if(isNaN(point_id)){
+		return [];
+	}
 	var place_id=parseInt(point_id/2);
 	var xi=parseInt(place_id/ysize);
 	var yi=place_id%ysize;
@@ -1026,6 +1066,10 @@ function pt_round_edges(point_id){
 //--------------------------------------------------------
 function pt_round_points(point_id){
 	point_id=parseInt(point_id);
+	//检查输入
+	if(isNaN(point_id)){
+		return [];
+	}
 	var place_id=parseInt(point_id/2);
 	var points;
 	if(point_id%2==0){

@@ -219,12 +219,6 @@ function load_map(){
 		var y=Math.round(yi*edge_size*1.732+(xi%2)*0.5*1.732*edge_size);
 		var dx,dy;
 		$("#points").append("<pt_selector id='"+point_id+"'></pt_selector>");
-		//放置城市
-		if(cities.hasOwnProperty(point_id))
-		{
-			city=cities[point_id];
-			$("#cities").append("<img class='city' id='"+point_id+"' src='/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png'/>");
-		}
 		switch(point_id%2)
 		{
 			case 0:
@@ -236,10 +230,17 @@ function load_map(){
 				dy=-30;
 				break;
 		}
+		//放置城市
+		if(cities.hasOwnProperty(point_id))
+		{
+			add_city(point_id);
+			//city=cities[point_id];
+			//$("#cities").append("<img class='city' id='"+point_id+"' src='/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png'/>");
+		}
 		//alert(x+dx);
 		//调整位置
 		$("pt_selector").filter("#"+point_id).css({"left":(x+dx)+"px","top":(y+dy)+"px","z-index":"3000"})
-		$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"800"})
+		//$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"800"})
 	}
 	//放置海港层
 	for(var i=0;i<harbors.length;i++)
@@ -417,4 +418,31 @@ function add_road(edge_id){
 	road=roads[edge_id];
 	$("#roads").append("<img class='road' id='"+edge_id+"' src='/media/img/road_dir"+edge_id%3+"_"+color_reflection[road.owner]+".png'/>");
 	$(".road").filter("#"+edge_id).css({"left":x+"px","top":y+"px","z-index":"600"});
+}
+//--------------------------------------------------------
+// 添加城市
+//--------------------------------------------------------
+function add_city(point_id){
+	var place_id=parseInt(point_id/2);
+	var xi=parseInt(place_id/ysize);
+	var yi=place_id%ysize;
+	var place=places[place_id];
+	var x=Math.round(xi*edge_size*1.5);
+	var y=Math.round(yi*edge_size*1.732+(xi%2)*0.5*1.732*edge_size);
+	var dx,dy;
+	switch(point_id%2)
+	{
+		case 0:
+			dx=Math.round(0.5*edge_size)-29;
+			dy=-30;
+			break;
+		case 1:
+			dx=Math.round(1.5*edge_size)-28;
+			dy=-30;
+			break;
+	}
+	city=cities[point_id];
+	$("#cities").append("<img class='city' id='"+point_id+"' src='/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png'/>");
+	//调整位置
+	$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"800"})
 }

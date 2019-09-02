@@ -45,6 +45,7 @@ function handle_msg(msg){
 						//建立定居点
 						case 2:
 							build_city0(val[2],msg.message.starter);
+							break;
 					}
 					break;
 				//结束回合
@@ -136,15 +137,16 @@ function build_city0(point_id,player_index){
 	//检查该点附近是否有港口
 	for(var harbor_index in map_info.harbors){
 		var harbor=map_info.harbors[harbor_index];
-		var about_points=plc_round_edges(harbor.place_id,dir_reflection[harbor.direct]);
+		var about_points=edge_round_points(plc_round_edges(harbor.place_id,dir_reflection[harbor.direct]));
 		if(about_points.indexOf(point_id)==-1){continue;}
 		//添加交易能力
 		ex_type=harbor.ex_type;
 	}
 	game_info.cities[point_id]=new City(player_index,ex_type);
+	his_window.push(game_info.player_list[player_index][1]+" 建立了一个新定居点");
 	//此处可以添加动画
 	//建立新定居点(更新画面)
-	add_road(edge_id);
+	add_city(point_id);
 }
 //--------------------------------------------------------
 // 新的回合
@@ -172,6 +174,10 @@ function new_turn()
 	//清空骰子值
 	game_info.dice_num=[0,0];
 	game_info.play_turns++;
+	//debug模式下,核心角色移交
+	if(debug){
+		user_index=game_info.step_list[game_info.step_index];
+	}
 	//动画：回合指示轮盘跳转
 	turn_rounds();
 	//添加消息
