@@ -52,6 +52,8 @@ function update_static_Graphic(){
 //--------------------------------------------------------
 function clear_selectors(){
 	//alert("?");
+	//清除块选择器
+	$("plc_selector").attr("tip","").removeClass("active selector_avaliable selector_selected selector_disabled selector_displaying").hide();
 	//清除边选择器
 	$("edge_selector").attr("tip","").removeClass("active selector_avaliable selector_selected selector_disabled selector_displaying").hide();
 	//清除边选择器
@@ -154,7 +156,7 @@ function load_map(){
 		$("#places").append("<img class='plc' id='"+place_id+"' src='/media/img/hexagon.png'/>");
 		plc=$(".plc").filter("#"+place_id);
 		//放置图块选择器
-		plc.after("<div class='plc_selector' id='"+place_id+"'></div>");
+		plc.after("<plc_selector id='"+place_id+"'></plc_selector>");
 		//放置背景图
 		plc.after("<img class='backpic' id='"+place_id+"' src='/media/img/"+order[place.create_type]+".png'/>");
 		//放置数字图
@@ -163,7 +165,7 @@ function load_map(){
 		}
 		//调整位置
 		plc.css({"left":x+"px","top":y+"px","z-index":"500"});
-		$(".plc_selector").filter("#"+place_id).css({"left":x+"px","top":y+"px","z-index":"2000"});
+		$("plc_selector").filter("#"+place_id).css({"left":x+"px","top":y+"px","z-index":"2000"});
 		$(".backpic").filter("#"+place_id).css({"left":x+"px","top":y+"px","z-index":"200"});
 		$(".numpic").filter("#"+place_id).css({"left":x+"px","top":y+"px","z-index":"300"});
 
@@ -442,6 +444,9 @@ function add_city(point_id){
 			break;
 	}
 	city=cities[point_id];
+	if(city.level==1){
+		dx-=10;
+	}
 	$("#cities").append("<img class='city' id='"+point_id+"' src='/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png'/>");
 	//调整位置
 	$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"800"})

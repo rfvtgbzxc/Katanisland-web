@@ -31,24 +31,12 @@
 	opacity:1;
 }
 /*地块选择器*/
-.plc_selector
+plc_selector
 {
 	position: absolute;
     width: 139px; height: 120px;
     shape-outside: polygon(35px 0, 105px 0px, 139px 60px, 105px 120px, 35px 120px, 0 60px);
     clip-path: polygon(35px 0, 105px 0px, 139px 60px, 105px 120px, 35px 120px, 0 60px);
-}
-.plc_selected
-{
-	background-color: currentColor;
-	opacity:0.5;
-    color: yellow;
-}
-.plc_cnt_select
-{
-	background-color: currentColor;
-	opacity:0.5;
-    color: red;
 }
 /*边选择器，顺序：左上，上，右上*/
 edge_selector
@@ -547,11 +535,22 @@ his_text_window
 	overflow-y:scroll;
 	top:15px;	
 }
+img#his_latest_button{
+	position:absolute;
+	cursor:pointer;
+	height:13px;
+	width:13px;
+	right:0;
+	top:0;
+}
 his_text
 {
-	position:absolute;
-	top:0px;	
+	position:absolute;	
 	background:white;
+}
+his_text.latest
+{
+	bottom:0;
 }
 step_list
 {
