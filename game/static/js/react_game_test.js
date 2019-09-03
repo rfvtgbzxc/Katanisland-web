@@ -393,6 +393,12 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	// UI：最长道路详细信息
 	//--------------------------------------------------------
+	//测试用,刷新最长道路
+	$("#players").on("click","longest_road",
+	    function(event){
+	    	game_info.players[user_index].road_longest=cal_longest_road(user_index);
+	    }
+	);
 	$("#players").on("mouseenter","longest_road",
 	    function(event){
 	    	$("info_window").css({
