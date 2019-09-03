@@ -113,6 +113,50 @@ $(document).ready(function(){
 		alert("地块id："+place_id+"\n"+"产出数字："+place.create_num+"\n"+"产出类型："+order[place.create_type]);
 	})*/
 	//--------------------------------------------------------
+	// DEBUG-UI：激活所有选择器
+	//--------------------------------------------------------
+	$("#debug_show_selectors").click(function(){
+		if($(this).attr("on")=="off")
+		{
+			$(this).attr("on","on");
+			$("plc_selector").addClass("active selector_avaliable").show();
+			$("edge_selector").addClass("active selector_avaliable").show();
+			$("pt_selector").addClass("active selector_avaliable").show();
+		}
+		else
+		{
+			$(this).attr("on","off");
+			$("plc_selector").removeClass("active selector_avaliable").hide();
+			$("edge_selector").removeClass("active selector_avaliable").hide();
+			$("pt_selector").removeClass("active selector_avaliable").hide();
+		}		
+	});
+	//--------------------------------------------------------
+	// DEBUG-UI：显示数字
+	//--------------------------------------------------------
+	$("#debug_show_ids").click(function(){
+		if($(this).attr("on")=="off")
+		{
+			$(this).attr("on","on");
+			$("plc_selector").each(function(){
+				$(this).attr("tip",$(this).attr("id"));
+			});
+			$("edge_selector").each(function(){
+				$(this).attr("tip",$(this).attr("id"));
+			});
+			$("pt_selector").each(function(){
+				$(this).attr("tip",$(this).attr("id"));
+			});
+		}
+		else
+		{
+			$(this).attr("on","off");
+			$("plc_selector").text("");
+			$("edge_selector").text("");
+			$("pt_selector").text("");
+		}		
+	});
+	//--------------------------------------------------------
 	// UI：确认窗口
 	//--------------------------------------------------------
 	$("#confirm_action").click(function(){
@@ -393,12 +437,6 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	// UI：最长道路详细信息
 	//--------------------------------------------------------
-	//测试用,刷新最长道路
-	$("#players").on("click","longest_road",
-	    function(event){
-	    	game_info.players[user_index].road_longest=cal_longest_road(user_index);
-	    }
-	);
 	$("#players").on("mouseenter","longest_road",
 	    function(event){
 	    	$("info_window").css({
@@ -658,7 +696,7 @@ function all_roads(player_index){
 	var roads=[];
 	for(var road_id in game_info.roads){
 		if(game_info.roads[road_id].owner==player_index){
-			roads.push(road_id);
+			roads.push(parseInt(road_id));
 		}
 	}
 	return roads;

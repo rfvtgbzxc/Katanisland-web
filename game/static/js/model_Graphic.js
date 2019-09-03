@@ -21,6 +21,8 @@ function update_static_Graphic(){
 			$("actions0").hide();		
 		}
 		$("actions0").children().not(".fst_action").hide();
+		$("actions0").children().children().removeClass("disabled active");
+		$("actions1").children().hide();
 		//刷新回合数
 		$("#rounds").text(('00'+game_info.play_turns).slice(-2));
 	}
@@ -39,11 +41,17 @@ function update_static_Graphic(){
 	}
 	//刷新全玩家状态卡
 	$("player").each(function(){
-		var player_id=$(this).attr("id")
-		var player=game_info.players[player_id];
+		var player_index=$(this).attr("id")
+		var player=game_info.players[player_index];
 		var attrs=$(this).children();
 		attrs.filter("src_state").text(""+all_src_num(player));
-		attrs.filter("vp_state").text(""+vp_num(player_id));	
+		attrs.filter("vp_state").text(""+vp_num(player_index));
+		if(game_info.longest_road==player_index){
+			attrs.filter("longest_road").addClass("active");
+		}
+		else{
+			attrs.filter("longest_road").removeClass("active");
+		}	
 	});
 
 }

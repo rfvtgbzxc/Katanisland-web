@@ -564,6 +564,7 @@ info_window{
 	position: absolute;
 	z-index:5000;
 	background: white;
+	font-size:10px;
 	-webkit-user-select:none;
 
      -moz-user-select:none;
@@ -585,7 +586,7 @@ confirm_content
 	position:absolute;
 	height:150px;
 	width:200px;
-	top:calc(50% - 75px);
+	top:calc(30% - 75px);
 	left:calc(50% - 100px);
 	background:red;
 }

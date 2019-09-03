@@ -1,29 +1,19 @@
 //用于处理地图的点、边、块的抽象关系的模块。
 //--------------------------------------------------------
 // 计算最长道路
-// 算法：dfs搜索以任一条边为起点的最长边，再以最长边的末端为起点搜索最长边。
+// 算法：dfs搜索以每条边为起点的最长路径,再在里面选最长。
 //--------------------------------------------------------
 function cal_longest_road(player_index){
 	var roads=all_roads(player_index);
-	visited=[];
 	var pathes=[];
 	//第一遍
 	for(road_index in roads){
 		var road_id=roads[road_index];
-		if(visited.indexOf(road_id)==-1){
-			visited.push(road_id);
-			var path=[road_id];
-			path=dp_search_road(path,player_index);
-			pathes.push(path.concat());
-		}
+		var path=[road_id];
+		//his_window.push("初始搜索"+road_id)
+		path=dp_search_road(path,player_index);
+		pathes.push(path.concat());
 	}
-	//第二遍
-	for(var path_index in pathes){
-		var path=pathes[path_index];
-		pathes[path_index]=dp_search_road([path[path.length-1]],player_index);
-	}
-	//alert(pathes)
-	//查看最长路
 	var max_index=0;
 	var max_length=0;
 	for(var path_index in pathes){
@@ -32,13 +22,13 @@ function cal_longest_road(player_index){
 			max_index=path_index;
 		}
 	}
+	//his_window.push("-------搜索结束---------")
 	if(pathes[max_index]==null){
 		return [];
 	}
 	else{
 		return pathes[max_index];
 	}
-
 }
 //--------------------------------------------------------
 // 深度搜索
@@ -52,29 +42,34 @@ function dp_search_road(path_now,player_index,from_pt=null){
 	var pathes=[];
 	var ever_searched=false;
 	//不记录被其他玩家占据的节点以及来路的交点
-	for(point_id in edges_round){
+	//his_window.push("---新的搜索,目前路径："+JSON.stringify(path_now)+"---");
+	//his_window.push("边"+edge_now+"有以下两个点：");
+	for(var point_id in edges_round){
 		if(game_info.cities.hasOwnProperty(point_id)){
 			if(game_info.cities[point_id].owner!=player_index){
+				//his_window.push("点"+point_id+"被放弃,因为被占据");
 				continue;
 			}
 		}
 		if(point_id==from_pt){
+			//his_window.push("点"+point_id+"被放弃,因为从这里来");
 			continue;
 		}
 		//除已经过的边,进行深度搜索
 		var edges_next=edges_round[point_id];
+		//his_window.push("点"+point_id+"有以下可用边：");
 		for(edge_index in edges_next){
 			var edge_id=edges_next[edge_index];
 			if(path_now.indexOf(edge_id)==-1){
 				ever_searched=true;
-				visited.push(edge_id);
-				alert("从"+point_id+"节点向"+edge_id+"搜索")
+				//his_window.push("从"+point_id+"节点向"+edge_id+"搜索")
 				pathes.push(dp_search_road(path_now.concat(edge_id),player_index,point_id));
 			}
 		}
 	}
 	//已没有可以探寻的边,则返回当前的道路
 	if(ever_searched==false){
+		//his_window.push("没有可以走的道路,返回")
 		return path_now;
 	}
 	//从遍历的道路中选择最长的一条返回

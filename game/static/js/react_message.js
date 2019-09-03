@@ -58,7 +58,7 @@ function handle_msg(msg){
 	//然后由房主更新game_info
 	//暂不设计
 	//再然后检查胜利条件
-	//暂不设计
+	update_vp_infos();
 	//最后更新画面，先设计为全局更新，以后如果画面刷新量过大考虑重构
 	update_static_Graphic();
 
@@ -185,7 +185,36 @@ function new_turn()
 	his_window.push("第 "+game_info.play_turns+" 回合,轮到 "+game_info.player_list[game_info.step_list[game_info.step_index]][1]+" 行动");
 	//emmm好像没什么要做的了= =||
 }
-
+//--------------------------------------------------------
+// 检查胜利条件
+//--------------------------------------------------------
+function update_vp_infos(){
+	//检查最长道路
+	//首次在if代码块内定义后面使用的变量= =
+	if(game_info.longest_road==0){
+		var max_length=4;
+	}
+	else
+	{
+		var max_length=game_info.players[game_info.longest_road].road_longest.length;
+	}
+	for(var player_index in game_info.player_list){
+		var player=game_info.players[player_index]
+		player.road_longest=cal_longest_road(player_index);
+		if(player.road_longest.length>max_length)
+		{
+			if(game_info.longest_road==0){
+				his_window.push(game_info.player_list[player_index][1]+" 首次成为 最长道路 的修建者！");
+			}
+			else if(game_info.longest_road==player_index){}
+			else
+			{
+				his_window.push(game_info.player_list[player_index][1]+" 取代 "+game_info.player_list[game_info.longest_road][1]+" 成为 最长道路 的修建者！");
+			}
+			game_info.longest_road=player_index;
+		}
+	}
+}
 //--------------------------------------------------------
 // 数据构造函数
 //--------------------------------------------------------

@@ -24,7 +24,7 @@
 <body>
 	<span id="load_game" style="cursor:pointer;display: inline;z-index:100;">生成随机地图</span>
 	<span >随机数种：<span id="seed_id"></span><span id="debuging"> debug</span></span>
-	<div id="plc_info"></div>
+	<div></div>
 	<!--地图模块-->
 	<map>
 		<!--六边形层-->
@@ -67,8 +67,8 @@
 		<img src="/media/img/icon_5.png" width="25px"><span class="src_ore">0</span>
 	</source_list>
 	<!--骰子-->
-	<dice dice_id="0" style="left:10px;"></dice>
-	<dice dice_id="1" style="left:63px;"></dice>
+	<dice dice_id="0" style="left:10px;"><span id="debug_show_selectors" on="off">打开选择器</span><span id="debug_show_ids" on="off">显示元素id</span></dice>
+	<dice dice_id="1" style="left:63px;"><div id="plc_info"></div></dice>
 	<!--0级菜单：投掷、建设、交易、发展-->
 	<actions0>		
 		<div class="fst_action list-group">
