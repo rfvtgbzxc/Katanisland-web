@@ -401,6 +401,13 @@ $(document).ready(function(){
 		$(this).addClass("active");
 	});
 	//--------------------------------------------------------
+	// UI：建设新城市
+	// 层级：1  值：3
+	//--------------------------------------------------------
+	$("#action_build_city1").click(function(){
+		
+	});
+	//--------------------------------------------------------
 	// UI：结束回合
 	// 层级：0  值：1
 	//--------------------------------------------------------
@@ -640,19 +647,24 @@ function all_dev_num(player){
 	return player.soldier_num+player.plenty_num+player.monopoly_num+player.road_maker_num+player.score_unshown.length;
 }
 //--------------------------------------------------------
-// 获取所有城市的数量
-// lv:城市的等级
+// 获取所有城市(的数量)
+// lv:城市的等级 type:返回数量或数组
 //--------------------------------------------------------
-function city_num(player,lv){
+function city_num(player,lv,type="count"){
 	var own_cities=player.own_cities;
 	var all_cities=game_info.cities;
-	count=0;
+	var cities=[]
 	for(i in own_cities){
 		if(all_cities[own_cities[i]].level==lv){
-			count+=1;
+			cities.push(own_cities[i]);
 		}
 	}
-	return count;
+	if(type=="count"){
+		return cities.length;
+	}
+	if(type=="all"){
+		return cities;
+	}
 }
 //--------------------------------------------------------
 // 获取玩家胜利点数

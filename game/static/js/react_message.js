@@ -143,6 +143,7 @@ function build_city0(point_id,player_index){
 		ex_type=harbor.ex_type;
 	}
 	game_info.cities[point_id]=new City(player_index,ex_type);
+	game_info.players[player_index].own_cities.push(point_id);
 	his_window.push(game_info.player_list[player_index][1]+" 建立了一个新定居点");
 	//此处可以添加动画
 	//建立新定居点(更新画面)
@@ -190,29 +191,29 @@ function new_turn()
 //--------------------------------------------------------
 function update_vp_infos(){
 	//检查最长道路
-	//首次在if代码块内定义后面使用的变量= =
-	if(game_info.longest_road==0){
-		var max_length=4;
-	}
-	else
-	{
-		var max_length=game_info.players[game_info.longest_road].road_longest.length;
-	}
+    var max_length=0;
 	for(var player_index in game_info.player_list){
 		var player=game_info.players[player_index]
 		player.road_longest=cal_longest_road(player_index);
-		if(player.road_longest.length>max_length)
-		{
-			if(game_info.longest_road==0){
-				his_window.push(game_info.player_list[player_index][1]+" 首次成为 最长道路 的修建者！");
-			}
-			else if(game_info.longest_road==player_index){}
-			else
-			{
-				his_window.push(game_info.player_list[player_index][1]+" 取代 "+game_info.player_list[game_info.longest_road][1]+" 成为 最长道路 的修建者！");
-			}
-			game_info.longest_road=player_index;
+		max_length=Math.max(player.road_longest.length,max_length);
+	}
+	if(max_length<5){max_length=5;}
+	if(game_info.longest_road!=0 && game_info.players[game_info.longest_road].road_longest.length<max_length){		
+		his_window.push(game_info.player_list[game_info.longest_road][1]+" 不再是 最长道路 的修建者。");
+		game_info.longest_road=0;
+	}
+	var max_list=[];
+	for(var player_index in game_info.player_list){
+		var player=game_info.players[player_index]
+		if(player.road_longest.length==max_length){
+			max_list.push(player_index);
 		}
+	}
+	if(max_list.length==1){
+		if(game_info.longest_road==0){
+			his_window.push(game_info.player_list[max_list[0]][1]+"成为 最长道路 的修建者！");
+			game_info.longest_road=max_list[0];
+		}		
 	}
 }
 //--------------------------------------------------------
