@@ -58,7 +58,10 @@ function update_static_Graphic(){
 		var city=game_info.cities[$(this).attr("id")];
 		$(this).attr("src","/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png");
 	});
-
+	//最后如果是自己的回合,关闭等待窗口
+	if(user_index==game_info.step_list[game_info.step_index]){
+		$("wait_window").hide();
+	}	
 }
 //--------------------------------------------------------
 // 清除选择器

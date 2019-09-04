@@ -596,3 +596,28 @@ confirm_action{
 	width:130px;
 	left:45px;
 }
+wait_window
+{
+	position:fixed;
+	height:100%;
+	width:100%;
+	/*与确认窗口相同的优先级*/
+	z-index:6000;
+}
+wait_info_back
+{
+	position:absolute;
+	height:44px;
+	width:199px;
+	top:10%;
+	left:calc(50% - 100px);
+	background:url(/media/img/window_wait_back.png);
+	display: flex;
+    justify-content: center;
+    align-items: center;
+}
+wait_info{
+	
+	font-size:20px;
+	color:black;
+}

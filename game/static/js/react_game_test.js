@@ -162,6 +162,8 @@ $(document).ready(function(){
 	$("#confirm_action").click(function(){
 		//关闭窗口
 		$("confirm_window").hide();
+		//打开等待窗口
+		$("wait_window").show();
 		//alert("?");
 		//发送消息
 		switch(game_temp.action_now){
@@ -307,6 +309,8 @@ $(document).ready(function(){
 	// 层级：0  值：0
 	//--------------------------------------------------------
 	$("#action_dice").click(function(){
+		//打开等待窗口
+		$("wait_window").show();
 		//发送消息
 		ws.sendmsg("mes_action",{"val":[0,0]});
 	});

@@ -7,7 +7,7 @@
 	<script type="text/javascript" src="http://cdn.repository.webfont.com/wwwroot/js/wf/youziku.api.min.js"></script>
 	<script type="text/javascript">
 	   //动态字库api
-	   $webfont.load("button,player,#rounds", "e316d772ba7d483780f759e6b4364146", "hdjxyt");
+	   $webfont.load("wait_info,button,player,#rounds", "e316d772ba7d483780f759e6b4364146", "hdjxyt");
 	   $webfont.draw();
 	</script>
 	<script type="text/javascript" src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
@@ -47,6 +47,10 @@
 		</div>
 	</map>
 	<!--非地图UI模块-->
+	<!--等待界面-->
+	<wait_window style="display:none;">
+		<wait_info_back><wait_info>等待消息中···</wait_info></wait_info_back>	
+	</wait_window>
 	<!--确认窗口-->
 	<confirm_window>
 		<confirm_back></confirm_back>
