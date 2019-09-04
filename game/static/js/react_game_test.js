@@ -171,6 +171,9 @@ $(document).ready(function(){
 			case "action_build_city0":
 				ws.sendmsg("mes_action",{"starter":user_index,"val":[1,2,game_temp.selected_point]});
 				break;
+			case "action_build_city1":
+				ws.sendmsg("mes_action",{"starter":user_index,"val":[1,3,game_temp.selected_point]});
+				break;
 		}
 	});
 	$("#cancel_action").click(function(){
@@ -280,7 +283,12 @@ $(document).ready(function(){
 	    	game_temp.selected_point=parseInt($(this).attr("id"));
 	    	//打开确认窗口
 	    	confirm_window.clear();
-	    	confirm_window.set("要在此处建立定居点吗?");
+	    	if(game_temp.action_now=="action_build_city0"){
+	    		confirm_window.set("要在此处建立定居点吗?");
+	    	}
+	    	else if(game_temp.action_now=="action_build_city1"){
+	    		confirm_window.set("要将该定居点升级成城市吗?");
+	    	}	
 	    	$(this).addClass("selector_selected"); 
 	    	confirm_window.show();
 	    }
@@ -405,7 +413,34 @@ $(document).ready(function(){
 	// 层级：1  值：3
 	//--------------------------------------------------------
 	$("#action_build_city1").click(function(){
-		
+		//清除选择器
+		clear_selectors();
+		//如果处于已激活状态则取消激活
+		if($(this).hasClass("active")){
+			$(this).removeClass("active");
+			return;
+		}
+		//取消激活其他的0级选项
+		$("actions1").children().removeClass("active");
+		//当前行动记为"action_build_city1"
+		game_temp.action_now="action_build_city1";
+		//资源消耗提示
+		var player=game_info.players[user_index];
+		//激活点选择器,只激活可以升级的地方
+		var points=city_num(player,0,"all");
+		for(var i in points){
+			var selector=$("pt_selector").filter("#"+points[i])
+			selector.addClass("active").show();
+			//资源不足则改变样式
+			if(player.grain_num<2 || player.ore_num<3){
+				selector.attr("tip","资源不足").addClass("selector_disabled");
+			}
+			else{
+				selector.addClass("selector_avaliable");
+			}
+		}
+		//激活自己
+		$(this).addClass("active");
 	});
 	//--------------------------------------------------------
 	// UI：结束回合
@@ -653,12 +688,13 @@ function all_dev_num(player){
 function city_num(player,lv,type="count"){
 	var own_cities=player.own_cities;
 	var all_cities=game_info.cities;
-	var cities=[]
-	for(i in own_cities){
+	var cities=[];
+	for(var i in own_cities){
 		if(all_cities[own_cities[i]].level==lv){
 			cities.push(own_cities[i]);
 		}
 	}
+	//alert(cities);
 	if(type=="count"){
 		return cities.length;
 	}

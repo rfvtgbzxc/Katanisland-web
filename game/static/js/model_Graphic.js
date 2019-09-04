@@ -53,6 +53,11 @@ function update_static_Graphic(){
 			attrs.filter("longest_road").removeClass("active");
 		}	
 	});
+	//城市形象更新
+	$(".city").each(function(){
+		var city=game_info.cities[$(this).attr("id")];
+		$(this).attr("src","/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png");
+	});
 
 }
 //--------------------------------------------------------

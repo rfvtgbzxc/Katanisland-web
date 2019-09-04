@@ -148,7 +148,7 @@ function avaliable_points(player_index){
 	//删除自己或周围有其他城市的点
 	var i=0;
 	while(i<avaliable_points_all.length){
-		//alert("1");
+		//his_window.push(JSON.stringify(avaliable_points_all));
 		var can_settle=true;
 		if(game_info.cities.hasOwnProperty(avaliable_points_all[i])){
 			avaliable_points_all.splice(i,1);
@@ -158,7 +158,6 @@ function avaliable_points(player_index){
 		for(var j in near_pts){
 			if(game_info.cities.hasOwnProperty(near_pts[j])){
 				avaliable_points_all.splice(i,1);
-				//alert(avaliable_points_all)
 				can_settle=false;
 				break;
 			}
@@ -232,6 +231,10 @@ function plc_near_places(place_id,dir=[0,1,2,3,4,5]){
 		}
 	}
 	//删除不存在的地块
+	//因为代码的特殊性,即使不存在的地块也可以调用,逻辑为单地块则不删除
+	if(is_single){
+		return places[0];
+	}
 	var i=0;
 	while(i<places.length){
 		if(map_info.places.hasOwnProperty(places[i])==false){
@@ -240,13 +243,7 @@ function plc_near_places(place_id,dir=[0,1,2,3,4,5]){
 		}
 		i++;			
 	}
-	if(is_single){
-		return places[0];
-	}
-	else
-	{
-		return places;
-	}
+	return places;
 }
 //--------------------------------------------------------
 // 获取地块对应方向的边id
@@ -530,6 +527,7 @@ function edge_round_points(edge_id){
 		case 2:
 			points=[2*place_id+1,2*plc_near_places(place_id,2)];
 	}
+	//his_window.push("边"+edge_id+"周围的点id："+JSON.stringify(points));
 	//删除不存在的点
 	var i=0;
 	while(i<points.length){

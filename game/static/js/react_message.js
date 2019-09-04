@@ -46,6 +46,10 @@ function handle_msg(msg){
 						case 2:
 							build_city0(val[2],msg.message.starter);
 							break;
+						//建设新城市
+						case 3:
+							build_city1(val[2],msg.message.starter);
+							break;
 					}
 					break;
 				//结束回合
@@ -148,6 +152,18 @@ function build_city0(point_id,player_index){
 	//此处可以添加动画
 	//建立新定居点(更新画面)
 	add_city(point_id);
+}
+//--------------------------------------------------------
+// 建设新城市
+//--------------------------------------------------------
+function build_city1(point_id,player_index){
+	var player=game_info.players[player_index];
+	//扣除资源
+	player.grain_num-=2;
+	player.ore_num-=3;
+	//升级城市(更新game_info)
+	game_info.cities[point_id].level=1;
+	his_window.push(game_info.player_list[player_index][1]+" 建成了一座新城市");
 }
 //--------------------------------------------------------
 // 新的回合
