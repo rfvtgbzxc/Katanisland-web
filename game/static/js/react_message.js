@@ -1,6 +1,8 @@
 //用于处理websocket发送过来的消息
 //只属于ws的封装函数
 ws.sendmsg=function(typ,mes){
+	//打开等待窗口
+	$("wait_window").show();
 	var evt={type:typ,message:mes};
 	//debug模式下不会发送到channels
 	if(debug){
@@ -50,6 +52,9 @@ function handle_msg(msg){
 						case 3:
 							build_city1(val[2],msg.message.starter);
 							break;
+						//抽取发展卡
+						case 4 :
+							extract_dev_card(val[3],msg.message.starter);
 					}
 					break;
 				//结束回合
@@ -163,6 +168,68 @@ function build_city1(point_id,player_index){
 	//升级城市(更新game_info)
 	game_info.cities[point_id].level=1;
 	his_window.push(game_info.player_list[player_index][1]+" 建成了一座新城市");
+}
+//--------------------------------------------------------
+// 抽取发展卡
+//--------------------------------------------------------
+function extract_dev_card(randomint,player_index){
+	var cards=game_info.cards;
+	var player=game_info.players[player_index];
+	his_window.push(game_info.player_list[player_index][1]+" 抽取了一张发展卡");
+	//根据随机数判断发展卡的类型
+	if(randomint<cards.soldier_num){
+		if(user_index==player_index){
+			his_window.push("(你获得了士兵卡)");
+		}
+		//获得士兵卡
+		cards.soldier_num--;
+		player.soldier_num++;
+		player.soldier_get_before++;
+		return;
+	}
+	randomint-=cards.soldier_num;
+	if(randomint<cards.plenty_num){
+		if(user_index==player_index){
+			his_window.push("(你获得了丰收卡)");
+		}
+		//获得丰收卡
+		cards.plenty_num--;
+		player.plenty_num++;
+		player.plenty_get_before++;
+		return;
+	}
+	randomint-=cards.plenty_num;
+	if(randomint<cards.monopoly_num){
+		if(user_index==player_index){
+			his_window.push("(你获得了垄断卡)");
+		}
+		//获得垄断卡
+		cards.monopoly_num--;
+		player.monopoly_num++;
+		player.monopoly_get_before++;
+		return;
+	}
+	randomint-=cards.monopoly_num;
+	if(randomint<cards.road_maker_num){
+		if(user_index==player_index){
+			his_window.push("(你获得了修路卡)");
+		}
+		//获得修路卡
+		cards.road_maker_num--;
+		player.road_maker_num++;
+		player.road_maker_get_before++;
+		return;
+	}
+	randomint-=cards.road_maker_num;
+	if(randomint<cards.score_cards.length){
+		if(user_index==player_index){
+			his_window.push("(你获得了分数卡:"+cards.score_cards[randomint]+")");
+		}
+		//获得分数卡
+		player.score_unshown.push(cards.score_cards[randomint]);
+		cards.score_cards.splice(randomint,1);	
+		return;
+	}
 }
 //--------------------------------------------------------
 // 新的回合

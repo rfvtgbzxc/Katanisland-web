@@ -46,6 +46,7 @@ function update_static_Graphic(){
 		var attrs=$(this).children();
 		attrs.filter("src_state").text(""+all_src_num(player));
 		attrs.filter("vp_state").text(""+vp_num(player_index));
+		attrs.filter("dev_state").text(""+all_dev_num(player))
 		if(game_info.longest_road==player_index){
 			attrs.filter("longest_road").addClass("active");
 		}
@@ -53,13 +54,19 @@ function update_static_Graphic(){
 			attrs.filter("longest_road").removeClass("active");
 		}	
 	});
+	//刷新选项中的发展卡数量
+	$("#action_use_dev_soldier").children().filter(".dev_num").text(""+self_player.soldier_num);
+	$("#action_use_dev_plenty").children().filter(".dev_num").text(""+self_player.plenty_num);
+	$("#action_use_dev_monopoly").children().filter(".dev_num").text(""+self_player.monopoly_num);
+	$("#action_use_dev_road_making").children().filter(".dev_num").text(""+self_player.road_maker_num);
+	$("#action_show_score_cards").children().filter(".dev_num").text(""+self_player.score_unshown.length);
 	//城市形象更新
 	$(".city").each(function(){
 		var city=game_info.cities[$(this).attr("id")];
 		$(this).attr("src","/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png");
 	});
 	//最后如果是自己的回合,关闭等待窗口
-	if(user_index==game_info.step_list[game_info.step_index]){
+	if(user_index==game_info.step_list[game_info.step_index] || debug){
 		$("wait_window").hide();
 	}	
 }
@@ -465,5 +472,5 @@ function add_city(point_id){
 	}
 	$("#cities").append("<img class='city' id='"+point_id+"' src='/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png'/>");
 	//调整位置
-	$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"800"})
+	$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"800"});
 }

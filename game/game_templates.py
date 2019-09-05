@@ -88,6 +88,10 @@ test_game_info={
 			"plenty_num": 0,
 			"monopoly_num": 0,
 			"road_maker_num": 0,
+			"soldier_get_before": 0,
+			"plenty_get_before": 0,
+			"monopoly_get_before": 0,
+			"road_maker_get_before":0,
 			"road_longest": [42],
 			"own_cities": [28, 44]
 		},
@@ -105,6 +109,10 @@ test_game_info={
 			"plenty_num": 0,
 			"monopoly_num": 0,
 			"road_maker_num": 0,
+			"soldier_get_before": 0,
+			"plenty_get_before": 0,
+			"monopoly_get_before": 0,
+			"road_maker_get_before":0,
 			"road_longest": [79,78],
 			"own_cities": [53, 54]
 		}

@@ -58,8 +58,8 @@ order_ch={
 		6:"任意"
 };
 color_reflection={
-	1:"light-blue",
-	2:"dark-green"
+	1:"light-purple",
+	2:"light-red"
 }
 color_reflection_hex={
 	"light-blue":"#029ed9",
@@ -112,6 +112,10 @@ $(document).ready(function(){
 		var place=places[place_id];
 		alert("地块id："+place_id+"\n"+"产出数字："+place.create_num+"\n"+"产出类型："+order[place.create_type]);
 	})*/
+
+	$(".dev_num").click(function(){
+		alert("tst");
+	});
 	//--------------------------------------------------------
 	// DEBUG-UI：激活所有选择器
 	//--------------------------------------------------------
@@ -162,8 +166,6 @@ $(document).ready(function(){
 	$("#confirm_action").click(function(){
 		//关闭窗口
 		$("confirm_window").hide();
-		//打开等待窗口
-		$("wait_window").show();
 		//alert("?");
 		//发送消息
 		switch(game_temp.action_now){
@@ -175,6 +177,16 @@ $(document).ready(function(){
 				break;
 			case "action_build_city1":
 				ws.sendmsg("mes_action",{"starter":user_index,"val":[1,3,game_temp.selected_point]});
+				break;
+			case "action_buy_dev_card":
+				if(game_temp.bank_dev_cards==0){
+					his_window.push("发展卡已经被抽完了,需要等待其他玩家使用。");
+					break;
+				}
+				ws.sendmsg("mes_action",{"starter":user_index,"val":[1,4,0,game_temp.bank_dev_cards]});
+				break;
+			case false:
+				$("wait_window").hide();
 				break;
 		}
 	});
@@ -309,8 +321,6 @@ $(document).ready(function(){
 	// 层级：0  值：0
 	//--------------------------------------------------------
 	$("#action_dice").click(function(){
-		//打开等待窗口
-		$("wait_window").show();
 		//发送消息
 		ws.sendmsg("mes_action",{"val":[0,0]});
 	});
@@ -340,6 +350,34 @@ $(document).ready(function(){
 		$("#action_buy_dev_card").show();
 		//安置按钮组位置
 		$("actions1").css("top",$(this).position().top-3*25);
+	});
+	//--------------------------------------------------------
+	// UI：使用发展卡
+	// 层级：0  值：3
+	//--------------------------------------------------------
+	$("#action_develop").click(function(){
+		//清除选择器
+		clear_selectors();
+		//如果已处于激活状态则关闭
+		if($(this).hasClass("active"))
+		{
+			$("actions1").children().hide();
+			$(this).removeClass("active");
+			return;
+		}
+		//首先关闭其他可能的1级选项,取消其他可能的0级选项
+		$("actions1").children().removeClass("active").hide();
+		$("actions0").children().not("actions1").children().removeClass("active");
+		//激活自己
+		$(this).addClass("active");
+		//激活下一级窗口：五种发展卡
+		$("#action_use_dev_soldier").show();
+		$("#action_use_dev_plenty").show();
+		$("#action_use_dev_monopoly").show();
+		$("#action_use_dev_road_making").show();
+		$("#action_show_score_cards").show();
+		//安置按钮组位置
+		$("actions1").css("top",$(this).position().top-6*25);
 	});
 	//--------------------------------------------------------
 	// UI：建设道路
@@ -445,6 +483,34 @@ $(document).ready(function(){
 		}
 		//激活自己
 		$(this).addClass("active");
+	});
+	//--------------------------------------------------------
+	// UI：购买发展卡
+	// 层级：1  值：4
+	//--------------------------------------------------------
+	$("#action_buy_dev_card").click(function(){
+		//清除选择器
+		clear_selectors();
+		//如果处于已激活状态则取消激活
+		if($(this).hasClass("active")){
+			$(this).removeClass("active");
+			return;
+		}
+		//取消激活其他的0级选项
+		$("actions1").children().removeClass("active");
+		//如果资源不足,则提示后返回
+		var player=game_info.players[user_index];
+		if(player.wool_num==0 || player.grain_num==0 || player.ore_num==0){
+			game_temp.action_now=false;
+			confirm_window.set("资源不足！");
+			confirm_window.show();
+			return;
+		}
+		//当前行动记为"action_buy_dev_card"
+		game_temp.action_now="action_buy_dev_card";
+		game_temp.bank_dev_cards=game_info.cards.soldier_num+game_info.cards.plenty_num+game_info.cards.monopoly_num+game_info.cards.road_maker_num+game_info.cards.score_cards.length;
+		confirm_window.set("要抽取发展卡吗?");
+		confirm_window.show();
 	});
 	//--------------------------------------------------------
 	// UI：结束回合

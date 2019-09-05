@@ -179,6 +179,14 @@ cost.ore:after
 	background-size:cover;
 
 }
+.dev_num{
+	padding-left: 10px;
+}
+/*可以触发js事件的无效*/
+button.part_disabled
+{
+	color: grey;
+}
 /*骰子*/
 dice
 {
