@@ -39,6 +39,7 @@ load_process={
 	"map":false,
 	"game":false,
 };
+devs=["soldier","plenty","monopoly","road_making"];
 order={
 		0:"desert",
 		1:"brick",
@@ -214,6 +215,8 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	$("#places").on("mouseenter","plc_selector",
 	    function(){
+	    	var place_id=$(this).attr("id");
+	    	var place=map_info.places[place_id];
 			$("#plc_info").text("地块id："+place_id+"产出数字："+place.create_num+"产出类型："+order[place.create_type]);
 			if($(this).attr("tip")!=""){
 				$("info_window").empty();
@@ -370,14 +373,21 @@ $(document).ready(function(){
 		$("actions0").children().not("actions1").children().removeClass("active");
 		//激活自己
 		$(this).addClass("active");
-		//激活下一级窗口：五种发展卡
-		$("#action_use_dev_soldier").show();
-		$("#action_use_dev_plenty").show();
-		$("#action_use_dev_monopoly").show();
-		$("#action_use_dev_road_making").show();
-		$("#action_show_score_cards").show();
+		//如果有卡则激活下一级窗口：五种发展卡
+		var count=0;
+		var self_player=game_info.players[user_index];
+		for(var i=0;i<4;i++){
+			if(self_player[devs[i]+"_num"]>0){
+				count++;
+				$("#action_use_dev_"+devs[i]).show();
+				if(self_player[devs[i]+"_num"]<=self_player[devs[i]+"_get_before"]){
+					$("#action_use_dev_"+devs[i]).addClass("part_disabled");
+				}
+			}
+		}
+		//$("#action_show_score_cards").show();
 		//安置按钮组位置
-		$("actions1").css("top",$(this).position().top-6*25);
+		$("actions1").css("top",$(this).position().top-(count-1)*25);
 	});
 	//--------------------------------------------------------
 	// UI：建设道路
@@ -391,7 +401,7 @@ $(document).ready(function(){
 			$(this).removeClass("active");
 			return;
 		}
-		//取消激活其他的0级选项
+		//取消激活其他的1级选项
 		$("actions1").children().removeClass("active");
 		//当前行动记为"action_build_road"
 		game_temp.action_now="action_build_road";
@@ -508,10 +518,14 @@ $(document).ready(function(){
 		}
 		//当前行动记为"action_buy_dev_card"
 		game_temp.action_now="action_buy_dev_card";
-		game_temp.bank_dev_cards=game_info.cards.soldier_num+game_info.cards.plenty_num+game_info.cards.monopoly_num+game_info.cards.road_maker_num+game_info.cards.score_cards.length;
+		game_temp.bank_dev_cards=game_info.cards.soldier_num+game_info.cards.plenty_num+game_info.cards.monopoly_num+game_info.cards.road_making_num+game_info.cards.score_cards.length;
 		confirm_window.set("要抽取发展卡吗?");
 		confirm_window.show();
 	});
+	//--------------------------------------------------------
+	// UI：士兵卡
+	// 层级：1  值：4
+	//--------------------------------------------------------
 	//--------------------------------------------------------
 	// UI：结束回合
 	// 层级：0  值：1
@@ -749,7 +763,7 @@ function all_src_num(player){
 // 获取所有发展卡的数量
 //--------------------------------------------------------
 function all_dev_num(player){
-	return player.soldier_num+player.plenty_num+player.monopoly_num+player.road_maker_num+player.score_unshown.length;
+	return player.soldier_num+player.plenty_num+player.monopoly_num+player.road_making_num+player.score_unshown.length;
 }
 //--------------------------------------------------------
 // 获取所有城市(的数量)

@@ -90,6 +90,10 @@ function set_dice(num1,num2){
 	for(var place_id in places){
 		var place=places[place_id];
 		if(place.create_num==num_sum){
+			if(game_info.occupying==place_id){
+				his_window.push("地块被占据,无法产出");
+				continue;
+			}
 			//alert(order[place.create_type]+" "+place.create_num);
 			var points=plc_round_points(place_id);
 			//alert(points);
@@ -210,17 +214,17 @@ function extract_dev_card(randomint,player_index){
 		return;
 	}
 	randomint-=cards.monopoly_num;
-	if(randomint<cards.road_maker_num){
+	if(randomint<cards.road_making_num){
 		if(user_index==player_index){
 			his_window.push("(你获得了修路卡)");
 		}
 		//获得修路卡
-		cards.road_maker_num--;
-		player.road_maker_num++;
-		player.road_maker_get_before++;
+		cards.road_making_num--;
+		player.road_making_num++;
+		player.road_making_get_before++;
 		return;
 	}
-	randomint-=cards.road_maker_num;
+	randomint-=cards.road_making_num;
 	if(randomint<cards.score_cards.length){
 		if(user_index==player_index){
 			his_window.push("(你获得了分数卡:"+cards.score_cards[randomint]+")");
@@ -257,6 +261,13 @@ function new_turn()
 	//清空骰子值
 	game_info.dice_num=[0,0];
 	game_info.play_turns++;
+	//清空所有玩家的发展卡get_before限制(尽管对于某位玩家来说只需要清除自己的)
+	for(player_index in game_info.players){
+		var player=game_info.players[player_index];	
+		for(var i=0;i<4;i++){
+			player[devs[i]+"_get_before"]=0;
+		}
+	}	
 	//debug模式下,核心角色移交
 	if(debug){
 		user_index=game_info.step_list[game_info.step_index];

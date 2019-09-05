@@ -22,7 +22,7 @@ function update_static_Graphic(){
 		}
 		$("actions0").children().not(".fst_action").hide();
 		$("actions0").children().children().removeClass("disabled active");
-		$("actions1").children().hide();
+		$("actions1").children().removeClass("part_disabled").hide();
 		//刷新回合数
 		$("#rounds").text(('00'+game_info.play_turns).slice(-2));
 	}
@@ -58,13 +58,15 @@ function update_static_Graphic(){
 	$("#action_use_dev_soldier").children().filter(".dev_num").text(""+self_player.soldier_num);
 	$("#action_use_dev_plenty").children().filter(".dev_num").text(""+self_player.plenty_num);
 	$("#action_use_dev_monopoly").children().filter(".dev_num").text(""+self_player.monopoly_num);
-	$("#action_use_dev_road_making").children().filter(".dev_num").text(""+self_player.road_maker_num);
+	$("#action_use_dev_road_making").children().filter(".dev_num").text(""+self_player.road_making_num);
 	$("#action_show_score_cards").children().filter(".dev_num").text(""+self_player.score_unshown.length);
 	//城市形象更新
 	$(".city").each(function(){
 		var city=game_info.cities[$(this).attr("id")];
 		$(this).attr("src","/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png");
 	});
+	//强盗地点更新
+	set_robber(game_info.occupying);
 	//最后如果是自己的回合,关闭等待窗口
 	if(user_index==game_info.step_list[game_info.step_index] || debug){
 		$("wait_window").hide();
@@ -410,7 +412,20 @@ function load_game(){
 	//加载文字
 	$youziku.submit("playername_update");
 }
-
+//--------------------------------------------------------
+// 设置强盗
+//--------------------------------------------------------
+function set_robber(place_id){
+	if($("robber").children()!=null){
+		$("robber").append("<img src='/media/img/robber.png' style='position:absolute;'>");
+	}
+	var xi=parseInt(place_id/ysize);
+	var yi=place_id%ysize;
+	var place=places[place_id];
+	var x=Math.round(xi*edge_size*1.5)+45;
+	var y=Math.round(yi*edge_size*1.732+(xi%2)*0.5*1.732*edge_size)-30;
+	$("robber").children().css({"left":x,"top":y,"z-index":500});
+}
 //--------------------------------------------------------
 // 地图元素增添函数
 //--------------------------------------------------------

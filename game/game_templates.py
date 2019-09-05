@@ -57,7 +57,7 @@ t_map_setting={
 test_game_info={
 	"step_index": 0,
 	"game_process": 3,
-	"occupying": 20,
+	"occupying": 19,
 	"longest_road":0,
 	"max_minitory":0,
 	"play_turns": 3,
@@ -87,11 +87,11 @@ test_game_info={
 			"score_shown": [],
 			"plenty_num": 0,
 			"monopoly_num": 0,
-			"road_maker_num": 0,
+			"road_making_num": 0,
 			"soldier_get_before": 0,
 			"plenty_get_before": 0,
 			"monopoly_get_before": 0,
-			"road_maker_get_before":0,
+			"road_making_get_before":0,
 			"road_longest": [42],
 			"own_cities": [28, 44]
 		},
@@ -108,11 +108,11 @@ test_game_info={
 			"score_shown": [],
 			"plenty_num": 0,
 			"monopoly_num": 0,
-			"road_maker_num": 0,
+			"road_making_num": 0,
 			"soldier_get_before": 0,
 			"plenty_get_before": 0,
 			"monopoly_get_before": 0,
-			"road_maker_get_before":0,
+			"road_making_get_before":0,
 			"road_longest": [79,78],
 			"own_cities": [53, 54]
 		}
@@ -166,6 +166,6 @@ test_game_info={
 		"score_cards": ["阿尔忒弥斯神庙", "牛津大学", "巴拿马运河", "紫禁城", "圣米歇尔山"],
 		"plenty_num": 2,
 		"monopoly_num": 2,
-		"road_maker_num": 2
+		"road_making_num": 2
 	}
 }
