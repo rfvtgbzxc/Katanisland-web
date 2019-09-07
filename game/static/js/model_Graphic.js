@@ -8,6 +8,7 @@ function update_static_Graphic(){
 	$("dice").removeClass();
 	$("actions0").children().filter(".fst_action").children().removeClass("disabled active");
 	$("actions1").children().removeClass("active");
+	$("player").removeClass("player_select_avaliable player_selected");
 	//根据dice_num来判断目前是否已经投完骰子,以此对菜单UI的显示与否进行管理
 	//为0说明是新的回合,额外判断UI显示
 	if(game_info.dice_num[0]==0)
@@ -30,9 +31,16 @@ function update_static_Graphic(){
 	{
 		$("dice").each(function(){
 			$(this).addClass("num"+game_info.dice_num[$(this).attr("dice_id")]);
-		});
-		$("actions0").children().not(".fst_action").show();
+		});		
 		$("actions0").children().filter(".fst_action").children().addClass("disabled");
+		//如果是骰子掷出7,触发强盗设置UI,在此之前不能激活新的按钮
+		//备注,除debugmodel,只会有本地玩家会触发设置
+		if(game_temp.action_now="action_set_robber_for_7"){
+			start_robber_set();
+		}
+		else{
+			$("actions0").children().not(".fst_action").show();
+		}
 	}
 	//加载玩家自己所有资源的数字
 	var self_player=game_info.players[user_index];
@@ -88,6 +96,8 @@ function clear_selectors(){
 // 取消选择器
 //--------------------------------------------------------
 function cancel_selectors(){
+	//清除块选择器
+	$("plc_selector").removeClass("selector_selected");
 	//清除边选择器
 	$("edge_selector").removeClass("selector_selected");
 	//清除边选择器

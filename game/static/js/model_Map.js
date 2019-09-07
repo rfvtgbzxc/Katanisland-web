@@ -89,6 +89,19 @@ function dp_search_road(path_now,player_index,from_pt=null){
 	}
 }
 //--------------------------------------------------------
+// 获取玩家可设置强盗的地块
+//--------------------------------------------------------
+function avaliable_places(){
+	//只需要删除有强盗的地块即可
+	var places=[];
+	for(var place_id in map_info.places){
+		if(place_id!=game_info.occupying){
+			places.push(parseInt(place_id));
+		}
+	}
+	return places;
+}
+//--------------------------------------------------------
 // 获取玩家可修路的边
 //--------------------------------------------------------
 function avaliable_edges(player_index){

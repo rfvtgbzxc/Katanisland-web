@@ -186,10 +186,12 @@ $(document).ready(function(){
 				}
 				ws.sendmsg("mes_action",{"starter":user_index,"val":[1,4,0,game_temp.bank_dev_cards]});
 				break;
-			case false:
+			case "alert":
 				$("wait_window").hide();
 				break;
 		}
+		//临时消息清空
+		game_temp.action_now="";
 	});
 	$("#cancel_action").click(function(){
 		//关闭窗口
@@ -228,14 +230,35 @@ $(document).ready(function(){
 	$("#places").on("click","plc_selector",
 	    function(){
 	    	//无效的边无法确认
-	    	if($(this).hasClass("selector_disabled")){
+	    	if($(this).hasClass("selector_avaliable")==false){
 	    		return;
+	    	}   	
+	    	$(this).addClass("selector_selected");
+	    	confirm_window.clear(); 
+	    	//处于强盗设置时,再触发玩家选择
+	    	if(game_temp.action_now=="action_set_robber_for_7"){
+	    		var ever_find_city=false;
+	    		//获取地块附近的玩家
+	    		var points=plc_round_points($(this).attr("id"));
+	    		for(var i in points){
+	    			if(game_info.cities.hasOwnProperty(points[i])){
+	    				var city=game_info.cities[points[i]];
+	    				//激活非自己的玩家选框
+	    				if(user_index!=city.owner){
+	    					ever_find_city=true;
+	    					$("player").filter("#"+city.owner).addClass("player_select_avaliable");
+	    				}			
+	    			}
+	    		}
+	    		//如果附近没有可以掠夺的玩家,则设置确认内容
+	    		if(ever_find_city)
+	    		{
+	    			his_window.push("请选择要掠夺的玩家:");
+	    			$("plc_selector").not($(this)).removeClass("selector_avaliable");
+	    			return;
+	    		}
+	    		confirm_window.set("此处没有可以掠夺的城市,要将强盗放在这里吗?");
 	    	}
-	    	//game_temp.selected_edge=parseInt($(this).attr("id"));
-	    	//打开确认窗口
-	    	confirm_window.clear();
-	    	//confirm_window.set("要在此处建造道路吗?");
-	    	$(this).addClass("selector_selected"); 
 	    	confirm_window.show();
 	    }
 	);
@@ -511,7 +534,7 @@ $(document).ready(function(){
 		//如果资源不足,则提示后返回
 		var player=game_info.players[user_index];
 		if(player.wool_num==0 || player.grain_num==0 || player.ore_num==0){
-			game_temp.action_now=false;
+			game_temp.action_now="alert";
 			confirm_window.set("资源不足！");
 			confirm_window.show();
 			return;
@@ -743,6 +766,16 @@ function init_ui(){
 			$("actions0").children().filter(".fst_action").children().addClass("disabled");
 		}	
 	}	
+}
+//--------------------------------------------------------
+// 启动设置强盗
+//--------------------------------------------------------
+function start_robber_set(){
+	//准备可选择的地块
+	var places=avaliable_places();
+	for(var i in places){
+		$("plc_selector").filter("#"+places[i]).addClass("active selector_avaliable").show();
+	}
 }
 //--------------------------------------------------------
 // game_info对象函数

@@ -87,6 +87,17 @@ function set_dice(num1,num2){
 	var places=map_info.places;
 	//添加消息
 	his_window.push("掷出点数: "+ num_sum);
+	//七点,由掷出者设置强盗
+	if(num_sum==7){
+		if(game_info.step_list[game_info.step_index]!=user_index){
+			his_window.push("由"+game_info.player_list[game_info.step_list[game_info.step_index]][1]+"设置强盗:");
+		}
+		else{
+			his_window.push("由你设置强盗:");
+			//当前行动记为action_set_robber_for_7
+			game_temp.action_now="action_set_robber_for_7";
+		}
+	}
 	for(var place_id in places){
 		var place=places[place_id];
 		if(place.create_num==num_sum){

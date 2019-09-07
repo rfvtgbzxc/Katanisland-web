@@ -20,6 +20,10 @@
 	background-color: currentColor;
 	opacity:1;
 }
+.selector_selected:hover
+{
+	opacity:0.7;
+}
 .selector_disabled
 {
 	background-color: red;
@@ -295,6 +299,14 @@ player.self
 	width:274px;
 	height:205px;
 	font-size:20px;
+}
+player.player_select_avaliable
+{
+	border-left: 20px solid rgba(0,128,0,0.7);
+}
+player.player_select_avaliable:hover
+{
+	border-color: rgba(0,128,0,1);
 }
 playername
 {
