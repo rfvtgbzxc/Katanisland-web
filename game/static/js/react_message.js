@@ -57,9 +57,18 @@ function handle_msg(msg){
 							extract_dev_card(val[3],msg.message.starter);
 					}
 					break;
+				//发展
+				case 3:
+					switch(val[1]){
+						//士兵卡
+						case 1:
+							set_robber_info(val[2],msg.message.starter,val[3],val[5],true);
+							break;
+					}
+					break;
 				//设置强盗(因7)
 				case 4:
-				    set_robber_for_7(val[1],msg.message.starter,val[2],val[4]);
+				    set_robber_info(val[1],msg.message.starter,val[2],val[4]);
 					break;
 				//结束回合
 				case 6:
@@ -99,6 +108,8 @@ function set_dice(num1,num2){
 		else{
 			his_window.push("由你设置强盗:");
 			//当前行动记为action_set_robber_for_7
+			//设置最初行动
+	    	game_temp.action_base="action_set_robber_for_7";
 			game_temp.action_now="action_set_robber_for_7";
 		}
 	}
@@ -251,10 +262,14 @@ function extract_dev_card(randomint,player_index){
 	}
 }
 //--------------------------------------------------------
-// 设置强盗(因为7)
+// 设置强盗
 //--------------------------------------------------------
-function set_robber_for_7(place_id,robber_index,victim_index,randomint)
+function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false)
 {
+	if(cost){
+		game_info.players[robber_index].soldier_num--;
+		game_info.players[robber_index].soldier_used++;
+	}
 	game_info.occupying=place_id;
 	var place=map_info.places[place_id];
 	his_window.push("强盗被放置在数字为 "+place.create_num+" 的 "+order_ch[place.create_type]+" 地块上");
@@ -330,6 +345,8 @@ function new_turn()
 // 检查胜利条件
 //--------------------------------------------------------
 function update_vp_infos(){
+	var players=game_info.players;
+	var names=game_info.player_list;
 	//检查最长道路
     var max_length=0;
 	for(var player_index in game_info.player_list){
@@ -354,6 +371,25 @@ function update_vp_infos(){
 			his_window.push(game_info.player_list[max_list[0]][1]+"成为 最长道路 的修建者！");
 			game_info.longest_road=max_list[0];
 		}		
+	}
+
+	//检查最大军队
+	if(game_info.max_minitory==0){
+		var max_minitory=2;
+	}
+	else{
+		var max_minitory=players[game_info.max_minitory].soldier_used;
+	}
+	for(var player_index in players){
+		if(players[player_index].soldier_used>max_minitory){
+			if(game_info.max_minitory==0){
+				his_window.push(names[player_index][1]+"成为了 最大军队 的建立者！");
+			}
+			else{
+				his_window.push(names[player_index][1]+" 取代 "+names[game_info.max_minitory][1]+"成为了 最大军队 的建立者！");
+			}
+			game_info.max_minitory=player_index;
+		}
 	}
 }
 //--------------------------------------------------------

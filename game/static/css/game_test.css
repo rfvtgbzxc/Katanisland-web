@@ -524,7 +524,13 @@ actions1
 	top:0;
 	width: 180px;
 }
-
+special_actions
+{
+	position:absolute;
+	left:123px;
+	top:0;
+	width: 180px;
+}
 his_window
 {
 	position:fixed;
@@ -644,4 +650,8 @@ wait_info{
 	
 	font-size:20px;
 	color:black;
+}
+robber img:hover
+{
+	opacity:0.5;
 }

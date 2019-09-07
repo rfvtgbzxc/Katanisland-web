@@ -7,6 +7,13 @@ ws={"send":function(msg){
 		//模拟接收到消息触发函数
 		ws.onmessage(evt);},"json");
 }};
+//提示窗口
+info_window={
+	"set":function(text){
+		$("info_window").empty();
+		$("info_window").append("<div>"+text+"</div>");
+	}
+}
 //历史消息
 his_window={
 	"push":function(text){$("his_text").append("<div>"+text+"</div>");},
@@ -29,7 +36,8 @@ ysize=0;
 last_step_index=0;
 //临时数据
 game_temp={
-	"action_now":false
+	"action_now":"",
+	"set_option":"",
 };
 //个人标记（测试版本默认为第二位玩家）
 user_id=666;
@@ -114,9 +122,6 @@ $(document).ready(function(){
 		alert("地块id："+place_id+"\n"+"产出数字："+place.create_num+"\n"+"产出类型："+order[place.create_type]);
 	})*/
 
-	$(".dev_num").click(function(){
-		alert("tst");
-	});
 	//--------------------------------------------------------
 	// DEBUG-UI：激活所有选择器
 	//--------------------------------------------------------
@@ -167,8 +172,17 @@ $(document).ready(function(){
 	$("#confirm_action").click(function(){
 		//关闭窗口
 		$("confirm_window").hide();
+		//如果game_temp的setting_option不为空,视为追加设置
+		if(game_temp.set_option!=""){
+			switch(game_temp.set_option){
+				case "setting_no_robbing":
+					game_temp.selected_player=0;
+					break;
+			}
+			game_temp.setting_option="";
+		}
 		//如果game_temp含有"end_confirm"则立刻返回
-		if(game_temp.end_confirm){
+		if(game_temp.end_confirm==true){
 			game_temp.end_confirm=false;
 			return;
 		}
@@ -199,17 +213,47 @@ $(document).ready(function(){
 			    	ws.sendmsg("mes_action",{"starter":user_index,"val":[4,game_temp.selected_place,game_temp.selected_player,0,all_src_num(game_info.players[game_temp.selected_player])]});
 			    }
 				break;
+			case "action_use_dev_soldier":
+				if(game_temp.selected_player==0){
+			    	ws.sendmsg("mes_action",{"starter":user_index,"val":[3,1,game_temp.selected_place,game_temp.selected_player,0,1]});
+			    }
+			    else{
+			    	ws.sendmsg("mes_action",{"starter":user_index,"val":[3,1,game_temp.selected_place,game_temp.selected_player,0,all_src_num(game_info.players[game_temp.selected_player])]});
+			    }
 			case "alert":
 				$("wait_window").hide();
 				break;
 		}
 		//临时消息清空
 		//game_temp.action_now="";
+		game_temp.set_option="";
 	});
 	$("#cancel_action").click(function(){
 		//关闭窗口
 		$("confirm_window").hide();
 		cancel_selectors();
+	});
+	//--------------------------------------------------------
+	// UI：不掠夺
+	//--------------------------------------------------------
+	$("#cancel_robbing").click(function(){
+		game_temp.set_option="setting_no_robbing";
+		confirm_window.set("确定不掠夺任何玩家?");
+		confirm_window.show();
+	});
+	//--------------------------------------------------------
+	// UI：回到最开始选项
+	//--------------------------------------------------------
+	$("#to_before_action").click(function(){
+		//设置UI
+		switch(game_temp.action_base){
+			case "action_set_robber_for_7":
+				clear_selectors();
+				$("special_actions").children().hide();
+				start_robber_set();
+				break;
+		}
+		game_temp.action_now=game_temp.action_base;
 	});
 	//--------------------------------------------------------
 	// UI：消息固定最新
@@ -249,7 +293,7 @@ $(document).ready(function(){
 	    	$(this).addClass("selector_selected");
 	    	confirm_window.clear(); 
 	    	//处于强盗设置时,再触发玩家选择
-	    	if(game_temp.action_now=="action_set_robber_for_7"){
+	    	if(game_temp.action_now=="action_set_robber_for_7" || game_temp.action_now=="action_use_dev_soldier"){
 	    		game_temp.selected_place=parseInt($(this).attr("id"));
 	    		var ever_find_city=false;
 	    		//获取地块附近的玩家
@@ -269,6 +313,10 @@ $(document).ready(function(){
 	    		{
 	    			his_window.push("请选择要掠夺的玩家:");
 	    			$("plc_selector").not($(this)).removeClass("selector_avaliable");
+	    			//显示"不掠夺"、"重新选择"按钮
+	    			$("special_actions").show();
+	    			$("#cancel_robbing").show();
+	    			$("#to_before_action").show();
 	    			return;
 	    		}
 	    		confirm_window.set("此处没有可以掠夺的城市,要将强盗放在这里吗?");
@@ -362,7 +410,7 @@ $(document).ready(function(){
 	    	game_temp.selected_player=parseInt($(this).attr("id"));
 	    	//打开确认窗口
 	    	confirm_window.clear();
-	    	if(game_temp.action_now=="action_set_robber_for_7"){
+	    	if(game_temp.action_now=="action_set_robber_for_7" || game_temp.action_now=="action_use_dev_soldier"){
 	    		//选择玩家没有资源卡则提示
 	    		if(all_src_num(game_info.players[game_temp.selected_player])==0)
 	    		{
@@ -386,6 +434,10 @@ $(document).ready(function(){
 	// 层级：0  值：0
 	//--------------------------------------------------------
 	$("#action_dice").click(function(){
+		//已投掷的情况下不能触发
+		if(game_info.dice_num[0]!=0){
+			return;
+		}
 		//发送消息
 		ws.sendmsg("mes_action",{"val":[0,0]});
 	});
@@ -588,6 +640,42 @@ $(document).ready(function(){
 	// UI：士兵卡
 	// 层级：1  值：4
 	//--------------------------------------------------------
+	$("#action_use_dev_soldier").click(function(){
+		//如果处于无效状态则无反馈
+		if($(this).hasClass("part_disabled")){
+			return;
+		}
+		//清除选择器
+		clear_selectors();
+		//如果处于已激活状态则取消激活
+		if($(this).hasClass("active")){
+			$(this).removeClass("active");
+			return;
+		}
+		//取消激活其他的0级选项
+		$("actions1").children().removeClass("active");
+		//设置基础行动
+		game_temp.action_base="action_use_dev_soldier";
+		//当前行动记为"action_use_dev_soldier"
+		game_temp.action_now="action_use_dev_soldier";
+		his_window.push("由你设置强盗:");
+		//启动强盗选择
+		start_robber_set();
+		//激活自己
+		$(this).addClass("active");
+	});
+	//--------------------------------------------------------
+	// UI：无法使用卡片提示
+	//--------------------------------------------------------
+	$("actions1").on("mouseenter",".part_disabled",
+		function(){
+			info_window.set("你已使用完之前获得的卡片,剩余的卡片需要等一回合才能使用");
+			$("info_window").show();
+	});
+	$("actions1").on("mouseleave",".part_disabled",
+		function(){
+			$("info_window").hide();
+	});
 	//--------------------------------------------------------
 	// UI：结束回合
 	// 层级：0  值：1
@@ -780,7 +868,7 @@ function create_map(){
 // UI初始化
 //--------------------------------------------------------
 function init_ui(){
-	$(".plc_selector").hide();
+	$("plc_selector").hide();
 	$("edge_selector").hide();
 	$("pt_selector").hide();
 	$("dice").show();

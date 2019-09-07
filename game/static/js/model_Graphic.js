@@ -1,5 +1,6 @@
 //根据game_info处理画面的刷新，此部分只能对已经存在的DOM元素进行操作,且不对动画进行处理。
 function update_static_Graphic(){
+	var self_player=game_info.players[user_index];
 	//刷新骰子,其关联菜单的显示内容
 	//alert("画面刷新");
 	//清除选择器
@@ -10,6 +11,8 @@ function update_static_Graphic(){
 	$("actions1").children().removeClass("active");
 	$("player").removeClass("player_select_avaliable player_selected");
 	//根据dice_num来判断目前是否已经投完骰子,以此对菜单UI的显示与否进行管理
+	//一般不显示特殊选项
+	$("special_actions").children().hide();
 	//为0说明是新的回合,额外判断UI显示
 	if(game_info.dice_num[0]==0)
 	{
@@ -42,8 +45,16 @@ function update_static_Graphic(){
 			$("actions0").children().not(".fst_action").show();
 		}
 	}
+	//如果某种发展卡已使用完,不显示;或之前购买的已使用完,变灰
+	for(var i=0;i<4;i++){
+		if(self_player[devs[i]+"_num"]==0){
+			$("#action_use_dev_"+devs[i]).hide();
+		}
+		else if(self_player[devs[i]+"_num"]<=self_player[devs[i]+"_get_before"]){
+			$("#action_use_dev_"+devs[i]).addClass("part_disabled");
+		}
+	}
 	//加载玩家自己所有资源的数字
-	var self_player=game_info.players[user_index];
 	for(var i=1;i<6;i++){
 		$(".src_"+order[i]).text(""+self_player[order[i]+"_num"]);
 	}
@@ -60,6 +71,12 @@ function update_static_Graphic(){
 		}
 		else{
 			attrs.filter("longest_road").removeClass("active");
+		}	
+		if(game_info.max_minitory==player_index){
+			attrs.filter("max_minitory").addClass("active");
+		}
+		else{
+			attrs.filter("max_minitory").removeClass("active");
 		}	
 	});
 	//刷新选项中的发展卡数量
@@ -91,6 +108,8 @@ function clear_selectors(){
 	$("edge_selector").attr("tip","").removeClass("active selector_avaliable selector_selected selector_disabled selector_displaying").hide();
 	//清除边选择器
 	$("pt_selector").attr("tip","").removeClass("active selector_avaliable selector_selected selector_disabled selector_displaying").hide();
+	//清除玩家选择器
+	$("player").removeClass("player_select_avaliable player_select_selected");
 }
 //--------------------------------------------------------
 // 取消选择器
@@ -102,6 +121,8 @@ function cancel_selectors(){
 	$("edge_selector").removeClass("selector_selected");
 	//清除边选择器
 	$("pt_selector").removeClass("selector_selected");
+	//清除玩家选择器
+	$("player").removeClass("player_select_selected");
 }
 //--------------------------------------------------------
 // 回合轮盘跳转(反复运行直到step_index同步)
@@ -180,6 +201,7 @@ function load_map(){
 	roads=game_info.roads;
 	xsize=map_info.xsize;
 	ysize=map_info.ysize;
+	set_robber(game_info.occupying);
 	//将所有的六边形块放置于正确的位置
 	for(var place_id in places){
 		var xi=parseInt(place_id/ysize);
@@ -426,15 +448,15 @@ function load_game(){
 // 设置强盗
 //--------------------------------------------------------
 function set_robber(place_id){
-	if($("robber").children()!=null){
+	if($("robber").children().length==0){
 		$("robber").append("<img src='/media/img/robber.png' style='position:absolute;'>");
 	}
 	var xi=parseInt(place_id/ysize);
 	var yi=place_id%ysize;
 	var place=places[place_id];
 	var x=Math.round(xi*edge_size*1.5)+45;
-	var y=Math.round(yi*edge_size*1.732+(xi%2)*0.5*1.732*edge_size)-30;
-	$("robber").children().css({"left":x,"top":y,"z-index":500});
+	var y=Math.round(yi*edge_size*1.732+(xi%2)*0.5*1.732*edge_size);
+	$("robber").children().css({"left":x,"top":y,"z-index":800});
 }
 //--------------------------------------------------------
 // 地图元素增添函数
@@ -497,5 +519,5 @@ function add_city(point_id){
 	}
 	$("#cities").append("<img class='city' id='"+point_id+"' src='/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png'/>");
 	//调整位置
-	$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"800"});
+	$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"999"});
 }
