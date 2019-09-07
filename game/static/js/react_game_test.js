@@ -59,8 +59,8 @@ order_ch={
 		6:"任意"
 };
 color_reflection={
-	1:"light-purple",
-	2:"light-red"
+	1:"light-blue",
+	2:"dark-green"
 }
 color_reflection_hex={
 	"light-blue":"#029ed9",
@@ -167,6 +167,11 @@ $(document).ready(function(){
 	$("#confirm_action").click(function(){
 		//关闭窗口
 		$("confirm_window").hide();
+		//如果game_temp含有"end_confirm"则立刻返回
+		if(game_temp.end_confirm){
+			game_temp.end_confirm=false;
+			return;
+		}
 		//alert("?");
 		//发送消息
 		switch(game_temp.action_now){
@@ -186,12 +191,20 @@ $(document).ready(function(){
 				}
 				ws.sendmsg("mes_action",{"starter":user_index,"val":[1,4,0,game_temp.bank_dev_cards]});
 				break;
+			case "action_set_robber_for_7":
+			    if(game_temp.selected_player==0){
+			    	ws.sendmsg("mes_action",{"starter":user_index,"val":[4,game_temp.selected_place,game_temp.selected_player,0,1]});
+			    }
+			    else{
+			    	ws.sendmsg("mes_action",{"starter":user_index,"val":[4,game_temp.selected_place,game_temp.selected_player,0,all_src_num(game_info.players[game_temp.selected_player])]});
+			    }
+				break;
 			case "alert":
 				$("wait_window").hide();
 				break;
 		}
 		//临时消息清空
-		game_temp.action_now="";
+		//game_temp.action_now="";
 	});
 	$("#cancel_action").click(function(){
 		//关闭窗口
@@ -237,6 +250,7 @@ $(document).ready(function(){
 	    	confirm_window.clear(); 
 	    	//处于强盗设置时,再触发玩家选择
 	    	if(game_temp.action_now=="action_set_robber_for_7"){
+	    		game_temp.selected_place=parseInt($(this).attr("id"));
 	    		var ever_find_city=false;
 	    		//获取地块附近的玩家
 	    		var points=plc_round_points($(this).attr("id"));
@@ -258,6 +272,7 @@ $(document).ready(function(){
 	    			return;
 	    		}
 	    		confirm_window.set("此处没有可以掠夺的城市,要将强盗放在这里吗?");
+	    		game_temp.selected_player=0;
 	    	}
 	    	confirm_window.show();
 	    }
@@ -337,6 +352,30 @@ $(document).ready(function(){
 	    function(){
 			//$(this).removeClass("pt_selected");	
 			$("info_window").hide();
+	    }
+	);
+	//--------------------------------------------------------
+	// UI：玩家选择器
+	//--------------------------------------------------------
+	$("#players").on("click","player",
+	    function(){
+	    	game_temp.selected_player=parseInt($(this).attr("id"));
+	    	//打开确认窗口
+	    	confirm_window.clear();
+	    	if(game_temp.action_now=="action_set_robber_for_7"){
+	    		//选择玩家没有资源卡则提示
+	    		if(all_src_num(game_info.players[game_temp.selected_player])==0)
+	    		{
+	    			confirm_window.set("该玩家没有资源卡可以掠夺。");
+	    			game_temp.end_confirm=true;
+	    		}
+	    		else{
+	    			game_temp.selected_player=parseInt($(this).attr("id"));
+	    			confirm_window.set("要掠夺该玩家吗?");
+	    		}
+	    	}	
+	    	$(this).addClass("player_select_selected"); 
+	    	confirm_window.show();
 	    }
 	);
 	//--------------------------------------------------------
@@ -790,6 +829,9 @@ function dice_sum(){
 // 获取所有资源的数量
 //--------------------------------------------------------
 function all_src_num(player){
+	if(typeof(player)!="object"){
+		player=game_info.players[player];
+	}
 	return player.brick_num+player.wood_num+player.wool_num+player.grain_num+player.ore_num;
 }
 //--------------------------------------------------------

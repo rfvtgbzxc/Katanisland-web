@@ -264,6 +264,9 @@ def t_virtual_websocket(request):
 	if(evt["message"]["val"][0]==1 and evt["message"]["val"][1]==4 and evt["message"]["val"][2]==0):
 		msg={"data":{"type":"mes_action","message":{"starter":evt["message"]["starter"],"val":[1,4,1,random.randint(0,evt["message"]["val"][3]-1)]}}}
 		return HttpResponse(json.dumps(msg))
+	if(evt["message"]["val"][0]==4 and evt["message"]["val"][3]==0):
+		evt["message"]["val"][4]=random.randint(0,evt["message"]["val"][4]-1)
+		return HttpResponse(json.dumps({"data":evt}))
 	return HttpResponse(json.dumps(request.GET))
 
 def gotoGameTest(request):

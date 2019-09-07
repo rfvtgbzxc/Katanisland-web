@@ -308,6 +308,10 @@ player.player_select_avaliable:hover
 {
 	border-color: rgba(0,128,0,1);
 }
+player.player_select_selected
+{
+	border-color: rgba(0,128,0,1);
+}
 playername
 {
 	left:73px;

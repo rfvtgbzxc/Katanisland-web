@@ -57,12 +57,16 @@ function handle_msg(msg){
 							extract_dev_card(val[3],msg.message.starter);
 					}
 					break;
+				//设置强盗(因7)
+				case 4:
+				    set_robber_for_7(val[1],msg.message.starter,val[2],val[4]);
+					break;
 				//结束回合
 				case 6:
 					new_turn();
 					break;
 			}
-			break;
+			break;		
 	}
 	//然后由房主更新game_info
 	//暂不设计
@@ -244,6 +248,38 @@ function extract_dev_card(randomint,player_index){
 		player.score_unshown.push(cards.score_cards[randomint]);
 		cards.score_cards.splice(randomint,1);	
 		return;
+	}
+}
+//--------------------------------------------------------
+// 设置强盗(因为7)
+//--------------------------------------------------------
+function set_robber_for_7(place_id,robber_index,victim_index,randomint)
+{
+	game_info.occupying=place_id;
+	var place=map_info.places[place_id];
+	his_window.push("强盗被放置在数字为 "+place.create_num+" 的 "+order_ch[place.create_type]+" 地块上");
+	rob_player(robber_index,victim_index,randomint);
+	//临时消息清空
+	game_temp.action_now="";
+}
+//--------------------------------------------------------
+// 掠夺资源
+//--------------------------------------------------------
+function rob_player(robber_index,victim_index,randomint){
+	//如果没有受害者,则返回
+	if(victim_index==0){
+		return;
+	}
+	var names=game_info.player_list;
+	var victim=game_info.players[victim_index]
+	var count=randomint;
+	for(var i=1;count>=0;i++){
+		if(count<victim[order[i]+"_num"]){
+			victim[order[i]+"_num"]--;
+			game_info.players[robber_index][order[i]+"_num"]++;
+			his_window.push(names[robber_index][1]+" 掠夺了 "+names[victim_index][1]+" 的一份 "+order_ch[i]);
+		}
+		count-=victim[order[i]+"_num"];
 	}
 }
 //--------------------------------------------------------
