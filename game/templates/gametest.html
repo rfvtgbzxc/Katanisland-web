@@ -126,5 +126,31 @@
 	</div>
 	<!--信息窗口-->
 	<info_window style="display: none;">测试</info_window>
+
+	<!--复用组件-->
+	<!--标题栏-->
+	<window_head>
+		<head_text></head_text>
+		<button id="move"></button>
+		<button id="minimize"></button>
+		<button id="close"></button>
+		<button id="resize"></button>
+	</window_head>
+	<!--资源选框1-->
+	<src_select_window class="give">
+		<head_text></head_text>
+		<srcs_selected></srcs_selected>
+		<srcs_avaliable></srcs_avaliable>
+	</src_select_window>
+	<!--资源选框2-->
+	<src_select_window class="get">
+		<head_text></head_text>
+		<srcs_selected></srcs_selected>
+		<srcs_avaliable></srcs_avaliable>
+	</src_select_window>
+	<!--资源丢弃窗口-->
+	<drop_window>
+		<button class="btn-success" id="action_drop_items">舍弃资源</button>
+	</drop_window>
 </body>
 </html>
