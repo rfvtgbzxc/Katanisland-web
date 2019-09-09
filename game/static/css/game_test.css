@@ -668,14 +668,14 @@ robber img:hover
 drop_window
 {
 	position: absolute;
-	width: 250px;
+	width: 160px;
 	height: 500px;
 }
 trade_window
 {
 	display: none;
 	position: absolute;
-	width: 500px;
+	width: 320px;
 	height: 500px;
 }
 window_head{
@@ -690,15 +690,19 @@ window_head{
 window_head head_text
 {
 	position: absolute;
-	left: 0;
+	font-size:15px;
+	left: 10px;
 }
 #move,#minimize,#close,#resize
 {
 	height: 10px;
 	margin-top: 5px; 
-	margin-right:10px; 
 	padding-top: 10px;
 	float: right;
+}
+#resize
+{
+	margin-right:5px; 
 }
 src_select_window
 {
@@ -715,7 +719,7 @@ src_select_window.get{
 	width: 50%;
 	left: 50%;
 }
-src_select_window window_head
+src_select_window head_text
 {
 	width: 100%;
 	position: absolute;
@@ -736,7 +740,15 @@ srcs_avaliable
 	height: calc(60% - 30px);
 	top: calc(40% + 30px);
 }
-#action_drop_items{
-	position: absolute;
-	bottom: 10px;
+src_confirm_window{
+	position:absolute;
+	bottom:0;
+	height:70px;
+	width:100%;
+	display:flex;
+	justify-content: center;
+	align-items: center;
+}
+src_item{
+	
 }

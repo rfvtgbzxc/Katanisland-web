@@ -822,6 +822,57 @@ $(document).ready(function(){
 			$("info_window").hide();
 	    }
 	);
+	//--------------------------------------------------------
+	// UI：拖动
+	//--------------------------------------------------------
+	$(document).mousemove(function(e) {
+		if (!!this.move) {
+			var posix = !document.move_target ? {'x': 0, 'y': 0} : document.move_target.posix,
+				callback = document.call_down || function() {
+					$(this.move_target).css({
+						'top': e.pageY - posix.y,
+						'left': e.pageX - posix.x
+					});
+				};
+ 
+			callback.call(this, e, posix);
+		}
+	}).mouseup(function(e) {
+		if (!!this.move) {
+			var callback = document.call_up || function(){};
+			callback.call(this, e);
+			$.extend(this, {
+				'move': false,
+				'move_target': null,
+				'call_down': false,
+				'call_up': false
+			});
+		}
+	});
+	var $box = $('.flex_window').mousedown(function(e) {
+	    var offset = $(this).offset();	    
+	    this.posix = {'x': e.pageX - offset.left, 'y': e.pageY - offset.top};
+	    $.extend(document, {'move': true, 'move_target': this});
+	}).on('mousedown', '#resize', function(e) {
+			var fBox = $(this).parent().parent();
+		
+	    	var posix = {
+	            'w': fBox.width(), 
+	            'h': fBox.height(), 
+	            'top':fBox.offset().top,
+	            'x': e.pageX, 
+	            'y': e.pageY
+	        };
+	    
+	    $.extend(document, {'move': true, 'call_down': function(e) {
+	    	fBox.css({
+	    		'top': Math.min(posix.top + posix.h - 225,e.pageY-posix.y+posix.top),
+	            'width': Math.max(135, e.pageX - posix.x + posix.w),
+	            'height': Math.max(225, -e.pageY + posix.y + posix.h)
+	        });
+	    }});
+	    return false;
+	});
 });
 //--------------------------------------------------------
 // 获取地图
