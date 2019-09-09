@@ -655,3 +655,88 @@ robber img:hover
 {
 	opacity:0.5;
 }
+
+/*交易/舍弃栏*/
+.flex_window
+{
+	border: 1px solid #CCCCCC;  
+    border-radius: 10px;
+    -webkit-box-shadow: 10px 10px 25px #ccc;
+    -moz-box-shadow: 10px 10px 25px #ccc;
+    box-shadow: 10px 10px 25px #ccc;
+}
+drop_window
+{
+	position: absolute;
+	width: 250px;
+	height: 500px;
+}
+trade_window
+{
+	display: none;
+	position: absolute;
+	width: 500px;
+	height: 500px;
+}
+window_head{
+	position: absolute;
+	height: 30px;
+	width: 100%;
+	top: 0;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+	background: red;
+}
+window_head head_text
+{
+	position: absolute;
+	left: 0;
+}
+#move,#minimize,#close,#resize
+{
+	height: 10px;
+	margin-top: 5px; 
+	margin-right:10px; 
+	padding-top: 10px;
+	float: right;
+}
+src_select_window
+{
+	position: absolute;
+	top: 30px;
+	width: 100%;
+	height: calc(100% - 100px);
+}
+src_select_window.give{
+	width: 50%;
+	left: 0;
+}
+src_select_window.get{
+	width: 50%;
+	left: 50%;
+}
+src_select_window window_head
+{
+	width: 100%;
+	position: absolute;
+	left: 0;
+	height: 30px;
+}
+srcs_selected
+{
+	width: 100%;
+	position: absolute;
+	height: 40%;
+	top: 30px;
+}
+srcs_avaliable
+{
+	width: 100%;
+	position: absolute;
+	height: calc(60% - 30px);
+	top: calc(40% + 30px);
+}
+#action_drop_items{
+	position: absolute;
+	bottom: 10px;
+}

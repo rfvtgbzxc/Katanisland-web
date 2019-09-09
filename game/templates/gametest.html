@@ -7,7 +7,7 @@
 	<script type="text/javascript" src="http://cdn.repository.webfont.com/wwwroot/js/wf/youziku.api.min.js"></script>
 	<script type="text/javascript">
 	   //动态字库api
-	   $webfont.load("wait_info,button,player,#rounds", "e316d772ba7d483780f759e6b4364146", "hdjxyt");
+	   $webfont.load("pre-load-text,wait_info,button,player,#rounds", "e316d772ba7d483780f759e6b4364146", "hdjxyt");
 	   $webfont.draw();
 	</script>
 	<script type="text/javascript" src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
@@ -126,31 +126,52 @@
 	</div>
 	<!--信息窗口-->
 	<info_window style="display: none;">测试</info_window>
-
-	<!--复用组件-->
-	<!--标题栏-->
-	<window_head>
-		<head_text></head_text>
-		<button id="move"></button>
-		<button id="minimize"></button>
-		<button id="close"></button>
-		<button id="resize"></button>
-	</window_head>
-	<!--资源选框1-->
-	<src_select_window class="give">
-		<head_text></head_text>
-		<srcs_selected></srcs_selected>
-		<srcs_avaliable></srcs_avaliable>
-	</src_select_window>
-	<!--资源选框2-->
-	<src_select_window class="get">
-		<head_text></head_text>
-		<srcs_selected></srcs_selected>
-		<srcs_avaliable></srcs_avaliable>
-	</src_select_window>
+	
 	<!--资源丢弃窗口-->
-	<drop_window>
+	<drop_window class="flex_window">
+		<!--标题栏-->
+		<window_head>
+			<head_text>舍弃过多的资源<span id="dropped"></span>/<span id="need_drop"></span></head_text>
+			<button id="move"></button>
+			<button id="minimize"></button>
+			<button id="close"></button>
+			<button id="resize" class="coor"></button>
+		</window_head>
+		<!--资源选框1-->
+		<src_select_window>
+			<head_text></head_text>
+			<srcs_selected></srcs_selected>
+			<srcs_avaliable></srcs_avaliable>
+		</src_select_window>
+		
 		<button class="btn-success" id="action_drop_items">舍弃资源</button>
 	</drop_window>
+	<!--交易窗口-->
+	<trade_window class="flex_window">
+		<!--标题栏-->
+		<window_head>
+			<head_text></head_text>
+			<button id="move"></button>
+			<button id="minimize"></button>
+			<button id="close"></button>
+			<button id="resize" class="coor"></button>
+		</window_head>
+		<!--资源选框1-->
+		<src_select_window class="give">
+			<head_text></head_text>
+			<srcs_selected></srcs_selected>
+			<srcs_avaliable></srcs_avaliable>
+		</src_select_window>
+		<!--资源选框2-->
+		<src_select_window class="get">
+			<head_text></head_text>
+			<srcs_selected></srcs_selected>
+			<srcs_avaliable></srcs_avaliable>
+		</src_select_window>
+		<trade_state></trade_state>
+		<button class="btn-success" id="action_trade_items"></button>
+	</trade_window>
+	<!--部分文字预加载-->
+	<pre-load-text style="z-index:-1;color:white;">发起交易 关闭窗口 拒绝交易 接受交易</pre-load-text>
 </body>
 </html>

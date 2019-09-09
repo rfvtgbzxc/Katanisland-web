@@ -440,7 +440,11 @@ function load_game(){
 		if(game_info.max_minitory==player_index){$("max_minitory").filter("#"+player_index).addClass("active")};
 		if(players[player_index].score_shown!=0){$("score_card").filter("#"+player_index).addClass("active")};	
 	}
-
+	//加载交易/舍弃栏资源图标
+	for(var i=1;i<6;i++){
+		$("srcs_selected").append("<src_item num='0' class='"+order[i]+"'></src_item>");
+		$("srcs_avaliable").append("<src_item num='0' class='"+order[i]+"'></src_item>");
+	}
 	//加载文字
 	$youziku.submit("playername_update");
 }
