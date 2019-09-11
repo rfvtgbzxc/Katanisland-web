@@ -866,9 +866,9 @@ $(document).ready(function(){
 	    
 	    $.extend(document, {'move': true, 'call_down': function(e) {
 	    	fBox.css({
-	    		'top': Math.min(posix.top + posix.h - 225,e.pageY-posix.y+posix.top),
-	            'width': Math.max(135, e.pageX - posix.x + posix.w),
-	            'height': Math.max(225, -e.pageY + posix.y + posix.h)
+	    		'top': Math.min(posix.top + posix.h - 380,e.pageY-posix.y+posix.top),
+	            'width': Math.max(150, e.pageX - posix.x + posix.w),
+	            'height': Math.max(380, -e.pageY + posix.y + posix.h)
 	        });
 	    }});
 	    return false;

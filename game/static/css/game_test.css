@@ -664,12 +664,21 @@ robber img:hover
     -webkit-box-shadow: 10px 10px 25px #ccc;
     -moz-box-shadow: 10px 10px 25px #ccc;
     box-shadow: 10px 10px 25px #ccc;
+    background: white;
 }
 drop_window
 {
 	position: absolute;
 	width: 160px;
 	height: 500px;
+	-webkit-user-select:none;
+
+     -moz-user-select:none;
+
+     -ms-user-select:none;
+
+     user-select:none;
+     z-index: 4200;
 }
 trade_window
 {
@@ -685,13 +694,15 @@ window_head{
 	top: 0;
 	border-top-left-radius: 10px;
 	border-top-right-radius: 10px;
-	background: red;
+	background: #1E90FF;
 }
 window_head head_text
 {
 	position: absolute;
 	font-size:15px;
+	top: 3px;
 	left: 10px;
+	color: white;
 }
 #move,#minimize,#close,#resize
 {
@@ -702,6 +713,7 @@ window_head head_text
 }
 #resize
 {
+
 	margin-right:5px; 
 }
 src_select_window
@@ -725,6 +737,7 @@ src_select_window head_text
 	position: absolute;
 	left: 0;
 	height: 30px;
+	font-size: 15px;
 }
 srcs_selected
 {
@@ -750,5 +763,46 @@ src_confirm_window{
 	align-items: center;
 }
 src_item{
-	
+	display: inline-block;
+	width: 45px;
+	height: 45px;
+	border: 3px solid rgba(0,160,0,0.5);
+	border-radius: 5px;
+	margin-left: 3px;
+}
+src_item:after
+{
+	content: attr(num);
+	position: absolute;
+	bottom: 0;
+	right: 0;
+}
+src_item.brick{
+	background: url(/media/img/harbor_icon_1.png);
+	background-size: cover;
+}
+src_item.wood{
+	background: url(/media/img/harbor_icon_2.png);
+	background-size: cover;
+}
+src_item.wool{
+	background: url(/media/img/harbor_icon_3.png);
+	background-size: cover;
+}
+src_item.grain{
+	background: url(/media/img/harbor_icon_4.png);
+	background-size: cover;
+}
+src_item.ore{
+	background: url(/media/img/harbor_icon_5.png);
+	background-size: cover;
+}
+pre-load-text{
+	-webkit-user-select:none;
+
+     -moz-user-select:none;
+
+     -ms-user-select:none;
+
+     user-select:none;
 }
