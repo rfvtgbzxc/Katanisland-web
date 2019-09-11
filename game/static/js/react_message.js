@@ -70,6 +70,10 @@ function handle_msg(msg){
 				case 4:
 				    set_robber_info(val[1],msg.message.starter,val[2],val[4]);
 					break;
+				//丢弃卡片(因7)
+				case 5:
+					drop_srcs(val[1],msg.message.starter);
+					break;
 				//结束回合
 				case 6:
 					new_turn();
@@ -108,6 +112,12 @@ function set_dice(num1,num2){
 			his_window.push("你需要丢弃 "+game_temp.drop_required+" 份资源");
 			game_temp.action_base="drop_srcs_for_7";
 			game_temp.action_now="drop_srcs_for_7";
+			//打开丢弃窗口
+			UI_start_drop_select();
+		}
+		else{
+			//如果没有大于7,发送一条空的丢弃消息,然后进入等待状态
+			ws.sendmsg("mes_action",{"starter":user_index,"val":[5,{}]});
 		}
 		return;
 	}
@@ -208,8 +218,9 @@ function build_city0(point_id,player_index){
 // 建设新城市
 //--------------------------------------------------------
 function build_city1(point_id,player_index){
-	//建造城市的UI回调函数,只需要清除selectors
+	//建造城市的UI回调函数,只需要清除selectors和active
 	clear_selectors();
+	$("#action_build_city1").removeClass("active");
 	var player=game_info.players[player_index];
 	//扣除资源
 	player.grain_num-=2;
@@ -222,6 +233,8 @@ function build_city1(point_id,player_index){
 // 抽取发展卡
 //--------------------------------------------------------
 function extract_dev_card(randomint,player_index){
+	//设置强盗的UI回调函数,只需要清除active
+	$("#action_buy_dev_card").removeClass("active");
 	var cards=game_info.cards;
 	var player=game_info.players[player_index];
 	his_window.push(game_info.player_list[player_index][1]+" 抽取了一张发展卡");
@@ -287,7 +300,7 @@ function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false
 {
 	//设置强盗的UI回调函数,只需要清除selectors和active
 	clear_selectors();
-	$("#action_build_road").removeClass("active");
+	$("#action_use_dev_soldier").removeClass("active");
 	if(cost){
 		game_info.players[robber_index].soldier_num--;
 		game_info.players[robber_index].soldier_used++;
@@ -318,6 +331,17 @@ function rob_player(robber_index,victim_index,randomint){
 		}
 		count-=victim[order[i]+"_num"];
 	}
+}
+//--------------------------------------------------------
+// 丢弃资源(因为丢出7)
+//--------------------------------------------------------
+function drop_srcs(drop_list,dropper_index){
+	//遍历丢弃列表,舍弃对应数字
+	var dropper=game_info.player_list[dropper_index];
+	for(var src_id in drop_list){
+		dropper[order[src_id]+"_num"]-=drop_list[src_id];
+	}
+	//完成丢弃后,检查收到消息次数,如果与online_list相同,则放行。
 }
 //--------------------------------------------------------
 // 新的回合

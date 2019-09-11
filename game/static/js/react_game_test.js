@@ -38,6 +38,7 @@ last_step_index=0;
 game_temp={
 	"action_now":"",
 	"set_option":"",
+	"recive_list":[]
 };
 //个人标记（测试版本默认为第二位玩家）
 user_id=666;
