@@ -680,6 +680,7 @@ drop_window
 	position: absolute;
 	width: 160px;
 	height: 500px;
+	left:500px;
 	-webkit-user-select:none;
 
      -moz-user-select:none;
@@ -722,7 +723,7 @@ window_head head_text
 }
 #resize
 {
-
+ 	cursor:ne-resize;
 	margin-right:5px; 
 }
 src_select_window
@@ -779,13 +780,14 @@ src_item{
 	border-radius: 5px;
 	margin-left: 3px;
 	margin-bottom:3px;
+	cursor:pointer;
 }
 src_item:after
 {
 	content: attr(num);
 	position:relative;
 	top:20px;
-	left:30px;
+	right:0px;
 	
 }
 src_item.brick{
@@ -807,6 +809,16 @@ src_item.grain{
 src_item.ore{
 	background: url(/media/img/harbor_icon_5.png);
 	background-size: cover;
+}
+src_item.disabled{
+	 -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    
+    filter: grayscale(100%);
+	
+    filter: gray;
 }
 pre-load-text{
 	-webkit-user-select:none;

@@ -110,8 +110,8 @@ function set_dice(num1,num2){
 		if(all_src_num(game_info.players[user_index])>7){
 			game_temp.drop_required=parseInt(all_src_num(game_info.players[user_index])/2);
 			his_window.push("你需要丢弃 "+game_temp.drop_required+" 份资源");
-			game_temp.action_base="drop_srcs_for_7";
-			game_temp.action_now="drop_srcs_for_7";
+			game_temp.action_base="action_drop_srcs_for_7";
+			game_temp.action_now="action_drop_srcs_for_7";
 			//打开丢弃窗口
 			UI_start_drop_select();
 		}
@@ -120,19 +120,6 @@ function set_dice(num1,num2){
 			ws.sendmsg("mes_action",{"starter":user_index,"val":[5,{}]});
 		}
 		return;
-	}
-	//由掷出者设置强盗
-	if(num_sum==7){
-		if(game_info.step_list[game_info.step_index]!=user_index){
-			his_window.push("由"+game_info.player_list[game_info.step_list[game_info.step_index]][1]+"设置强盗:");
-		}
-		else{
-			his_window.push("由你设置强盗:");
-			//当前行动记为action_set_robber_for_7
-			//设置最初行动
-	    	game_temp.action_base="action_set_robber_for_7";
-			game_temp.action_now="action_set_robber_for_7";
-		}
 	}
 	for(var place_id in places){
 		var place=places[place_id];
@@ -340,8 +327,26 @@ function drop_srcs(drop_list,dropper_index){
 	var dropper=game_info.player_list[dropper_index];
 	for(var src_id in drop_list){
 		dropper[order[src_id]+"_num"]-=drop_list[src_id];
+		his_window.push(game_info.player_list[dropper_index][1]+" 丢弃了 "+order_ch[src_id]+" x "+drop_list[src_id]);
 	}
-	//完成丢弃后,检查收到消息次数,如果与online_list相同,则放行。
+	//完成丢弃后,检查recive_list,释放操作权或保持等待。
+	game_temp.recive_list.splice(game_temp.recive_list.indexOf(dropper_index),1);
+	if(game_temp.recive_list.length==0){
+		$("wait_window").hide();
+		//由掷出者设置强盗
+		if(game_info.step_list[game_info.step_index]==user_index){
+			his_window.push("由你设置强盗:");
+			//当前行动记为action_set_robber_for_7
+			//设置最初行动
+	    	game_temp.action_base="action_set_robber_for_7";
+			game_temp.action_now="action_set_robber_for_7";
+			start_robber_set();
+		}
+	}
+	else if(game_info.step_list[game_info.step_index]==user_index){
+		his_window.push("等待其他玩家选择丢弃资源...");
+		$("wait_window").show();
+	}
 }
 //--------------------------------------------------------
 // 新的回合

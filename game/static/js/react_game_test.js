@@ -187,6 +187,8 @@ $(document).ready(function(){
 			game_temp.end_confirm=false;
 			return;
 		}
+		//重置recive_list
+		game_temp.recive_list=[].concat(game_info.online_list);
 		//alert("?");
 		//发送消息
 		switch(game_temp.action_now){
@@ -403,6 +405,50 @@ $(document).ready(function(){
 			$("info_window").hide();
 	    }
 	);
+	//--------------------------------------------------------
+	// UI：选择资源
+	//--------------------------------------------------------
+	$("src_select_window").on("click","src_item",function(){
+		//判断资源图标位置
+		if($(this).parent().is("srcs_selected")){
+			//从给予栏归还资源,资源数为0后隐藏图标
+			var src_num=parseInt($(this).attr("num"))-1;
+			var src_rst=$(this).parent().next().children().filter("."+$(this).prop("className"));
+			var src_rst_num=parseInt(src_rst.attr("num"))+1;
+			if(src_num==-1){
+				return;
+			}
+			$(this).attr("num",src_num);
+			src_rst.attr("num",src_rst_num);
+			if(src_num==0){
+				$(this).hide();
+			}
+			if(src_rst_num==1){
+				src_rst.removeClass("disabled");
+			}
+			game_temp.dropped--;
+			$("#dropped").text(""+game_temp.dropped);
+		}
+		else{
+			//向给予栏放置资源,新的类型则显示图标
+			var src_num=parseInt($(this).attr("num"))-1;
+			var src_get=$(this).parent().prev().children().filter("."+$(this).prop("className"));
+			var src_get_num=parseInt(src_get.attr("num"))+1;
+			if(src_num==-1 || game_temp.dropped==game_temp.drop_required){
+				return;
+			}
+			$(this).attr("num",src_num);
+			src_get.attr("num",src_get_num);
+			if(src_get_num==1){
+				src_get.show();
+			}
+			if(src_num==0){
+				$(this).addClass("disabled");
+			}
+			game_temp.dropped++;
+			$("#dropped").text(""+game_temp.dropped);
+		}
+	});
 	//--------------------------------------------------------
 	// UI：玩家选择器
 	//--------------------------------------------------------
@@ -986,6 +1032,27 @@ function UI_set_dices(){
 	//禁用投掷骰子,启用其他0级选项	
 	$("actions0").children().filter(".fst_action").children().addClass("disabled");
 	$("actions0").children().not(".fst_action").show();
+}
+//--------------------------------------------------------
+// 开始选择资源丢弃
+//--------------------------------------------------------
+function UI_start_drop_select(){
+	//显示资源丢弃窗口
+	$("drop_window").show();
+	var self_player=game_info.players[user_index];
+	//一开始不显示决定丢弃的资源
+	$("srcs_selected").children().hide();
+	//不显示没有的资源
+	for(var src_id=1;src_id<6;src_id++){
+		var src_num=self_player[order[src_id]+"_num"];
+		if(src_num!=0){
+			$("srcs_avaliable").children().filter("."+order[src_id]).attr("num",src_num).show();
+		}
+	}
+	//设置丢弃数
+	game_temp.dropped=0;
+	$("#dropped").text("0");
+	$("#need_drop").text(""+game_temp.drop_required);
 }
 //--------------------------------------------------------
 // 启动设置强盗

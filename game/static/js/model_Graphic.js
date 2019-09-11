@@ -94,7 +94,7 @@ function update_static_Graphic(){
 	//强盗地点更新
 	set_robber(game_info.occupying);
 	//最后如果是自己的回合,关闭等待窗口
-	if(user_index==game_info.step_list[game_info.step_index] || debug){
+	if((user_index==game_info.step_list[game_info.step_index] && game_temp.action_now!="action_drop_srcs_for_7") || debug){
 		$("wait_window").hide();
 	}	
 }
