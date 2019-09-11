@@ -947,6 +947,46 @@ function init_ui(){
 	}	
 }
 //--------------------------------------------------------
+// UI控制类函数
+//--------------------------------------------------------
+//--------------------------------------------------------
+// 新的回合
+//--------------------------------------------------------
+function UI_new_turn(){
+	//将UI重置到回合开始的状态
+	//清除selectors
+	clear_selectors();
+	//清空所有状态类
+	$("dice").removeClass();
+	$("actions0").children().children().removeClass("disabled active part_disabled");
+	//$("actions1").children().removeClass("active part_disabled");
+	//隐藏除投骰子以外的按钮,如果本回合不是你行动,则隐藏所有按钮
+	//此处应有拉长历史消息窗口的动作
+	if(game_info.step_list[game_info.step_index]==user_index || debug)
+	{
+		$("actions0").show();
+		$("actions0").children().not(".fst_action").hide();
+		$("actions1").children().hide();
+		$("special_actions").children().hide();
+	}
+	else{
+		$("actions0").hide();
+	}
+	//刷新回合数
+	$("#rounds").text(('00'+game_info.play_turns).slice(-2));
+}
+//--------------------------------------------------------
+// 设置骰子
+//--------------------------------------------------------
+function UI_set_dices(){
+	$("dice").each(function(){
+			$(this).addClass("num"+game_info.dice_num[$(this).attr("dice_id")]);
+	});	
+	//禁用投掷骰子,启用其他0级选项	
+	$("actions0").children().filter(".fst_action").children().addClass("disabled");
+	$("actions0").children().not(".fst_action").show();
+}
+//--------------------------------------------------------
 // 启动设置强盗
 //--------------------------------------------------------
 function start_robber_set(){
@@ -956,6 +996,7 @@ function start_robber_set(){
 		$("plc_selector").filter("#"+places[i]).addClass("active selector_avaliable").show();
 	}
 }
+
 //--------------------------------------------------------
 // game_info对象函数
 //--------------------------------------------------------

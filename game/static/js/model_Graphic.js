@@ -4,7 +4,7 @@ function update_static_Graphic(){
 	//刷新骰子,其关联菜单的显示内容
 	//alert("画面刷新");
 	//清除选择器
-	clear_selectors();
+	/*clear_selectors();
 	//清除所有class
 	$("dice").removeClass();
 	$("actions0").children().filter(".fst_action").children().removeClass("disabled active");
@@ -18,6 +18,7 @@ function update_static_Graphic(){
 	{
 		//alert("新的回合");
 		//如果不是玩家自己的回合,隐藏菜单
+		/*
 		if(game_info.step_list[game_info.step_index]==user_index || debug){
 			$("actions0").show();
 		}
@@ -44,7 +45,7 @@ function update_static_Graphic(){
 		else{
 			$("actions0").children().not(".fst_action").show();
 		}
-	}
+	}*/
 	//如果某种发展卡已使用完,不显示;或之前购买的已使用完,变灰
 	for(var i=0;i<4;i++){
 		if(self_player[devs[i]+"_num"]==0){

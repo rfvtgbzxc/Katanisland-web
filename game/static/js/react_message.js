@@ -95,6 +95,7 @@ function set_dice(num1,num2){
 	//刷新game_info
 	game_info.dice_num[0]=num1;
 	game_info.dice_num[1]=num2;
+	UI_set_dices();
 	//根据数字和收取资源
 	var num_sum=num1+num2;
 	var places=map_info.places;
@@ -159,6 +160,9 @@ function set_dice(num1,num2){
 // 建造道路
 //--------------------------------------------------------
 function build_road(edge_id,player_index){
+	//建造道路的UI回调函数,只需要清除selectors和active
+	clear_selectors();
+	$("#action_build_road").removeClass("active");
 	var player=game_info.players[player_index];
 	//扣除资源
 	player.brick_num--;
@@ -174,6 +178,9 @@ function build_road(edge_id,player_index){
 // 建立定居点
 //--------------------------------------------------------
 function build_city0(point_id,player_index){
+	//建造定居点的UI回调函数,只需要清除selectors和active
+	clear_selectors();
+	$("#action_build_city0").removeClass("active");
 	var player=game_info.players[player_index];
 	//扣除资源
 	player.brick_num--;
@@ -201,6 +208,8 @@ function build_city0(point_id,player_index){
 // 建设新城市
 //--------------------------------------------------------
 function build_city1(point_id,player_index){
+	//建造城市的UI回调函数,只需要清除selectors
+	clear_selectors();
 	var player=game_info.players[player_index];
 	//扣除资源
 	player.grain_num-=2;
@@ -276,6 +285,9 @@ function extract_dev_card(randomint,player_index){
 //--------------------------------------------------------
 function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false)
 {
+	//设置强盗的UI回调函数,只需要清除selectors和active
+	clear_selectors();
+	$("#action_build_road").removeClass("active");
 	if(cost){
 		game_info.players[robber_index].soldier_num--;
 		game_info.players[robber_index].soldier_used++;
@@ -350,6 +362,8 @@ function new_turn()
 	his_window.push("----------回合结束----------");
 	his_window.push("第 "+game_info.play_turns+" 回合,轮到 "+game_info.player_list[game_info.step_list[game_info.step_index]][1]+" 行动");
 	//emmm好像没什么要做的了= =||
+	//UI更新
+	UI_new_turn();
 }
 //--------------------------------------------------------
 // 检查胜利条件
