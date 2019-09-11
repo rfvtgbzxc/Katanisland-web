@@ -499,6 +499,7 @@ map
 	position: absolute;
 	left: 300px;
 	top:0;
+	user-select:none;
 }
 source_list
 {
@@ -657,6 +658,13 @@ robber img:hover
 }
 
 /*交易/舍弃栏*/
+window_back{
+	position:fixed;
+	top:0;
+	left:0;
+	height:100%;
+	width:100%;
+}
 .flex_window
 {
 	border: 1px solid #CCCCCC;  
@@ -668,6 +676,7 @@ robber img:hover
 }
 drop_window
 {
+	display:none;
 	position: absolute;
 	width: 160px;
 	height: 500px;
@@ -706,10 +715,10 @@ window_head head_text
 }
 #move,#minimize,#close,#resize
 {
-	height: 10px;
+	height: 18px;
 	margin-top: 5px; 
-	padding-top: 10px;
 	float: right;
+	font-size:10px;
 }
 #resize
 {
@@ -735,7 +744,7 @@ src_select_window head_text
 {
 	width: 100%;
 	position: absolute;
-	left: 0;
+	left: 5px;
 	height: 30px;
 	font-size: 15px;
 }
@@ -769,13 +778,15 @@ src_item{
 	border: 3px solid rgba(0,160,0,0.5);
 	border-radius: 5px;
 	margin-left: 3px;
+	margin-bottom:3px;
 }
 src_item:after
 {
 	content: attr(num);
-	position: absolute;
-	bottom: 0;
-	right: 0;
+	position:relative;
+	top:20px;
+	left:30px;
+	
 }
 src_item.brick{
 	background: url(/media/img/harbor_icon_1.png);

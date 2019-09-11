@@ -36,7 +36,7 @@ function update_static_Graphic(){
 			$(this).addClass("num"+game_info.dice_num[$(this).attr("dice_id")]);
 		});		
 		$("actions0").children().filter(".fst_action").children().addClass("disabled");
-		//如果是骰子掷出7,触发强盗设置UI,在此之前不能激活新的按钮
+		//部分特殊行动会直接改变UI,如触发强盗设置UI,在此之前不能激活新的按钮
 		//备注,除debugmodel,只会有本地玩家会触发设置
 		if(game_temp.action_now=="action_set_robber_for_7"){
 			start_robber_set();

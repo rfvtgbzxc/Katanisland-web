@@ -924,6 +924,7 @@ function init_ui(){
 	$("pt_selector").hide();
 	$("dice").show();
 	$("his_window").show();
+	$("drop_window").hide();
 	$("source_list").show();
 	if(!debug){
 		$("#debuging").hide();

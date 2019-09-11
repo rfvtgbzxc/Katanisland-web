@@ -26,7 +26,7 @@
 	<span >随机数种：<span id="seed_id"></span><span id="debuging"> debug</span></span>
 	<div></div>
 	<!--地图模块-->
-	<map>
+	<map ondragstart="return false;" onselectstart="return false;" unselectable="on">
 		<!--六边形层-->
 		<div id="places">
 		</div>
@@ -129,12 +129,14 @@
 	
 	<!--资源丢弃窗口-->
 	<drop_window class="flex_window">
+		<!--遮挡用背景-->
+		<window_back></window_back>
 		<!--标题栏-->
 		<window_head>
 			<head_text>舍弃资源</head_text>
-			<button id="resize" class="coor"></button>
-			<button id="close"></button>
-			<button id="minimize"></button>
+			<button id="resize" class="coor">o</button>
+			<button id="close">x</button>
+			<button id="minimize">-</button>
 		</window_head>
 		<!--资源选框1-->
 		<src_select_window>

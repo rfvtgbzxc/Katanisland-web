@@ -100,7 +100,17 @@ function set_dice(num1,num2){
 	var places=map_info.places;
 	//添加消息
 	his_window.push("掷出点数: "+ num_sum);
-	//七点,由掷出者设置强盗
+	//七点,所有玩家检查自己的资源数,大于七则触发丢弃选择,如果未大于7则丢弃一个空的丢弃列表。
+	if(num_sum==7){
+		if(all_src_num(game_info.players[user_index])>7){
+			game_temp.drop_required=parseInt(all_src_num(game_info.players[user_index])/2);
+			his_window.push("你需要丢弃 "+game_temp.drop_required+" 份资源");
+			game_temp.action_base="drop_srcs_for_7";
+			game_temp.action_now="drop_srcs_for_7";
+		}
+		return;
+	}
+	//由掷出者设置强盗
 	if(num_sum==7){
 		if(game_info.step_list[game_info.step_index]!=user_index){
 			his_window.push("由"+game_info.player_list[game_info.step_list[game_info.step_index]][1]+"设置强盗:");
