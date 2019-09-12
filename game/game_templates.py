@@ -55,12 +55,12 @@ t_map_setting={
 }
 
 test_game_info={
-	"step_index": 0,
+	"step_index": 1,
 	"game_process": 3,
 	"occupying": 19,
 	"longest_road":0,
 	"max_minitory":0,
-	"play_turns": 3,
+	"play_turns": 4,
 	"dice_num":[0,0],
 	"owner": 233,
 	"step_list": [1,2],

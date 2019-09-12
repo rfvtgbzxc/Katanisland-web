@@ -4,13 +4,12 @@ ws.sendmsg=function(typ,mes){
 	//打开等待窗口
 	$("wait_window").show();
 	var evt={type:typ,message:mes};
-	//debug模式下不会发送到channels
-	if(debug){
+	//if(debug){
 		this.send("data="+JSON.stringify(evt));
-	}
-	else{
-		this.send(JSON.stringify(evt));
-	}
+	//}
+	//else{
+	//	this.send(JSON.stringify(evt));
+	//}
 }
 //只属于ws的解读函数
 ws.onmessage=function(evt){
@@ -114,6 +113,8 @@ function set_dice(num1,num2){
 			game_temp.action_now="action_drop_srcs_for_7";
 			//打开丢弃窗口
 			UI_start_drop_select();
+			//手动关闭等待窗口
+			$("wait_window").hide();
 		}
 		else{
 			//如果没有大于7,发送一条空的丢弃消息,然后进入等待状态
@@ -285,9 +286,11 @@ function extract_dev_card(randomint,player_index){
 //--------------------------------------------------------
 function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false)
 {
-	//设置强盗的UI回调函数,只需要清除selectors和active
+	//设置强盗的UI回调函数
 	clear_selectors();
 	$("#action_use_dev_soldier").removeClass("active");
+	$("#cancel_robbing").hide();
+	$("#to_before_action").hide();
 	if(cost){
 		game_info.players[robber_index].soldier_num--;
 		game_info.players[robber_index].soldier_used++;
@@ -323,15 +326,17 @@ function rob_player(robber_index,victim_index,randomint){
 // 丢弃资源(因为丢出7)
 //--------------------------------------------------------
 function drop_srcs(drop_list,dropper_index){
+	//回调,关闭丢弃资源窗口
+	$("drop_window").hide();
 	//遍历丢弃列表,舍弃对应数字
-	var dropper=game_info.player_list[dropper_index];
+	var dropper=game_info.players[dropper_index];
 	for(var src_id in drop_list){
 		dropper[order[src_id]+"_num"]-=drop_list[src_id];
 		his_window.push(game_info.player_list[dropper_index][1]+" 丢弃了 "+order_ch[src_id]+" x "+drop_list[src_id]);
 	}
 	//完成丢弃后,检查recive_list,释放操作权或保持等待。
 	game_temp.recive_list.splice(game_temp.recive_list.indexOf(dropper_index),1);
-	if(game_temp.recive_list.length==0){
+	if(game_temp.recive_list.length==0 || debug){
 		$("wait_window").hide();
 		//由掷出者设置强盗
 		if(game_info.step_list[game_info.step_index]==user_index){
@@ -341,6 +346,9 @@ function drop_srcs(drop_list,dropper_index){
 	    	game_temp.action_base="action_set_robber_for_7";
 			game_temp.action_now="action_set_robber_for_7";
 			start_robber_set();
+		}
+		else{
+			his_window.push("由 "+game_info.player_list[dropper_index][1]+" 设置强盗");	
 		}
 	}
 	else if(game_info.step_list[game_info.step_index]==user_index){

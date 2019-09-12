@@ -67,10 +67,18 @@ order_ch={
 		5:"铁矿",
 		6:"任意"
 };
+src_reflection={
+	"desert":0,
+	"brick":1,
+	"wood":2,
+	"wool":3,
+	"grain":4,
+	"ore":5,
+};
 color_reflection={
 	1:"light-blue",
 	2:"dark-green"
-}
+};
 color_reflection_hex={
 	"light-blue":"#029ed9",
 	"dark-green":"#006602",
@@ -78,7 +86,7 @@ color_reflection_hex={
 	"light-red":"#ff3738",
 	"light-purple":"#a3159a",
 	"light-green":"#81ff38"
-}
+};
 dir_reflection={
 	"up":0,
 	"ru":1,
@@ -86,14 +94,14 @@ dir_reflection={
 	"dn":3,
 	"ld":4,
 	"lu":5
-}
+};
 vp_info_text=[
 "拥有的城市：",
 "拥有的定居点：",
 "最长道路：",
 "最大军队：",
 "拥有的奇观："
-]
+];
 //--------------------------------------------------------
 // 交互元素基本响应
 //--------------------------------------------------------
@@ -187,8 +195,6 @@ $(document).ready(function(){
 			game_temp.end_confirm=false;
 			return;
 		}
-		//重置recive_list
-		game_temp.recive_list=[].concat(game_info.online_list);
 		//alert("?");
 		//发送消息
 		switch(game_temp.action_now){
@@ -427,6 +433,9 @@ $(document).ready(function(){
 				src_rst.removeClass("disabled");
 			}
 			game_temp.dropped--;
+			if(game_temp.dropped==game_temp.drop_required-1){
+				$("#action_drop_items").addClass("disabled");
+			}
 			$("#dropped").text(""+game_temp.dropped);
 		}
 		else{
@@ -446,8 +455,29 @@ $(document).ready(function(){
 				$(this).addClass("disabled");
 			}
 			game_temp.dropped++;
+			if(game_temp.dropped==game_temp.drop_required){
+				$("#action_drop_items").removeClass("disabled");
+			}
 			$("#dropped").text(""+game_temp.dropped);
 		}
+	});
+	//--------------------------------------------------------
+	// UI：丢弃资源
+	//--------------------------------------------------------
+	$("#action_drop_items").click(function(){
+		//无效则不响应
+		if($(this).hasClass("disabled")){
+			return;
+		}
+		//获取丢弃栏的所有资源
+		var drop_list={};
+		$(this).parent().prev().children().filter("srcs_selected").children().each(function(){
+			if($(this).attr("num")!=0){
+				drop_list[src_reflection[$(this).prop("className")]]=parseInt($(this).attr("num"));
+			}
+		});
+		//发送消息
+		ws.sendmsg("mes_action",{"starter":user_index,"val":[5,drop_list]});
 	});
 	//--------------------------------------------------------
 	// UI：玩家选择器
@@ -485,6 +515,8 @@ $(document).ready(function(){
 		if(game_info.dice_num[0]!=0){
 			return;
 		}
+		//重置recive_list
+		game_temp.recive_list=[].concat(game_info.online_list);
 		//发送消息
 		ws.sendmsg("mes_action",{"val":[0,0]});
 	});
@@ -1040,13 +1072,17 @@ function UI_start_drop_select(){
 	//显示资源丢弃窗口
 	$("drop_window").show();
 	var self_player=game_info.players[user_index];
-	//一开始不显示决定丢弃的资源
+	$("#action_drop_items").addClass("disabled");
+	//一开始不显示决定丢弃的资源,并清空数字
 	$("srcs_selected").children().hide();
+	$("drop_window").children().filter("src_select_window").children().filter("srcs_selected").children().each(function(){
+		$(this).attr("num",0);
+	});
 	//不显示没有的资源
 	for(var src_id=1;src_id<6;src_id++){
 		var src_num=self_player[order[src_id]+"_num"];
 		if(src_num!=0){
-			$("srcs_avaliable").children().filter("."+order[src_id]).attr("num",src_num).show();
+			$("srcs_avaliable").children().filter("."+order[src_id]).attr("num",src_num).removeClass("disabled").show();
 		}
 	}
 	//设置丢弃数
