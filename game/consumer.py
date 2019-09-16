@@ -2,7 +2,7 @@ from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 from .models import User,Room
 from django.db.models import F
-import json
+import json,random
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -219,6 +219,61 @@ class RoomReady(WebsocketConsumer):
                 'type': 'mes_game',
                 'message': 'start'
             }
+        )
+        #text_data_json = json.loads(text_data)
+        #message = text_data_json['message']
+        #print("test==================="+text_data)
+        #self.send(text_data="hello")
+#游戏测试用websocket
+#目前实现：接受连接,传递用户间发出的消息。
+class Game_Test(WebsocketConsumer):
+    #准备连接时的操作
+    def connect(self):
+        print("linking...");
+        self.user_index = self.scope['url_route']['kwargs']['user_index']
+        self.room_group_id="room_999"
+        #加入对话组
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_id,
+            self.channel_name
+        )
+        print("success!")
+        self.accept()
+
+    #连接中断后的行为
+    def disconnect(self, close_code):
+        #移出对话组
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_id,
+            self.channel_name
+        )
+
+    #处理对话组发来的消息
+    def mes_action(self, event):
+        #指定接收人则不被发送至客户端
+        if("accepter" in event['message']):
+            if(self.user_index!=event['message']['accepter']):
+                return
+        #转发给客户端
+        self.send(text_data=json.dumps(event))
+
+    #处理从客户端发来的消息
+    def receive(self, text_data):
+        #目前只会是游戏操作信息,对其中的随机数信息处理后发送至对话组
+        evt=json.loads(text_data)
+        msg=evt
+        if(evt["message"]["val"][0]==0 and evt["message"]["val"][1]==0):
+            msg={"type":"mes_action","message":{"val":[0,1,random.randint(1,6),random.randint(1,6)]}}
+        if(evt["message"]["val"][0]==1 and evt["message"]["val"][1]==4 and evt["message"]["val"][2]==0):
+            msg={"type":"mes_action","message":{"starter":evt["message"]["starter"],"val":[1,4,1,random.randint(0,evt["message"]["val"][3]-1)]}}
+        if(evt["message"]["val"][0]==4 and evt["message"]["val"][3]==0):
+            evt["message"]["val"][4]=random.randint(0,evt["message"]["val"][4]-1)
+            msg=evt
+        if(evt["message"]["val"][0]==3 and evt["message"]["val"][1]==1 and evt["message"]["val"][4]==0):
+            evt["message"]["val"][5]=random.randint(0,evt["message"]["val"][5]-1)
+            msg=evt
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_id,msg
         )
         #text_data_json = json.loads(text_data)
         #message = text_data_json['message']

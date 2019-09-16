@@ -1,12 +1,8 @@
 //初始化全局数据
 //debug模式
-debug=true;
-//模拟websocket
-ws={"send":function(msg){
-	$.get("/ajax/t_virtual_websocket/",msg,function(evt){
-		//模拟接收到消息触发函数
-		ws.onmessage(evt);},"json");
-}};
+debug=false;
+//脱机模式
+offline=true;
 //提示窗口
 info_window={
 	"set":function(text){
@@ -120,7 +116,30 @@ $(document).ready(function(){
 	// 加载游戏
 	//--------------------------------------------------------
 	$("#load_game").click(function(){
+		load_ws_function();
 		create_map();
+	});
+	//--------------------------------------------------------
+	// 以联机模式加载游戏
+	// 将会进入一个测试房间,房间数据固定,该房间只会有两名玩家,后进入的玩家会成为第二位玩家。
+	//--------------------------------------------------------
+	$("#load_game_online").click(function(){
+		if(offline){
+			alert("请先关闭脱机模式！")
+			return;
+		}
+		user_index=parseInt($("#set_user_index").val());
+		//本地局域网1
+		//ws = new WebSocket("ws://172.24.10.250:80/ws/game_test/"+user_index+"/");
+		//本地局域网2
+		ws = new WebSocket("ws://192.168.50.50:80/ws/game_test/"+user_index+"/");
+		//阿里云服务器
+		//ws = new WebSocket("ws://119.23.218.46:80/ws/game_test/"+user_index+"/");
+		load_ws_function();
+		ws.onopen = function () {
+            //当连接成功时，从数据库载入游戏信息
+            create_map();
+        };	
 	});
 	//--------------------------------------------------------
 	// 检查图块
@@ -548,6 +567,51 @@ $(document).ready(function(){
 		$("actions1").css("top",$(this).position().top-3*25);
 	});
 	//--------------------------------------------------------
+	// UI：交易
+	// 层级：0  值：2
+	//--------------------------------------------------------
+	$("#action_trade").click(function(){
+		//清除选择器
+		clear_selectors();
+		//如果已处于激活状态则关闭
+		if($(this).hasClass("active"))
+		{
+			$("actions1").children().hide();
+			$(this).removeClass("active");
+			return;
+		}
+		//首先关闭其他可能的1级选项,取消其他可能的0级选项
+		$("actions1").children().removeClass("active").hide();
+		$("actions0").children().not("actions1").children().removeClass("active");
+		//激活自己
+		$(this).addClass("active");
+		//激活下一级窗口：初步交易目标
+		$("#action_trade_with_bank").show();
+		$("#action_trade_with_harbours").show();
+		$("#action_trade_with_players").show();
+		//安置按钮组位置
+		$("actions1").css("top",$(this).position().top-2*25);
+	});
+	//--------------------------------------------------------
+	// UI：准备交易
+	// 交易类型非常多,这是一次尝试
+	//--------------------------------------------------------
+	$(".action_prepare_trade").click(function(){
+		//清除选择器
+		clear_selectors();
+		//如果已处于激活状态则关闭
+		if($(this).hasClass("active"))
+		{
+			$("actions1").children().hide();
+			$(this).removeClass("active");
+			return;
+		}
+		//激活自己
+		$(this).addClass("active");
+		//启动交易选择
+		start_trade($(this).attr("trade_target"));
+	});
+	//--------------------------------------------------------
 	// UI：使用发展卡
 	// 层级：0  值：3
 	//--------------------------------------------------------
@@ -564,8 +628,6 @@ $(document).ready(function(){
 		//首先关闭其他可能的1级选项,取消其他可能的0级选项
 		$("actions1").children().removeClass("active").hide();
 		$("actions0").children().not("actions1").children().removeClass("active");
-		//激活自己
-		$(this).addClass("active");
 		//如果有卡则激活下一级窗口：五种发展卡
 		var count=0;
 		var self_player=game_info.players[user_index];
@@ -578,9 +640,14 @@ $(document).ready(function(){
 				}
 			}
 		}
+		if(count==0){
+			return;
+		}
 		//$("#action_show_score_cards").show();
 		//安置按钮组位置
 		$("actions1").css("top",$(this).position().top-(count-1)*25);
+		//激活自己
+		$(this).addClass("active");
 	});
 	//--------------------------------------------------------
 	// UI：建设道路
@@ -715,6 +782,7 @@ $(document).ready(function(){
 		confirm_window.set("要抽取发展卡吗?");
 		confirm_window.show();
 	});
+
 	//--------------------------------------------------------
 	// UI：士兵卡
 	// 层级：1  值：4
@@ -1005,11 +1073,12 @@ function init_ui(){
 	$("his_window").show();
 	$("drop_window").hide();
 	$("source_list").show();
+	$("special_actions").children().hide();
 	if(!debug){
 		$("#debuging").hide();
 	}
-	//非自己回合不显示菜单(除非debug模式)
-	if(game_info.step_index==user_index || debug){
+	//非自己回合不显示菜单(除非offline模式)
+	if(game_info.step_list[game_info.step_index]==user_index || offline){
 		$("actions0").show();
 		//根据dice_num来判断目前是否已经投完骰子
 		if(game_info.dice_num[0]==0)
@@ -1041,7 +1110,7 @@ function UI_new_turn(){
 	//$("actions1").children().removeClass("active part_disabled");
 	//隐藏除投骰子以外的按钮,如果本回合不是你行动,则隐藏所有按钮
 	//此处应有拉长历史消息窗口的动作
-	if(game_info.step_list[game_info.step_index]==user_index || debug)
+	if(game_info.step_list[game_info.step_index]==user_index || offline)
 	{
 		$("actions0").show();
 		$("actions0").children().not(".fst_action").hide();
@@ -1079,6 +1148,7 @@ function UI_start_drop_select(){
 		$(this).attr("num",0);
 	});
 	//不显示没有的资源
+	$("srcs_avaliable").children().hide();
 	for(var src_id=1;src_id<6;src_id++){
 		var src_num=self_player[order[src_id]+"_num"];
 		if(src_num!=0){
@@ -1100,7 +1170,15 @@ function start_robber_set(){
 		$("plc_selector").filter("#"+places[i]).addClass("active selector_avaliable").show();
 	}
 }
-
+//--------------------------------------------------------
+// 启动交易窗口
+//--------------------------------------------------------
+function start_trade(target="bank"){
+	/*switch(target){
+		case "bank":
+	}*/
+	$("trade_window").show();
+}
 //--------------------------------------------------------
 // game_info对象函数
 //--------------------------------------------------------

@@ -7,4 +7,5 @@ from . import consumer as consumers
 websocket_urlpatterns = [
 	path('chat/',consumers.ChatConsumer),
 	url(r'^ws/room/(?P<room_id>[^/]+)/$',consumers.RoomReady),
+	url(r'^ws/game_test/(?P<user_index>[^/]+)/$',consumers.Game_Test),
 ]

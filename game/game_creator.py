@@ -14,7 +14,11 @@ def new_Player(index):
 	player["score_shown"]=[]
 	player["plenty_num"]=0
 	player["monopoly_num"]=0
-	player["road_maker_num"]=0
+	player["road_making_num"]=0
+	player["soldier_get_before"]=0
+	player["plenty_get_before"]=0
+	player["monopoly_get_before"]=0
+	player["road_making_get_before"]=0
 	player["road_longest"]=[]
 	player["own_cities"]=[]
 	return player

@@ -1,29 +1,40 @@
 //用于处理websocket发送过来的消息
-//只属于ws的封装函数
-ws.sendmsg=function(typ,mes){
-	//打开等待窗口
-	$("wait_window").show();
-	var evt={type:typ,message:mes};
-	//if(debug){
-		this.send("data="+JSON.stringify(evt));
-	//}
-	//else{
-	//	this.send(JSON.stringify(evt));
-	//}
-}
-//只属于ws的解读函数
-ws.onmessage=function(evt){
-	//evt是js对象，然而evt.data不是(尽管格式是json)
-	var data;
-	if(typeof(evt.data)=="object"){
-		data=evt.data
+//模拟websocket
+ws={};
+if(offline){
+	ws.send=function(msg){
+	$.get("/ajax/t_virtual_websocket/",msg,function(evt){
+		//模拟接收到消息触发函数
+		ws.onmessage(evt);},"json");
 	}
-	else
-	{
-		data=JSON.parse(evt.data)
-	}	
-	handle_msg(data);
-};
+}
+function load_ws_function(){
+	//只属于ws的封装函数
+	ws.sendmsg=function(typ,mes){
+		//打开等待窗口
+		$("wait_window").show();
+		var evt={"type":typ,"message":mes};
+		if(offline){
+			this.send("data="+JSON.stringify(evt));
+		}
+		else{
+			this.send(JSON.stringify(evt));
+		}
+	}
+	//只属于ws的解读函数
+	ws.onmessage=function(evt){
+		//evt是js对象，然而evt.data不是(尽管格式是json)
+		var data;
+		if(typeof(evt.data)=="object"){
+			data=evt.data
+		}
+		else
+		{
+			data=JSON.parse(evt.data)
+		}	
+		handle_msg(data);
+	};
+}
 //不管,肯定不是多此一举
 //解读信息
 function handle_msg(msg){
@@ -326,17 +337,20 @@ function rob_player(robber_index,victim_index,randomint){
 // 丢弃资源(因为丢出7)
 //--------------------------------------------------------
 function drop_srcs(drop_list,dropper_index){
-	//回调,关闭丢弃资源窗口
-	$("drop_window").hide();
 	//遍历丢弃列表,舍弃对应数字
 	var dropper=game_info.players[dropper_index];
 	for(var src_id in drop_list){
 		dropper[order[src_id]+"_num"]-=drop_list[src_id];
 		his_window.push(game_info.player_list[dropper_index][1]+" 丢弃了 "+order_ch[src_id]+" x "+drop_list[src_id]);
 	}
+	//如果是自己所为,进行回调关闭窗口
+	if(dropper_index==user_index){
+		//回调,关闭丢弃资源窗口
+		$("drop_window").hide();
+	}
 	//完成丢弃后,检查recive_list,释放操作权或保持等待。
 	game_temp.recive_list.splice(game_temp.recive_list.indexOf(dropper_index),1);
-	if(game_temp.recive_list.length==0 || debug){
+	if(game_temp.recive_list.length==0 || offline){
 		$("wait_window").hide();
 		//由掷出者设置强盗
 		if(game_info.step_list[game_info.step_index]==user_index){
@@ -389,8 +403,8 @@ function new_turn()
 			player[devs[i]+"_get_before"]=0;
 		}
 	}	
-	//debug模式下,核心角色移交
-	if(debug){
+	//offline模式下,核心角色移交
+	if(offline){
 		user_index=game_info.step_list[game_info.step_index];
 	}
 	//动画：回合指示轮盘跳转

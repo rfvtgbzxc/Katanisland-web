@@ -23,6 +23,8 @@
 </head>
 <body>
 	<span id="load_game" style="cursor:pointer;display: inline;z-index:100;">生成随机地图</span>
+	<input id="set_user_index" type="text" placeholder="输入user_index">
+	<span id="load_game_online" style="cursor:pointer;display: inline;z-index:100;">启用测试链接</span>
 	<span >随机数种：<span id="seed_id"></span><span id="debuging"> debug</span></span>
 	<div></div>
 	<!--地图模块-->
@@ -96,11 +98,19 @@
 	  		<button type="button" id="action_build_city0" class="list-group-item">建立定居点<cost class="brick">1</cost><cost class="wood">1</cost><cost class="wool">1</cost><cost class="grain">1</cost></button>
 	  		<button type="button" id="action_build_city1" class="list-group-item">建设新城市<cost class="grain">2</cost><cost class="ore">3</cost></button>
 	  		<button type="button" id="action_buy_dev_card" class="list-group-item">抽取发展卡<cost class="wool">1</cost><cost class="grain">1</cost><cost class="ore">1</cost></button>
+
+	  		<button trade_target="bank" type="button" id="action_trade_with_bank" class="action_prepare_trade list-group-item">与银行交易<span class="dev_num"></span></button>
+	  		<button type="button" id="action_trade_with_harbours" class="list-group-item">与港口交易<span class="dev_num"></span></button>
+	  		<button type="button" id="action_trade_with_players" class="list-group-item">与玩家交易<span class="dev_num"></span></button>
+
 	  		<button type="button" id="action_use_dev_soldier" class="list-group-item">士兵<span class="dev_num"></span></button>
 	  		<button type="button" id="action_use_dev_plenty" class="list-group-item">丰收之年<span class="dev_num"></span></button>
 	  		<button type="button" id="action_use_dev_monopoly" class="list-group-item">垄断<span class="dev_num"></span></button>
 	  		<button type="button" id="action_use_dev_road_making" class="list-group-item">道路建设<span class="dev_num"></span></button>
 	  		<button type="button" id="action_show_score_cards" class="list-group-item">展示分数卡</button>
+	  		<!--2级菜单-->
+	  		<actions2>
+	  		</actions2>
 	  	</actions1>
 	  	<!--特殊选项-->
 	  	<special_actions class="list-group">
@@ -149,24 +159,26 @@
 		<!--标题栏-->
 		<window_head>
 			<head_text></head_text>			
-			<button id="resize" class="coor"></button>
-			<button id="close"></button>
-			<button id="minimize"></button>
+			<button id="resize" class="coor">o</button>
+			<button id="close">x</button>
+			<button id="minimize">-</button>
 		</window_head>
 		<!--资源选框1-->
 		<src_select_window class="give">
-			<head_text></head_text>
+			<head_text>你想给予：</head_text>
 			<srcs_selected></srcs_selected>
 			<srcs_avaliable></srcs_avaliable>
 		</src_select_window>
 		<!--资源选框2-->
 		<src_select_window class="get">
-			<head_text></head_text>
+			<head_text>你想获得：</head_text>
 			<srcs_selected></srcs_selected>
 			<srcs_avaliable></srcs_avaliable>
 		</src_select_window>
-		<trade_state></trade_state>
-		<src_confirm_window><button class="btn-success" id="action_trade_items"></button></src_confirm_window>
+		<src_confirm_window>
+			<trade_state>1</trade_state>
+			<button class="btn-success" id="action_trade_items"></button>
+		</src_confirm_window>
 	</trade_window>
 	<!--部分文字预加载-->
 	<pre-load-text style="z-index:-1;color:white;">发起交易 关闭窗口 拒绝交易 接受交易 放弃交易</pre-load-text>
