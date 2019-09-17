@@ -156,12 +156,13 @@
 	</drop_window>
 	<!--交易窗口-->
 	<trade_window class="flex_window">
+		<!--遮挡用背景-->
+		<window_back></window_back>
 		<!--标题栏-->
 		<window_head>
 			<head_text></head_text>			
 			<button id="resize" class="coor">o</button>
 			<button id="close">x</button>
-			<button id="minimize">-</button>
 		</window_head>
 		<!--资源选框1-->
 		<src_select_window class="give">
@@ -176,7 +177,7 @@
 			<srcs_avaliable></srcs_avaliable>
 		</src_select_window>
 		<src_confirm_window>
-			<trade_state>1</trade_state>
+			<trade_state></trade_state>
 			<button class="btn-success" id="action_trade_items"></button>
 		</src_confirm_window>
 	</trade_window>

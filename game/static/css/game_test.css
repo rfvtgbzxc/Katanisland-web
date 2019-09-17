@@ -696,6 +696,7 @@ trade_window
 	position: absolute;
 	width: 320px;
 	height: 500px;
+	left:500px;
 	z-index: 4200;
 }
 window_head{
@@ -771,6 +772,12 @@ srcs_avaliable
 	border-bottom-right-radius: 5px;
 	border: 2px solid rgba(0,0,0,0.7);
 }
+trade_state{
+
+}
+button#action_trade_items{
+
+}
 src_confirm_window{
 	position:absolute;
 	bottom:0;
@@ -779,6 +786,7 @@ src_confirm_window{
 	display:flex;
 	justify-content: center;
 	align-items: center;
+	flex-direction: column;
 }
 #action_drop_items.disabled{
 	-webkit-filter: grayscale(100%);

@@ -431,74 +431,6 @@ $(document).ready(function(){
 	    }
 	);
 	//--------------------------------------------------------
-	// UI：选择资源
-	//--------------------------------------------------------
-	$("src_select_window").on("click","src_item",function(){
-		//判断资源图标位置
-		if($(this).parent().is("srcs_selected")){
-			//从给予栏归还资源,资源数为0后隐藏图标
-			var src_num=parseInt($(this).attr("num"))-1;
-			var src_rst=$(this).parent().next().children().filter("."+$(this).prop("className"));
-			var src_rst_num=parseInt(src_rst.attr("num"))+1;
-			if(src_num==-1){
-				return;
-			}
-			$(this).attr("num",src_num);
-			src_rst.attr("num",src_rst_num);
-			if(src_num==0){
-				$(this).hide();
-			}
-			if(src_rst_num==1){
-				src_rst.removeClass("disabled");
-			}
-			game_temp.dropped--;
-			if(game_temp.dropped==game_temp.drop_required-1){
-				$("#action_drop_items").addClass("disabled");
-			}
-			$("#dropped").text(""+game_temp.dropped);
-		}
-		else{
-			//向给予栏放置资源,新的类型则显示图标
-			var src_num=parseInt($(this).attr("num"))-1;
-			var src_get=$(this).parent().prev().children().filter("."+$(this).prop("className"));
-			var src_get_num=parseInt(src_get.attr("num"))+1;
-			if(src_num==-1 || game_temp.dropped==game_temp.drop_required){
-				return;
-			}
-			$(this).attr("num",src_num);
-			src_get.attr("num",src_get_num);
-			if(src_get_num==1){
-				src_get.show();
-			}
-			if(src_num==0){
-				$(this).addClass("disabled");
-			}
-			game_temp.dropped++;
-			if(game_temp.dropped==game_temp.drop_required){
-				$("#action_drop_items").removeClass("disabled");
-			}
-			$("#dropped").text(""+game_temp.dropped);
-		}
-	});
-	//--------------------------------------------------------
-	// UI：丢弃资源
-	//--------------------------------------------------------
-	$("#action_drop_items").click(function(){
-		//无效则不响应
-		if($(this).hasClass("disabled")){
-			return;
-		}
-		//获取丢弃栏的所有资源
-		var drop_list={};
-		$(this).parent().prev().children().filter("srcs_selected").children().each(function(){
-			if($(this).attr("num")!=0){
-				drop_list[src_reflection[$(this).prop("className")]]=parseInt($(this).attr("num"));
-			}
-		});
-		//发送消息
-		ws.sendmsg("mes_action",{"starter":user_index,"val":[5,drop_list]});
-	});
-	//--------------------------------------------------------
 	// UI：玩家选择器
 	//--------------------------------------------------------
 	$("#players").on("click","player",
@@ -522,6 +454,110 @@ $(document).ready(function(){
 	    	confirm_window.show();
 	    }
 	);
+	//--------------------------------------------------------
+	// UI：交易/丢弃资源界面
+	//--------------------------------------------------------
+	//--------------------------------------------------------
+	// UI：选择资源
+	//--------------------------------------------------------
+	$("src_select_window").on("click","src_item",function(){
+		//判断资源图标位置
+		if($(this).parent().is("srcs_selected")){
+			//从选定栏归还资源,资源数为0后隐藏图标
+			var src_num=parseInt($(this).attr("num"))-1;
+			var src_rst=$(this).parent().next().children().filter("."+$(this).prop("className"));
+			var src_rst_num=parseInt(src_rst.attr("num"))+1;
+			if($(this).hasClass("disabled")){
+				return;
+			}
+			$(this).attr("num",src_num);
+			src_rst.attr("num",src_rst_num);
+			if(src_num==0){
+				$(this).hide();
+			}
+			if(src_rst_num==1){
+				src_rst.removeClass("disabled");
+			}
+			game_temp.dropped--;
+			if(game_temp.dropped==game_temp.drop_required-1){
+				$("#action_drop_items").addClass("disabled");
+			}
+			$("#dropped").text(""+game_temp.dropped);
+		}
+		else{
+			//向选定栏放置资源,新的类型则显示图标
+			//已假设不会有可选栏资源不足的情况,如果有,该项资源会变灰。
+			var src_num=parseInt($(this).attr("num"))-trade_ratio;
+			var src_get=$(this).parent().prev().children().filter("."+$(this).prop("className"));
+			var src_get_num=parseInt(src_get.attr("num"))+1;
+			//判断是否生效
+			if($(this).hasClass("disabled")){
+				return;
+			}
+			if(game_temp.action_now=="action_drop_srcs_for_7" && game_temp.dropped>game_temp.drop_required){
+				return;
+			}
+			if(game_temp.action_now=="action_trade" && ["bank","harbour"].indexOf(trade_target)!=-1){
+				//接受交易方的资源状态
+				accept_src_get_num=0;
+				$("src_select_window").filter(".give").children().filter("srcs_selected").children().each(function(){
+					accept_src_get_num+=parseInt($(this).attr("num"));
+				});
+				if(game_temp.trade_give_equal_num==accept_src_get_num){
+					return;
+				}
+			}
+			$(this).attr("num",src_num);
+			src_get.attr("num",src_get_num);		
+			//处理之后图标状态的变化
+			if(src_get_num>0){
+				src_get.show();
+			}
+			if(src_num<trade_ratio){
+				$(this).addClass("disabled");
+			}
+			if(game_temp.action_now=="action_trade"){
+				game_temp.trade_give_equal_num++;
+				if(trade_give_equal_num==accept_src_get_num){
+					$("#action_trade_items").removeClass("disabled");
+				}
+			}		
+			if(game_temp.action_now=="action_drop_srcs_for_7"){
+				game_temp.dropped++;
+				if(game_temp.dropped==game_temp.drop_required){
+					$("#action_drop_items").removeClass("disabled");
+				}	
+				$("#dropped").text(""+game_temp.dropped);	
+			}			
+		}
+	});
+	//--------------------------------------------------------
+	// UI：关闭窗口
+	//--------------------------------------------------------
+	$("#close").click(function(){
+		//关闭窗口,并取消激活状态
+		$("trade_window").hide();
+		//可优化,定位之前的UI
+		$(".action_prepare_trade").removeClass("active");
+	});
+	//--------------------------------------------------------
+	// UI：丢弃资源
+	//--------------------------------------------------------
+	$("#action_drop_items").click(function(){
+		//无效则不响应
+		if($(this).hasClass("disabled")){
+			return;
+		}
+		//获取丢弃栏的所有资源
+		var drop_list={};
+		$(this).parent().prev().children().filter("srcs_selected").children().each(function(){
+			if($(this).attr("num")!=0){
+				drop_list[src_reflection[$(this).prop("className")]]=parseInt($(this).attr("num"));
+			}
+		});
+		//发送消息
+		ws.sendmsg("mes_action",{"starter":user_index,"val":[5,drop_list]});
+	});
 	//--------------------------------------------------------
 	// UI：菜单
 	//--------------------------------------------------------
@@ -1157,6 +1193,7 @@ function UI_start_drop_select(){
 	}
 	//设置丢弃数
 	game_temp.dropped=0;
+	trade_ratio=1;
 	$("#dropped").text("0");
 	$("#need_drop").text(""+game_temp.drop_required);
 }
@@ -1174,9 +1211,63 @@ function start_robber_set(){
 // 启动交易窗口
 //--------------------------------------------------------
 function start_trade(target="bank"){
-	/*switch(target){
+	var init_give_items_avaliable=[];
+	var init_wonder_items_avaliable=[];
+	var self_player=game_info.players[user_index];
+	var action_text;
+	var head_text;
+	game_temp.action_now="action_trade";
+	game_temp.trade_give_equal_num=0;
+	switch(target){
+		//银行,目标可以是任何银行还有的资源,给予栏只显示有的
+		//即使银行已经没有这种资源了也会列入,但随后判定中会为其附加不可更改
 		case "bank":
-	}*/
+			game_temp.trade_target="bank";
+			game_temp.trade_ratio=4;
+			action_text="发起交易";
+			head_text="与银行交易";
+			init_wonder_items_avaliable.push(1,2,3,4,5);
+			for(var i=1;i<6;i++){
+				if(self_player[order[i]+"_num"]>0){
+					init_give_items_avaliable.push(i);
+				}
+			}	
+			break;
+
+	}
+	$("#action_trade_items").addClass("disabled");
+	//一开始不显示选定的资源,并清空数字
+	$("srcs_selected").children().hide();
+	$("trade_window").children().filter("src_select_window").children().filter("srcs_selected").children().each(function(){
+		$(this).attr("num",0);
+	});
+	//安装列表显示可用资源
+	$("srcs_avaliable").children().removeClass("disabled").hide();
+	$("src_select_window").filter(".give").children().filter("srcs_avaliable").children().each(function(){
+		if(init_give_items_avaliable.indexOf(src_reflection[$(this).prop("className")])!=-1){
+			var src_num=self_player[$(this).prop("className")+"_num"];
+			//不足兑换比则无效化
+			if(src_num<game_temp.trade_ratio){
+				$(this).addClass("disabled");
+			}
+			$(this).attr("num",src_num).show();
+		}
+	});
+	$("src_select_window").filter(".get").children().filter("srcs_avaliable").children().each(function(){
+		if(init_wonder_items_avaliable.indexOf(src_reflection[$(this).prop("className")])!=-1){
+			var src_num=game_info.cards[$(this).prop("className")+"_num"];
+			//银行资源不足则无效化
+			if(src_num<1){
+				$(this).addClass("disabled");
+			}
+			else{
+				$(this).removeClass("disabled");
+			}
+			$(this).attr("num",src_num).show();
+		}
+	});
+	$("trade_window").children().filter("window_head").children().filter("head_text").text(head_text);
+	$("#action_trade_items").text(action_text);
 	$("trade_window").show();
 }
 //--------------------------------------------------------
@@ -1277,4 +1368,71 @@ function all_roads(player_index){
 function union(arr1,arr2){
 	return arr1.concat(arr2.filter(function(v) {
         return arr1.indexOf(v) === -1}))
+}
+
+//--------------------------------------------------------
+// 交易资源的对象,用于处理复杂的前置判断和资源交换
+//--------------------------------------------------------
+class Trade_item {
+    constructor(jq_object,relative_object,exchange_ratio){
+        this.jqdom=jq_object;
+		this.rlt_item=relative_object;
+		this.ratio_num=exchange_ratio;
+		this.own_num=parseInt(jqdom.attr("num"));
+    }
+    reduce(){
+		this.own_num-=ratio_num;
+		if(game_temp.action_now=="action_drop_srcs_for_7"){
+			game_temp.dropped--;
+		}
+		this.jqdom_check();	
+	}
+	increase(){
+		this.own_num+=ratio_num;
+		if(game_temp.action_now=="action_drop_srcs_for_7"){
+			game_temp.dropped++;
+		}
+		this.jqdom_check();	
+	}
+}
+class Selected_item extends Trade_item{
+	constructor(jq_object,relative_object,exchange_ratio){
+		super(jq_object,relative_object,exchange_ratio);
+	}
+	can_reduce(){
+		return this.own_num>=ratio_num;
+	}
+	jqdom_check(){
+		this.jqdom.attr("num",this.own_num);	
+		if(this.own_num==0){
+			this.jqdom.hide();
+		}
+		else{
+			this.jqdom.show();
+		}
+	}
+}
+class Avaliable_item extends Trade_item{
+	constructor(jq_object,relative_object,exchange_ratio){
+		super(jq_object,relative_object,exchange_ratio);
+	}
+	can_reduce(){
+		if(this.own_num==0){
+			return false;
+		}
+		if(game_temp.action_now=="action_drop_srcs_for_7"){
+			if(game_temp.dropped==game_temp.drop_required){
+				return false;
+			}
+		}
+	}
+	jqdom_check(){
+		this.jqdom.attr("num",this.own_num);	
+		if(this.own_num==0){
+			this.jqdom.hide();
+		}
+		else{
+			this.jqdom.show();
+		}
+	}
 }
