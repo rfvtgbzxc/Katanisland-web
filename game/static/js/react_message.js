@@ -67,6 +67,15 @@ function handle_msg(msg){
 							extract_dev_card(val[3],msg.message.starter);
 					}
 					break;
+				//交易
+				case 2:
+				 switch(val[1]){
+				 	//与银行交易
+				 	case 1:
+				 		trade_with_bank(val[2],val[3],msg.message.starter);
+				 		break;
+				 }
+				 break;
 				//发展
 				case 3:
 					switch(val[1]){
@@ -295,6 +304,30 @@ function extract_dev_card(randomint,player_index){
 		cards.score_cards.splice(randomint,1);	
 		return;
 	}
+}
+//--------------------------------------------------------
+// 与银行交易
+//--------------------------------------------------------
+function trade_with_bank(give_list,get_list,trader_index){
+	//UI回调,关闭交易窗口
+	close_trade_window();
+
+	var trader=game_info.players[trader_index];
+	var bank=game_info.cards;
+	//进行资源转移
+	for(var src_id in give_list){
+		var src_num=order[src_id]+"_num";
+		trader[src_num]-=give_list[src_id];
+		bank[src_num]+=give_list[src_id];
+		his_window.push(game_info.player_list[trader_index][1]+" 给了银行 "+order_ch[src_id]+" x "+give_list[src_id]);
+	}
+	for(var src_id in get_list){
+		var src_num=order[src_id]+"_num";
+		trader[src_num]+=get_list[src_id];
+		bank[src_num]-=get_list[src_id];
+		his_window.push("银行给了 "+game_info.player_list[trader_index][1]+" "+order_ch[src_id]+" x "+get_list[src_id]);
+	}
+
 }
 //--------------------------------------------------------
 // 设置强盗

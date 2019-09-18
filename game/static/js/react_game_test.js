@@ -512,10 +512,7 @@ $(document).ready(function(){
 	// UI：关闭窗口
 	//--------------------------------------------------------
 	$("#close").click(function(){
-		//关闭窗口,并取消激活状态
-		$("trade_window").hide();
-		//可优化,定位之前的UI
-		$(".action_prepare_trade").removeClass("active");
+		close_trade_window();
 	});
 	//--------------------------------------------------------
 	// UI：丢弃资源
@@ -531,6 +528,7 @@ $(document).ready(function(){
 		for(var i in items){
 			var UI_id=items[i];
 			var item=game_UI[UI_id];
+			if(item.own_num==0){continue;}
 			drop_list[src_reflection[item.item_type]]=item.own_num;
 		}
 		//发送消息
@@ -540,6 +538,10 @@ $(document).ready(function(){
 	// UI：交易资源
 	//--------------------------------------------------------
 	$("#action_trade_items").click(function(){
+		//无效则不响应
+		if($(this).hasClass("disabled")){
+			return;
+		}
 		//获取交易栏的所有资源
 		var give_list={};
 		var get_list={};
@@ -548,11 +550,13 @@ $(document).ready(function(){
 		for(var i in items1){
 			var UI_id=items1[i];
 			var item=game_UI[UI_id];
+			if(item.own_num==0){continue;}
 			give_list[src_reflection[item.item_type]]=item.own_num;
 		}
 		for(var i in items2){
 			var UI_id=items2[i];
 			var item=game_UI[UI_id];
+			if(item.own_num==0){continue;}
 			get_list[src_reflection[item.item_type]]=item.own_num;
 		}
 		//根据交易类型,有不同的处理
@@ -1258,7 +1262,7 @@ function start_trade(target="bank"){
 			game_temp.trade_target="bank";
 			game_temp.trade_ratio=4;
 			action_text="发起交易";
-			head_text="与银行交易";
+			head_text="与银行交易 4:1";
 			init_wonder_items_avaliable.push(1,2,3,4,5);
 			for(var i=1;i<6;i++){
 				if(self_player[order[i]+"_num"]>0){
@@ -1311,21 +1315,36 @@ function start_trade(target="bank"){
 				}
 			}
 		}
-		game_UI.drop_items_created=true;
+		game_UI.trade_items_created=true;
 	}
 	else{
-		var items=game_UI_list.drop_items.selected;
+		var items=game_UI_list.trade_items._give.selected;
 		for(var i=0;i<items.length;i++){
 			var UI_id=items[i];
 			var item=game_UI[UI_id];
 			item.own_num=0;
 			item.jqdom_init();
 		}
-		var items=game_UI_list.drop_items.avaliable;
+		items=game_UI_list.trade_items._get.selected;
+		for(var i=0;i<items.length;i++){
+			var UI_id=items[i];
+			var item=game_UI[UI_id];
+			item.own_num=0;
+			item.jqdom_init();
+		}
+		items=game_UI_list.trade_items._give.avaliable;
 		for(var i=0;i<items.length;i++){
 			var UI_id=items[i];
 			var item=game_UI[UI_id];
 			var src_num=self_player[item.item_type+"_num"];
+			item.own_num=src_num;
+			item.jqdom_init();
+		}
+		items=game_UI_list.trade_items._get.avaliable;
+		for(var i=0;i<items.length;i++){
+			var UI_id=items[i];
+			var item=game_UI[UI_id];
+			var src_num=game_info.cards[item.item_type+"_num"];
 			item.own_num=src_num;
 			item.jqdom_init();
 		}
@@ -1334,6 +1353,15 @@ function start_trade(target="bank"){
 	$("trade_window").children().filter("window_head").children().filter("head_text").text(head_text);
 	$("#action_trade_items").text(action_text);
 	$("trade_window").show();
+}
+//--------------------------------------------------------
+// 关闭交易窗口
+//--------------------------------------------------------
+function close_trade_window(){
+	//关闭窗口,并取消激活状态
+	$("trade_window").hide();
+	//可优化,定位之前的UI
+	$(".action_prepare_trade").removeClass("active");
 }
 //--------------------------------------------------------
 // game_info对象函数
