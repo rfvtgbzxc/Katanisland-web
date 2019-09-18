@@ -30,11 +30,31 @@ edge_size=67;
 xsize=0;
 ysize=0;
 last_step_index=0;
+src_size=5;
 //临时数据
 game_temp={
 	"action_now":"",
 	"set_option":"",
 	"recive_list":[]
+};
+game_UI={
+	"UI_count":0,
+};
+game_UI_list={
+	drop_items:{
+		selected:[],
+		avaliable:[]
+	},
+	trade_items:{
+		_give:{
+			selected:[],
+			avaliable:[]
+		},
+		_get:{
+			selected:[],
+			avaliable:[]
+		}		
+	},
 };
 //个人标记（测试版本默认为第二位玩家）
 user_id=666;
@@ -461,6 +481,7 @@ $(document).ready(function(){
 	// UI：选择资源
 	//--------------------------------------------------------
 	$("src_select_window").on("click","src_item",function(){
+		/*
 		//判断资源图标位置
 		if($(this).parent().is("srcs_selected")){
 			//从选定栏归还资源,资源数为0后隐藏图标
@@ -529,7 +550,24 @@ $(document).ready(function(){
 				}	
 				$("#dropped").text(""+game_temp.dropped);	
 			}			
+		}*/
+		//进行资源的转移
+		var UI_id=$(this).attr("id");
+		var item=game_UI[UI_id];
+		var item_rlt=item.rlt_item;
+		if(item.can_reduce()){
+			item.reduce();
+			item_rlt.increase();
 		}
+		if(game_temp.action_now=="action_drop_srcs_for_7"){
+			if(game_temp.dropped==game_temp.drop_required){
+				$("#action_drop_items").removeClass("disabled");
+			}
+			else{
+				$("#action_drop_items").addClass("disabled");
+			}	
+			$("#dropped").text(""+game_temp.dropped);
+		}		
 	});
 	//--------------------------------------------------------
 	// UI：关闭窗口
@@ -550,11 +588,12 @@ $(document).ready(function(){
 		}
 		//获取丢弃栏的所有资源
 		var drop_list={};
-		$(this).parent().prev().children().filter("srcs_selected").children().each(function(){
-			if($(this).attr("num")!=0){
-				drop_list[src_reflection[$(this).prop("className")]]=parseInt($(this).attr("num"));
-			}
-		});
+		var items=game_UI_list.drop_items.selected;
+		for(var i in items){
+			var UI_id=items[i];
+			var item=game_UI[UI_id];
+			drop_list[src_reflection[item.item_type]]=item.own_num;
+		}
 		//发送消息
 		ws.sendmsg("mes_action",{"starter":user_index,"val":[5,drop_list]});
 	});
@@ -1176,24 +1215,50 @@ function UI_set_dices(){
 function UI_start_drop_select(){
 	//显示资源丢弃窗口
 	$("drop_window").show();
+	$("#drop_items").addClass("disabled");
 	var self_player=game_info.players[user_index];
-	$("#action_drop_items").addClass("disabled");
-	//一开始不显示决定丢弃的资源,并清空数字
-	$("srcs_selected").children().hide();
-	$("drop_window").children().filter("src_select_window").children().filter("srcs_selected").children().each(function(){
-		$(this).attr("num",0);
-	});
-	//不显示没有的资源
-	$("srcs_avaliable").children().hide();
-	for(var src_id=1;src_id<6;src_id++){
-		var src_num=self_player[order[src_id]+"_num"];
-		if(src_num!=0){
-			$("srcs_avaliable").children().filter("."+order[src_id]).attr("num",src_num).removeClass("disabled").show();
+	if(game_UI.hasOwnProperty("drop_items_created")==false){
+		for(var src_id=1;src_id<6;src_id++){
+			var src_name=order[src_id];
+			var src_num=self_player[src_name+"_num"];
+
+			var jqitem=$("drop_window").children().filter("src_select_window").children().filter("srcs_selected").children().filter("."+src_name);
+			var a_selected_item=new Selected_item(jqitem,null,src_name,0,1);
+			jqitem.attr("id",game_UI.UI_count);
+			game_UI[game_UI.UI_count]=a_selected_item;
+			game_UI_list.drop_items.selected.push(game_UI.UI_count);
+			game_UI.UI_count++;
+
+			jqitem=$("drop_window").children().filter("src_select_window").children().filter("srcs_avaliable").children().filter("."+src_name);
+			var a_avaliable_item=new Avaliable_item(jqitem,a_selected_item,src_name,src_num,1);
+			jqitem.attr("id",game_UI.UI_count);
+			game_UI[game_UI.UI_count]=a_avaliable_item;
+			game_UI_list.drop_items.avaliable.push(game_UI.UI_count);
+			game_UI.UI_count++;
+
+			a_selected_item.rlt_item=a_avaliable_item;
+		}
+		game_UI.drop_items_created=true;
+	}
+	else{
+		var items=game_UI_list.drop_items.selected;
+		for(var i=0;i<items.length;i++){
+			var UI_id=items[i];
+			var item=game_UI[UI_id];
+			item.own_num=0;
+			item.jqdom_init();
+		}
+		var items=game_UI_list.drop_items.avaliable;
+		for(var i=0;i<items.length;i++){
+			var UI_id=items[i];
+			var item=game_UI[UI_id];
+			var src_num=self_player[item.item_type+"_num"];
+			item.own_num=src_num;
+			item.jqdom_init();
 		}
 	}
 	//设置丢弃数
 	game_temp.dropped=0;
-	trade_ratio=1;
 	$("#dropped").text("0");
 	$("#need_drop").text(""+game_temp.drop_required);
 }
@@ -1216,6 +1281,7 @@ function start_trade(target="bank"){
 	var self_player=game_info.players[user_index];
 	var action_text;
 	var head_text;
+	var trade_ratio=1;
 	game_temp.action_now="action_trade";
 	game_temp.trade_give_equal_num=0;
 	switch(target){
@@ -1235,7 +1301,69 @@ function start_trade(target="bank"){
 			break;
 
 	}
-	$("#action_trade_items").addClass("disabled");
+	if(game_UI.hasOwnProperty("trade_items_created")==false){
+		for(var src_id=1;src_id<6;src_id++){
+			var src_name=order[src_id];
+			var src_num=0;
+
+			var menu1=["give","get"];
+			var menu2=["selected","avaliable"];
+
+			for(var v1 in menu1){
+				for(var v2 in menu2){
+					//0,0:给予栏选中 0,1：给予栏备选 1,0:索取栏选中 1,1:索取栏备选
+					var jqitem=$("trade_window").children().filter("src_select_window."+menu1[v1]).children().filter("srcs_"+menu2[v2]).children().filter("."+src_name);
+					if(v2==0){
+						src_num=0;
+						if(v1==1){
+							trade_ratio=game_temp.trade_ratio;
+						}
+						else if(v1==1){
+							trade_ratio=0;
+						}
+						var a_selected_item=new Selected_item(jqitem,null,src_name,src_num,trade_ratio);
+						var item=a_selected_item;
+					}
+					else{
+						if(v1==0){
+							src_num=self_player[src_name+"_num"];
+							trade_ratio=game_temp.trade_ratio;
+						}
+						else if(v1==1){
+							src_num==game_info.cards[src_name+"_num"]
+							trade_ratio=0;
+						}
+						var a_avaliable_item_item=new Selected_item(jqitem,a_selected_item,src_name,src_num,trade_ratio);
+						a_selected_item.rlt_item=a_avaliable_item_item;
+						var item=a_avaliable_item_item;
+					}				
+					jqitem.attr("id",game_UI.UI_count);
+					game_UI[game_UI.UI_count]=item;
+					game_UI_list.trade_items["_"+menu1[v1]][menu2[v2]].push(game_UI.UI_count);
+					game_UI.UI_count++;
+				}
+			}
+		}
+		game_UI.drop_items_created=true;
+	}
+	else{
+		var items=game_UI_list.drop_items.selected;
+		for(var i=0;i<items.length;i++){
+			var UI_id=items[i];
+			var item=game_UI[UI_id];
+			item.own_num=0;
+			item.jqdom_init();
+		}
+		var items=game_UI_list.drop_items.avaliable;
+		for(var i=0;i<items.length;i++){
+			var UI_id=items[i];
+			var item=game_UI[UI_id];
+			var src_num=self_player[item.item_type+"_num"];
+			item.own_num=src_num;
+			item.jqdom_init();
+		}
+	}
+	/*
 	//一开始不显示选定的资源,并清空数字
 	$("srcs_selected").children().hide();
 	$("trade_window").children().filter("src_select_window").children().filter("srcs_selected").children().each(function(){
@@ -1266,6 +1394,8 @@ function start_trade(target="bank"){
 			$(this).attr("num",src_num).show();
 		}
 	});
+	*/
+	$("#action_trade_items").addClass("disabled");
 	$("trade_window").children().filter("window_head").children().filter("head_text").text(head_text);
 	$("#action_trade_items").text(action_text);
 	$("trade_window").show();
@@ -1374,35 +1504,53 @@ function union(arr1,arr2){
 // 交易资源的对象,用于处理复杂的前置判断和资源交换
 //--------------------------------------------------------
 class Trade_item {
-    constructor(jq_object,relative_object,exchange_ratio){
+    constructor(jq_object,relative_object,item_type,own_num,exchange_ratio){
         this.jqdom=jq_object;
 		this.rlt_item=relative_object;
+		this.item_type=item_type;
 		this.ratio_num=exchange_ratio;
-		this.own_num=parseInt(jqdom.attr("num"));
+		this.own_num=own_num;
     }
     reduce(){
-		this.own_num-=ratio_num;
-		if(game_temp.action_now=="action_drop_srcs_for_7"){
-			game_temp.dropped--;
-		}
-		this.jqdom_check();	
+		this.own_num-=this.ratio_num;	
+		this.jqdom_update();	
 	}
 	increase(){
-		this.own_num+=ratio_num;
-		if(game_temp.action_now=="action_drop_srcs_for_7"){
-			game_temp.dropped++;
-		}
-		this.jqdom_check();	
+		this.own_num+=this.ratio_num;
+		this.jqdom_update();	
 	}
 }
 class Selected_item extends Trade_item{
-	constructor(jq_object,relative_object,exchange_ratio){
-		super(jq_object,relative_object,exchange_ratio);
+	constructor(jq_object,relative_object,item_type,own_num,exchange_ratio){
+		super(jq_object,relative_object,item_type,own_num,exchange_ratio);
+		this.jqdom_init();
 	}
 	can_reduce(){
-		return this.own_num>=ratio_num;
+		return this.own_num>=this.ratio_num;
 	}
-	jqdom_check(){
+	reduce(){
+		super.reduce();
+		if(game_temp.action_now=="action_drop_srcs_for_7"){
+			game_temp.dropped--;
+		}
+	}
+	increase(){
+		super.increase();
+		if(game_temp.action_now=="action_drop_srcs_for_7"){
+			game_temp.dropped++;
+		}
+	}
+
+	jqdom_update(){
+		this.jqdom.attr("num",this.own_num);	
+		if(this.own_num==0){
+			this.jqdom.hide();
+		}
+		else{
+			this.jqdom.show();
+		}
+	}
+	jqdom_init(){
 		this.jqdom.attr("num",this.own_num);	
 		if(this.own_num==0){
 			this.jqdom.hide();
@@ -1413,8 +1561,9 @@ class Selected_item extends Trade_item{
 	}
 }
 class Avaliable_item extends Trade_item{
-	constructor(jq_object,relative_object,exchange_ratio){
-		super(jq_object,relative_object,exchange_ratio);
+	constructor(jq_object,relative_object,item_type,own_num,exchange_ratio){
+		super(jq_object,relative_object,item_type,own_num,exchange_ratio);
+		this.jqdom_init();
 	}
 	can_reduce(){
 		if(this.own_num==0){
@@ -1425,14 +1574,31 @@ class Avaliable_item extends Trade_item{
 				return false;
 			}
 		}
+		return true;
 	}
-	jqdom_check(){
+	jqdom_update(){
+		this.jqdom.attr("num",this.own_num);	
+		if(this.own_num<this.ratio_num){
+			this.jqdom.addClass("disabled");
+		}
+		else{
+			this.jqdom.removeClass("disabled");
+		}
+	}
+	jqdom_init(){
 		this.jqdom.attr("num",this.own_num);	
 		if(this.own_num==0){
 			this.jqdom.hide();
 		}
 		else{
 			this.jqdom.show();
+			if(this.own_num<this.ratio_num){
+				this.jqdom.addClass("disabled");
+			}
+			else{
+				this.jqdom.removeClass("disabled");
+			}
 		}
 	}
+
 }
