@@ -622,28 +622,25 @@ $(document).ready(function(){
 	// 层级：0  值：2
 	//--------------------------------------------------------
 	$("#action_trade_with_harbours").click(function(){
-		//设置菜单级数为0
-		init_menu_lv(0,$(this));
+		//设置菜单级数为1
+		init_menu_lv(1,$(this));
 		//激活自己
 		$(this).addClass("active");
 		//激活下一级窗口：拥有的港口类型
+		var harbours=all_harbours(user_index);
+		var count=-1;
+		for(var i in harbours){
+			$("actions2").filter(function(){return $(this).attr("harbour_type")==order[harbours[i]]}).show();
+			count++;
+		}
 		//安置按钮组位置
-		$("actions1").css("top",$(this).position().top-2*25);
+		$("actions2").css("top",$(this).position().top-count*25);
 	});
 	//--------------------------------------------------------
 	// UI：准备交易
 	// 交易类型非常多,这是一次尝试
 	//--------------------------------------------------------
-	$(".action_prepare_trade").click(function(){
-		//清除选择器
-		clear_selectors();
-		//如果已处于激活状态则关闭
-		if($(this).hasClass("active"))
-		{
-			$("actions1").children().hide();
-			$(this).removeClass("active");
-			return;
-		}
+	$("actions1").on("click",".action_prepare_trade",function(){
 		//激活自己
 		$(this).addClass("active");
 		//启动交易选择
@@ -1156,6 +1153,16 @@ function init_menu_lv(menu_level,menu_item){
 			//关闭所有2级选项,取消激活所有的1级选项
 			$("actions2").children().removeClass("active").hide();
 			$("actions1").children().removeClass("active");
+		case 2:
+			//如果已处于激活状态则关闭(随之更低级的窗口也会被隐藏)
+			if(menu_item.hasClass("active"))
+			{
+				//$("actions2").children().hide();
+				menu_item.removeClass("active");
+				break;
+			}
+			//取消激活所有的2级选项
+			$("actions2").children().removeClass("active");
 	}
 }
 //--------------------------------------------------------
@@ -1407,12 +1414,12 @@ function all_dev_num(player){
 // 获取所有城市(的数量)
 // lv:城市的等级 type:返回数量或数组
 //--------------------------------------------------------
-function city_num(player,lv,type="count"){
+function city_num(player,lv="all",type="count"){
 	var own_cities=player.own_cities;
 	var all_cities=game_info.cities;
 	var cities=[];
 	for(var i in own_cities){
-		if(all_cities[own_cities[i]].level==lv){
+		if(lv=="all" || all_cities[own_cities[i]].level==lv){
 			cities.push(own_cities[i]);
 		}
 	}
@@ -1470,6 +1477,20 @@ function all_roads(player_index){
 		}
 	}
 	return roads;
+}
+//--------------------------------------------------------
+// 获取玩家所有港口
+//--------------------------------------------------------
+function all_harbours(player_index){
+	var harbours=[];
+	var own_cities=game_info.players[player_index].own_cities;
+	for(var i in own_cities){
+		var city=game_info.cities[own_cities[i]];
+		if(city.ex_type!=0){
+			harbours=union(harbours,[city.ex_type]);
+		}
+	}
+	return harbours;
 }
 //--------------------------------------------------------
 // 取并集

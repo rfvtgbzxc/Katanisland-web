@@ -114,7 +114,7 @@ test_game_info={
 			"monopoly_get_before": 0,
 			"road_making_get_before":0,
 			"road_longest": [79,78],
-			"own_cities": [53, 54]
+			"own_cities": [53, 54 ,27]
 		}
 	},
 	"cities": {
@@ -137,6 +137,11 @@ test_game_info={
 			"owner": 2,
 			"level": 0,
 			"ex_type": 0
+		},
+		"27": {
+			"owner": 2,
+			"level": 0,
+			"ex_type": 3
 		}
 	},
 	"roads": {

@@ -446,6 +446,11 @@ function load_game(){
 		$("srcs_selected").append("<src_item num='0' class='"+order[i]+"'></src_item>");
 		$("srcs_avaliable").append("<src_item num='0' class='"+order[i]+"'></src_item>");
 	}
+	//加载动态菜单：交易对象
+	//加载港口
+	for(var i=1;i<6;i++){
+		$("actions2").append("<button trade_target='harbour' harbour_type='"+order[i]+"' type='button' class='action_prepare_trade list-group-item'>"+order_ch[i]+"港</button>");
+	}
 	//加载文字
 	$youziku.submit("playername_update");
 }
