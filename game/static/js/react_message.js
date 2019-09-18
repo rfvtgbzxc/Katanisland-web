@@ -236,6 +236,10 @@ function extract_dev_card(randomint,player_index){
 	$("#action_buy_dev_card").removeClass("active");
 	var cards=game_info.cards;
 	var player=game_info.players[player_index];
+	//扣除资源
+	player.grain_num-=1;
+	player.wool_num-=1;
+	player.ore_num-=1;
 	his_window.push(game_info.player_list[player_index][1]+" 抽取了一张发展卡");
 	//根据随机数判断发展卡的类型
 	if(randomint<cards.soldier_num){

@@ -798,6 +798,16 @@ src_confirm_window{
 	
     filter: gray;
 }
+#action_trade_items.disabled{
+	-webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    
+    filter: grayscale(100%);
+	
+    filter: gray;
+}
 src_item{
 	display: inline-block;
 	width: 45px;
