@@ -589,18 +589,8 @@ $(document).ready(function(){
 	// 层级：0  值：1
 	//--------------------------------------------------------
 	$("#action_contribute").click(function(){
-		//清除选择器
-		clear_selectors();
-		//如果已处于激活状态则关闭
-		if($(this).hasClass("active"))
-		{
-			$("actions1").children().hide();
-			$(this).removeClass("active");
-			return;
-		}
-		//首先关闭其他可能的1级选项,取消其他可能的0级选项
-		$("actions1").children().removeClass("active").hide();
-		$("actions0").children().not("actions1").children().removeClass("active");
+		//设置菜单级数为0
+		init_menu_lv(0,$(this));
 		//激活自己
 		$(this).addClass("active");
 		//激活下一级窗口：四项建设
@@ -616,24 +606,27 @@ $(document).ready(function(){
 	// 层级：0  值：2
 	//--------------------------------------------------------
 	$("#action_trade").click(function(){
-		//清除选择器
-		clear_selectors();
-		//如果已处于激活状态则关闭
-		if($(this).hasClass("active"))
-		{
-			$("actions1").children().hide();
-			$(this).removeClass("active");
-			return;
-		}
-		//首先关闭其他可能的1级选项,取消其他可能的0级选项
-		$("actions1").children().removeClass("active").hide();
-		$("actions0").children().not("actions1").children().removeClass("active");
+		//设置菜单级数为0
+		init_menu_lv(0,$(this));
 		//激活自己
 		$(this).addClass("active");
 		//激活下一级窗口：初步交易目标
 		$("#action_trade_with_bank").show();
 		$("#action_trade_with_harbours").show();
 		$("#action_trade_with_players").show();
+		//安置按钮组位置
+		$("actions1").css("top",$(this).position().top-2*25);
+	});
+	//--------------------------------------------------------
+	// UI：选择交易目标(港口)
+	// 层级：0  值：2
+	//--------------------------------------------------------
+	$("#action_trade_with_harbours").click(function(){
+		//设置菜单级数为0
+		init_menu_lv(0,$(this));
+		//激活自己
+		$(this).addClass("active");
+		//激活下一级窗口：拥有的港口类型
 		//安置按钮组位置
 		$("actions1").css("top",$(this).position().top-2*25);
 	});
@@ -661,18 +654,8 @@ $(document).ready(function(){
 	// 层级：0  值：3
 	//--------------------------------------------------------
 	$("#action_develop").click(function(){
-		//清除选择器
-		clear_selectors();
-		//如果已处于激活状态则关闭
-		if($(this).hasClass("active"))
-		{
-			$("actions1").children().hide();
-			$(this).removeClass("active");
-			return;
-		}
-		//首先关闭其他可能的1级选项,取消其他可能的0级选项
-		$("actions1").children().removeClass("active").hide();
-		$("actions0").children().not("actions1").children().removeClass("active");
+		//设置菜单级数为0
+		init_menu_lv(0,$(this));
 		//如果有卡则激活下一级窗口：五种发展卡
 		var count=0;
 		var self_player=game_info.players[user_index];
@@ -1142,6 +1125,39 @@ function init_ui(){
 //--------------------------------------------------------
 // UI控制类函数
 //--------------------------------------------------------
+//--------------------------------------------------------
+// 菜单层级初始化
+//--------------------------------------------------------
+function init_menu_lv(menu_level,menu_item){
+	//清除选择器
+	clear_selectors();
+	switch(menu_level){
+		//0级菜单
+		case 0:
+			//如果已处于激活状态则关闭(随之更低级的窗口也会被隐藏)
+			if(menu_item.hasClass("active"))
+			{
+				$("actions1").children().hide();
+				menu_item.removeClass("active");
+				break;
+			}
+			//关闭所有1级选项,取消激活所有的0级选项
+			$("actions1").children().removeClass("active").hide();
+			$("actions0").children().not("actions1").children().removeClass("active");
+		//1级菜单
+		case 1:
+			//如果已处于激活状态则关闭(随之更低级的窗口也会被隐藏)
+			if(menu_item.hasClass("active"))
+			{
+				$("actions2").children().hide();
+				menu_item.removeClass("active");
+				break;
+			}
+			//关闭所有2级选项,取消激活所有的1级选项
+			$("actions2").children().removeClass("active").hide();
+			$("actions1").children().removeClass("active");
+	}
+}
 //--------------------------------------------------------
 // 新的回合
 //--------------------------------------------------------
