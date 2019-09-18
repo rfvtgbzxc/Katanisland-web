@@ -125,7 +125,7 @@ $(document).ready(function(){
 	//ws.sendmsg("user","test");
 	//隐藏UI
 	$("actions0").hide();
-	$("actions1").children().hide();
+	$("actions1").children().not("actions2").hide();
 	$("button").filter(function(){
 		return $(this).attr("action_lv")==1;
 	}).filter("#1").hide();
@@ -590,7 +590,7 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	$("#action_contribute").click(function(){
 		//设置菜单级数为0
-		init_menu_lv(0,$(this));
+		if(init_menu_lv(0,$(this))==false){return;}
 		//激活自己
 		$(this).addClass("active");
 		//激活下一级窗口：四项建设
@@ -607,7 +607,7 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	$("#action_trade").click(function(){
 		//设置菜单级数为0
-		init_menu_lv(0,$(this));
+		if(init_menu_lv(0,$(this))==false){return;}
 		//激活自己
 		$(this).addClass("active");
 		//激活下一级窗口：初步交易目标
@@ -619,18 +619,45 @@ $(document).ready(function(){
 	});
 	//--------------------------------------------------------
 	// UI：选择交易目标(港口)
-	// 层级：0  值：2
+	// 层级：1  值：2
 	//--------------------------------------------------------
 	$("#action_trade_with_harbours").click(function(){
 		//设置菜单级数为1
-		init_menu_lv(1,$(this));
+		if(init_menu_lv(1,$(this))==false){return;}
 		//激活自己
 		$(this).addClass("active");
 		//激活下一级窗口：拥有的港口类型
 		var harbours=all_harbours(user_index);
 		var count=-1;
 		for(var i in harbours){
-			$("actions2").filter(function(){return $(this).attr("harbour_type")==order[harbours[i]]}).show();
+			//var a=$("actions2").children().filter(function(){return $(this).attr("harbour_type")=="wool";});
+			$("actions2").children().filter(function(){return $(this).attr("trade_target")=="harbour" && $(this).attr("target_val")==harbours[i];}).show();
+			count++;
+		}
+		//安置按钮组位置
+		$("actions2").css("top",$(this).position().top-count*25);
+	});
+	//--------------------------------------------------------
+	// UI：选择交易目标(玩家)
+	// 层级：1  值：2
+	//--------------------------------------------------------
+	$("#action_trade_with_players").click(function(){
+		//设置菜单级数为1
+		if(init_menu_lv(1,$(this))==false){return;}
+		//激活自己
+		$(this).addClass("active");
+		//激活下一级窗口：所有的玩家
+		var count=-1;
+		for(var player_index in game_info.players){
+			//var a=$("actions2").children().filter(function(){return $(this).attr("harbour_type")=="wool";});
+			var item_player=$("actions2").children().filter(function(){return $(this).attr("trade_target")=="player" && $(this).attr("target_val")==player_index;});
+			if(game_info.online_list.indexOf(parseInt(player_index))==-1){
+				item_player.addClass("disabled");
+			}
+			else{
+				item_player.removeClass("disabled");
+			}
+			item_player.show();
 			count++;
 		}
 		//安置按钮组位置
@@ -641,10 +668,20 @@ $(document).ready(function(){
 	// 交易类型非常多,这是一次尝试
 	//--------------------------------------------------------
 	$("actions1").on("click",".action_prepare_trade",function(){
+		if($(this).hasClass("disabled")){
+			return;
+		}
+		//根据所在层设置菜单级数
+		if($(this).parent().is("actions1")){
+			if(init_menu_lv(1,$(this))==false){return;}
+		}
+		else{
+			if(init_menu_lv(2,$(this))==false){return;}
+		}
 		//激活自己
 		$(this).addClass("active");
 		//启动交易选择
-		start_trade($(this).attr("trade_target"));
+		start_trade($(this).attr("trade_target"),$(this).attr("target_val"));
 	});
 	//--------------------------------------------------------
 	// UI：使用发展卡
@@ -652,7 +689,7 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	$("#action_develop").click(function(){
 		//设置菜单级数为0
-		init_menu_lv(0,$(this));
+		if(init_menu_lv(0,$(this))==false){return;}
 		//如果有卡则激活下一级窗口：五种发展卡
 		var count=0;
 		var self_player=game_info.players[user_index];
@@ -679,15 +716,8 @@ $(document).ready(function(){
 	// 层级：1  值：1
 	//--------------------------------------------------------
 	$("#action_build_road").click(function(){
-		//清除选择器
-		clear_selectors();
-		//如果处于已激活状态则取消激活
-		if($(this).hasClass("active")){
-			$(this).removeClass("active");
-			return;
-		}
-		//取消激活其他的1级选项
-		$("actions1").children().removeClass("active");
+		//设置菜单级数为1
+		if(init_menu_lv(1,$(this))==false){return;}
 		//当前行动记为"action_build_road"
 		game_temp.action_now="action_build_road";
 		//激活道路选择器,只激活可以建设道路的地方
@@ -715,15 +745,8 @@ $(document).ready(function(){
 	// 层级：1  值：2
 	//--------------------------------------------------------
 	$("#action_build_city0").click(function(){
-		//清除选择器
-		clear_selectors();
-		//如果处于已激活状态则取消激活
-		if($(this).hasClass("active")){
-			$(this).removeClass("active");
-			return;
-		}
-		//取消激活其他的0级选项
-		$("actions1").children().removeClass("active");
+		//设置菜单级数为1
+		if(init_menu_lv(1,$(this))==false){return;}
 		//当前行动记为"action_build_city0"
 		game_temp.action_now="action_build_city0";
 		//激活点选择器,只激活可以定居的地方
@@ -750,15 +773,8 @@ $(document).ready(function(){
 	// 层级：1  值：3
 	//--------------------------------------------------------
 	$("#action_build_city1").click(function(){
-		//清除选择器
-		clear_selectors();
-		//如果处于已激活状态则取消激活
-		if($(this).hasClass("active")){
-			$(this).removeClass("active");
-			return;
-		}
-		//取消激活其他的0级选项
-		$("actions1").children().removeClass("active");
+		//设置菜单级数为1
+		if(init_menu_lv(1,$(this))==false){return;}
 		//当前行动记为"action_build_city1"
 		game_temp.action_now="action_build_city1";
 		//资源消耗提示
@@ -784,15 +800,8 @@ $(document).ready(function(){
 	// 层级：1  值：4
 	//--------------------------------------------------------
 	$("#action_buy_dev_card").click(function(){
-		//清除选择器
-		clear_selectors();
-		//如果处于已激活状态则取消激活
-		if($(this).hasClass("active")){
-			$(this).removeClass("active");
-			return;
-		}
-		//取消激活其他的0级选项
-		$("actions1").children().removeClass("active");
+		//设置菜单级数为1
+		if(init_menu_lv(1,$(this))==false){return;}
 		//如果资源不足,则提示后返回
 		var player=game_info.players[user_index];
 		if(player.wool_num==0 || player.grain_num==0 || player.ore_num==0){
@@ -817,15 +826,8 @@ $(document).ready(function(){
 		if($(this).hasClass("part_disabled")){
 			return;
 		}
-		//清除选择器
-		clear_selectors();
-		//如果处于已激活状态则取消激活
-		if($(this).hasClass("active")){
-			$(this).removeClass("active");
-			return;
-		}
-		//取消激活其他的0级选项
-		$("actions1").children().removeClass("active");
+		//设置菜单级数为1
+		if(init_menu_lv(1,$(this))==false){return;}
 		//设置基础行动
 		game_temp.action_base="action_use_dev_soldier";
 		//当前行动记为"action_use_dev_soldier"
@@ -1101,6 +1103,8 @@ function init_ui(){
 	$("special_actions").children().hide();
 	if(!debug){
 		$("#debuging").hide();
+		$("#debug_show_ids").hide();
+		$("#debug_show_selectors").hide();
 	}
 	//非自己回合不显示菜单(除非offline模式)
 	if(game_info.step_list[game_info.step_index]==user_index || offline){
@@ -1117,7 +1121,8 @@ function init_ui(){
 			});
 			$("actions0").children().filter(".fst_action").children().addClass("disabled");
 		}	
-	}	
+	}
+	$("actions2").children().hide();
 }
 //--------------------------------------------------------
 // UI控制类函数
@@ -1128,18 +1133,20 @@ function init_ui(){
 function init_menu_lv(menu_level,menu_item){
 	//清除选择器
 	clear_selectors();
+	var returnfalse=false;
 	switch(menu_level){
 		//0级菜单
 		case 0:
 			//如果已处于激活状态则关闭(随之更低级的窗口也会被隐藏)
 			if(menu_item.hasClass("active"))
 			{
-				$("actions1").children().hide();
+				$("actions1").children().not("actions2").hide();
 				menu_item.removeClass("active");
-				break;
+				returnfalse=true;
+				
 			}
 			//关闭所有1级选项,取消激活所有的0级选项
-			$("actions1").children().removeClass("active").hide();
+			$("actions1").children().not("actions2").removeClass("active").hide();
 			$("actions0").children().not("actions1").children().removeClass("active");
 		//1级菜单
 		case 1:
@@ -1148,21 +1155,24 @@ function init_menu_lv(menu_level,menu_item){
 			{
 				$("actions2").children().hide();
 				menu_item.removeClass("active");
-				break;
+				returnfalse=true;
 			}
 			//关闭所有2级选项,取消激活所有的1级选项
 			$("actions2").children().removeClass("active").hide();
-			$("actions1").children().removeClass("active");
+			$("actions1").children().not("actions1").removeClass("active");
 		case 2:
 			//如果已处于激活状态则关闭(随之更低级的窗口也会被隐藏)
 			if(menu_item.hasClass("active"))
 			{
 				//$("actions2").children().hide();
 				menu_item.removeClass("active");
-				break;
+				returnfalse=true;
 			}
 			//取消激活所有的2级选项
 			$("actions2").children().removeClass("active");
+	}
+	if(returnfalse){
+		return false;
 	}
 }
 //--------------------------------------------------------
@@ -1268,7 +1278,7 @@ function start_robber_set(){
 //--------------------------------------------------------
 // 启动交易窗口
 //--------------------------------------------------------
-function start_trade(target="bank"){
+function start_trade(target="bank",target_val="bank"){
 	var init_give_items_avaliable=[];
 	var init_wonder_items_avaliable=[];
 	var self_player=game_info.players[user_index];
@@ -1280,21 +1290,31 @@ function start_trade(target="bank"){
 	game_temp.trade_basic_get_num=0;
 	switch(target){
 		//银行,目标可以是任何银行还有的资源,给予栏只显示有的
-		//即使银行已经没有这种资源了也会列入,但随后判定中会为其附加不可更改
 		case "bank":
 			game_temp.trade_target="bank";
 			game_temp.trade_ratio=4;
 			action_text="发起交易";
 			head_text="与银行交易 4:1";
 			init_wonder_items_avaliable.push(1,2,3,4,5);
-			for(var i=1;i<6;i++){
-				if(self_player[order[i]+"_num"]>0){
-					init_give_items_avaliable.push(i);
-				}
-			}	
+			init_give_items_avaliable.push(1,2,3,4,5);
 			break;
-
+		//港口,实际交易目标还是银行
+		case "harbour":
+			game_temp.trade_target="bank";
+			action_text="发起交易";
+			if(target_val=="6"){
+				game_temp.trade_ratio=3;
+				init_give_items_avaliable.push(1,2,3,4,5);
+				head_text="与"+order_ch[target_val]+"港交易 3:1";
+			}
+			else{
+				game_temp.trade_ratio=2;
+				init_give_items_avaliable.push(parseInt(target_val));
+				head_text="与"+order_ch[target_val]+"港交易 2:1";
+			}
+			init_wonder_items_avaliable.push(1,2,3,4,5);		
 	}
+
 	if(game_UI.hasOwnProperty("trade_items_created")==false){
 		for(var src_id=1;src_id<6;src_id++){
 			var src_name=order[src_id];
@@ -1320,11 +1340,21 @@ function start_trade(target="bank"){
 					}
 					else{
 						if(v1==0){
-							src_num=self_player[src_name+"_num"];
+							if(init_give_items_avaliable.indexOf(src_id)==-1){
+								src_num=0;
+							}
+							else{
+								src_num=self_player[src_name+"_num"];
+							}			
 							trade_ratio=game_temp.trade_ratio;
 						}
 						else if(v1==1){
-							src_num=game_info.cards[src_name+"_num"];
+							if(init_wonder_items_avaliable.indexOf(src_id)==-1){
+								src_num=0;
+							}
+							else{
+								src_num=game_info.cards[src_name+"_num"];
+							}						
 							trade_ratio=1;
 						}
 						var a_avaliable_item_item=new Avaliable_Trade_item(jqitem,a_selected_item,src_name,src_num,trade_ratio,menu1[v1]);
@@ -1359,7 +1389,12 @@ function start_trade(target="bank"){
 		for(var i=0;i<items.length;i++){
 			var UI_id=items[i];
 			var item=game_UI[UI_id];
-			var src_num=self_player[item.item_type+"_num"];
+			if(init_give_items_avaliable.indexOf(src_reflection[item.item_type])==-1){
+				var src_num=0;
+			}
+			else{
+				var src_num=self_player[item.item_type+"_num"];
+			}
 			item.own_num=src_num;
 			item.jqdom_init();
 		}
@@ -1367,7 +1402,12 @@ function start_trade(target="bank"){
 		for(var i=0;i<items.length;i++){
 			var UI_id=items[i];
 			var item=game_UI[UI_id];
-			var src_num=game_info.cards[item.item_type+"_num"];
+			if(init_wonder_items_avaliable.indexOf(src_reflection[item.item_type])==-1){
+				var src_num=0;
+			}
+			else{
+				var src_num=game_info.cards[item.item_type+"_num"];
+			}
 			item.own_num=src_num;
 			item.jqdom_init();
 		}

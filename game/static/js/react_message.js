@@ -74,6 +74,9 @@ function handle_msg(msg){
 				 	case 1:
 				 		trade_with_bank(val[2],val[3],msg.message.starter);
 				 		break;
+			 		//与港口交易,本质还是与银行交易
+			 		case 2:
+			 			trade_with_bank(val[2],val[3],msg.message.starter);
 				 }
 				 break;
 				//发展

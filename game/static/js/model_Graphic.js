@@ -448,8 +448,12 @@ function load_game(){
 	}
 	//加载动态菜单：交易对象
 	//加载港口
-	for(var i=1;i<6;i++){
-		$("actions2").append("<button trade_target='harbour' harbour_type='"+order[i]+"' type='button' class='action_prepare_trade list-group-item'>"+order_ch[i]+"港</button>");
+	for(var i=1;i<7;i++){
+		$("actions2").append("<button trade_target='harbour' target_val='"+i+"' type='button' class='action_prepare_trade list-group-item'>"+order_ch[i]+"港</button>");
+	}
+	//加载玩家
+	for(var player_index in game_info.player_list){
+		$("actions2").append("<button trade_target='player' target_val='"+player_index+"' type='button' class='action_prepare_trade list-group-item'>"+game_info.player_list[player_index][1]+"</button>");
 	}
 	//加载文字
 	$youziku.submit("playername_update");

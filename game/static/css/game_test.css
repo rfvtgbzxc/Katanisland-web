@@ -525,6 +525,13 @@ actions1
 	top:0;
 	width: 180px;
 }
+actions2
+{
+	position:absolute;
+	left:203px;
+	top:0;
+	width: 100px;
+}
 special_actions
 {
 	position:absolute;
