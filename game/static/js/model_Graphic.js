@@ -1,51 +1,6 @@
 //根据game_info处理画面的刷新，此部分只能对已经存在的DOM元素进行操作,且不对动画进行处理。
 function update_static_Graphic(){
 	var self_player=game_info.players[user_index];
-	//刷新骰子,其关联菜单的显示内容
-	//alert("画面刷新");
-	//清除选择器
-	/*clear_selectors();
-	//清除所有class
-	$("dice").removeClass();
-	$("actions0").children().filter(".fst_action").children().removeClass("disabled active");
-	$("actions1").children().removeClass("active");
-	$("player").removeClass("player_select_avaliable player_selected");
-	//根据dice_num来判断目前是否已经投完骰子,以此对菜单UI的显示与否进行管理
-	//一般不显示特殊选项
-	$("special_actions").children().hide();
-	//为0说明是新的回合,额外判断UI显示
-	if(game_info.dice_num[0]==0)
-	{
-		//alert("新的回合");
-		//如果不是玩家自己的回合,隐藏菜单
-		/*
-		if(game_info.step_list[game_info.step_index]==user_index || debug){
-			$("actions0").show();
-		}
-		else{
-			$("actions0").hide();		
-		}
-		$("actions0").children().not(".fst_action").hide();
-		$("actions0").children().children().removeClass("disabled active");
-		$("actions1").children().removeClass("part_disabled").hide();
-		//刷新回合数
-		$("#rounds").text(('00'+game_info.play_turns).slice(-2));
-	}
-	else
-	{
-		$("dice").each(function(){
-			$(this).addClass("num"+game_info.dice_num[$(this).attr("dice_id")]);
-		});		
-		$("actions0").children().filter(".fst_action").children().addClass("disabled");
-		//部分特殊行动会直接改变UI,如触发强盗设置UI,在此之前不能激活新的按钮
-		//备注,除debugmodel,只会有本地玩家会触发设置
-		if(game_temp.action_now=="action_set_robber_for_7"){
-			start_robber_set();
-		}
-		else{
-			$("actions0").children().not(".fst_action").show();
-		}
-	}*/
 	//如果某种发展卡已使用完,不显示;或之前购买的已使用完,变灰
 	for(var i=0;i<4;i++){
 		if(self_player[devs[i]+"_num"]==0){
