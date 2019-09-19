@@ -530,14 +530,15 @@ actions2
 	position:absolute;
 	left:203px;
 	top:0;
-	width: 100px;
+	width: 180px;
 }
 special_actions
 {
-	position:absolute;
-	left:123px;
-	top:0;
+	position:fixed;
+	/*left:123px;*/
+	/*top:0;*/
 	width: 180px;
+	z-index:4000;
 }
 his_window
 {
@@ -589,6 +590,14 @@ his_text
 his_text.latest
 {
 	bottom:0;
+}
+his_text_line
+{
+	display:block;
+}
+his_text_line.important
+{
+	color:red;
 }
 step_list
 {
@@ -780,7 +789,9 @@ srcs_avaliable
 	border: 2px solid rgba(0,0,0,0.7);
 }
 trade_state{
-
+	font-size:15px;
+	margin-bottom:5px;
+	color:red;
 }
 button#action_trade_items{
 

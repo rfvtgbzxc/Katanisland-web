@@ -12,7 +12,9 @@ info_window={
 }
 //历史消息
 his_window={
-	"push":function(text){$("his_text").append("<div>"+text+"</div>");},
+	"push":function(text,type="normal"){
+		$("his_text").append("<his_text_line class='"+type+"'>"+text+"</his_text_line>");
+	},
 	"clear":function(){$("his_text").empty();}
 };
 //确认窗口
@@ -111,6 +113,13 @@ dir_reflection={
 	"ld":4,
 	"lu":5
 };
+unknown_cards={
+	"brick_num":99,
+	"wood_num":99,
+	"wool_num":99,
+	"grain_num":99,
+	"ore_num":99,
+}
 vp_info_text=[
 "拥有的城市：",
 "拥有的定居点：",
@@ -132,6 +141,7 @@ $(document).ready(function(){
 	$("dice").hide();
 	$("confirm_window").hide();
 	$("source_list").hide();
+	$("special_actions").children().hide();
 	//--------------------------------------------------------
 	// 加载游戏
 	//--------------------------------------------------------
@@ -152,9 +162,9 @@ $(document).ready(function(){
 		//本地局域网1
 		//ws = new WebSocket("ws://172.24.10.250:80/ws/game_test/"+user_index+"/");
 		//本地局域网2
-		ws = new WebSocket("ws://192.168.50.50:80/ws/game_test/"+user_index+"/");
+		//ws = new WebSocket("ws://192.168.50.50:80/ws/game_test/"+user_index+"/");
 		//阿里云服务器
-		//ws = new WebSocket("ws://119.23.218.46:80/ws/game_test/"+user_index+"/");
+		ws = new WebSocket("ws://119.23.218.46:80/ws/game_test/"+user_index+"/");
 		load_ws_function();
 		ws.onopen = function () {
             //当连接成功时，从数据库载入游戏信息
@@ -300,6 +310,11 @@ $(document).ready(function(){
 				$("special_actions").children().hide();
 				start_robber_set();
 				break;
+			case "action_use_dev_soldier":
+				clear_selectors();
+				$("special_actions").children().hide();
+				start_robber_set();
+				break;
 		}
 		game_temp.action_now=game_temp.action_base;
 	});
@@ -362,9 +377,7 @@ $(document).ready(function(){
 	    			his_window.push("请选择要掠夺的玩家:");
 	    			$("plc_selector").not($(this)).removeClass("selector_avaliable");
 	    			//显示"不掠夺"、"重新选择"按钮
-	    			$("special_actions").show();
-	    			$("#cancel_robbing").show();
-	    			$("#to_before_action").show();
+	    			show_special_actions("cancel_robbing","to_before_action");
 	    			return;
 	    		}
 	    		confirm_window.set("此处没有可以掠夺的城市,要将强盗放在这里吗?");
@@ -481,6 +494,10 @@ $(document).ready(function(){
 	// UI：选择资源
 	//--------------------------------------------------------
 	$("src_select_window").on("click","src_item",function(){
+		//已经发起交易请求则不无返回
+		if(game_temp.trade_step!="selecting_items"){
+			return;
+		}
 		//进行资源的转移
 		var UI_id=$(this).attr("id");
 		var item=game_UI[UI_id];
@@ -499,7 +516,7 @@ $(document).ready(function(){
 			$("#dropped").text(""+game_temp.dropped);
 		}	
 		if(game_temp.action_now=="action_trade"){
-			if(game_temp.trade_basic_get_num==game_temp.trade_basic_give_num && game_temp.trade_basic_give_num!=0){
+			if((game_temp.trade_basic_get_num==game_temp.trade_basic_give_num || game_temp.trade_target=="player") && game_temp.trade_basic_give_num!=0){
 				$("#action_trade_items").removeClass("disabled");
 			}
 			else{
@@ -512,6 +529,9 @@ $(document).ready(function(){
 	// UI：关闭窗口
 	//--------------------------------------------------------
 	$("#close").click(function(){
+		if(game_temp.trade_step=="requesting_trade"){
+			return;
+		}
 		close_trade_window();
 	});
 	//--------------------------------------------------------
@@ -542,6 +562,17 @@ $(document).ready(function(){
 		if($(this).hasClass("disabled")){
 			return;
 		}
+		//依据当前功能执行对应函数
+		game_temp.action_trade_items_function();
+	});
+	//--------------------------------------------------------
+	// 发起交易
+	//--------------------------------------------------------
+	trade_items = function(){
+		//更新交易信息
+		$("trade_state").text("等待对方响应...");
+		$("#action_trade_items").text("取消交易");
+		game_temp.trade_step="requesting_trade";
 		//获取交易栏的所有资源
 		var give_list={};
 		var get_list={};
@@ -565,8 +596,14 @@ $(document).ready(function(){
 				//发送消息
 				ws.sendmsg("mes_action",{"starter":user_index,"val":[2,1,give_list,get_list]});
 				break;
+			case "player":
+				//发送消息
+				ws.sendmsg("mes_action",{"starter":user_index,"accepter":game_temp.trade_target_value,"val":[2,3,give_list,get_list]});
+				break;
 		}
-	});
+		//手动关闭等待页面,以此让玩家有取消交易的机会
+		$("wait_window").hide();
+	}
 	//--------------------------------------------------------
 	// UI：菜单
 	//--------------------------------------------------------
@@ -649,6 +686,7 @@ $(document).ready(function(){
 		//激活下一级窗口：所有的玩家
 		var count=-1;
 		for(var player_index in game_info.players){
+			if(player_index==user_index){continue;}
 			//var a=$("actions2").children().filter(function(){return $(this).attr("harbour_type")=="wool";});
 			var item_player=$("actions2").children().filter(function(){return $(this).attr("trade_target")=="player" && $(this).attr("target_val")==player_index;});
 			if(game_info.online_list.indexOf(parseInt(player_index))==-1){
@@ -1133,6 +1171,8 @@ function init_ui(){
 function init_menu_lv(menu_level,menu_item){
 	//清除选择器
 	clear_selectors();
+	//关闭特殊选项
+	hide_special_actions();
 	var returnfalse=false;
 	switch(menu_level){
 		//0级菜单
@@ -1176,6 +1216,22 @@ function init_menu_lv(menu_level,menu_item){
 	}
 }
 //--------------------------------------------------------
+// 展开特殊选项
+//--------------------------------------------------------
+function show_special_actions(...actions){
+	for(var i in actions){
+		$("#"+actions[i]).show();
+	}
+	//安置按钮组位置
+	$("special_actions").css({"top":$("actions0").position().top,"left":$("actions0").position().left+123});
+}
+//--------------------------------------------------------
+// 隐藏特殊选项
+//--------------------------------------------------------
+function hide_special_actions(){
+	$("special_actions").children().hide();
+}
+//--------------------------------------------------------
 // 新的回合
 //--------------------------------------------------------
 function UI_new_turn(){
@@ -1192,7 +1248,8 @@ function UI_new_turn(){
 	{
 		$("actions0").show();
 		$("actions0").children().not(".fst_action").hide();
-		$("actions1").children().hide();
+		$("actions1").children().not("actions2").hide();
+		$("actions2").children().hide();
 		$("special_actions").children().hide();
 	}
 	else{
@@ -1220,20 +1277,22 @@ function UI_start_drop_select(){
 	$("drop_window").show();
 	$("#action_drop_items").addClass("disabled");
 	var self_player=game_info.players[user_index];
+	//没有打开过交易窗口则先生成UI
 	if(game_UI.hasOwnProperty("drop_items_created")==false){
 		for(var src_id=1;src_id<6;src_id++){
 			var src_name=order[src_id];
-			var src_num=self_player[src_name+"_num"];
 
 			var jqitem=$("drop_window").children().filter("src_select_window").children().filter("srcs_selected").children().filter("."+src_name);
-			var a_selected_item=new Selected_Drop_item(jqitem,null,src_name,0,1);
+			var a_selected_item=new Selected_Drop_item(jqitem,null,src_name);
+			a_selected_item.ratio_num=1;
 			jqitem.attr("id",game_UI.UI_count);
 			game_UI[game_UI.UI_count]=a_selected_item;
 			game_UI_list.drop_items.selected.push(game_UI.UI_count);
 			game_UI.UI_count++;
 
 			jqitem=$("drop_window").children().filter("src_select_window").children().filter("srcs_avaliable").children().filter("."+src_name);
-			var a_avaliable_item=new Avaliable_Drop_item(jqitem,a_selected_item,src_name,src_num,1);
+			var a_avaliable_item=new Avaliable_Drop_item(jqitem,a_selected_item,src_name);
+			a_avaliable_item.ratio_num=1;
 			jqitem.attr("id",game_UI.UI_count);
 			game_UI[game_UI.UI_count]=a_avaliable_item;
 			game_UI_list.drop_items.avaliable.push(game_UI.UI_count);
@@ -1243,22 +1302,20 @@ function UI_start_drop_select(){
 		}
 		game_UI.drop_items_created=true;
 	}
-	else{
-		var items=game_UI_list.drop_items.selected;
-		for(var i=0;i<items.length;i++){
-			var UI_id=items[i];
-			var item=game_UI[UI_id];
-			item.own_num=0;
-			item.jqdom_init();
-		}
-		var items=game_UI_list.drop_items.avaliable;
-		for(var i=0;i<items.length;i++){
-			var UI_id=items[i];
-			var item=game_UI[UI_id];
-			var src_num=self_player[item.item_type+"_num"];
-			item.own_num=src_num;
-			item.jqdom_init();
-		}
+	var items=game_UI_list.drop_items.selected;
+	for(var i=0;i<items.length;i++){
+		var UI_id=items[i];
+		var item=game_UI[UI_id];
+		item.own_num=0;
+		item.jqdom_init();
+	}
+	var items=game_UI_list.drop_items.avaliable;
+	for(var i=0;i<items.length;i++){
+		var UI_id=items[i];
+		var item=game_UI[UI_id];
+		var src_num=self_player[item.item_type+"_num"];
+		item.own_num=src_num;
+		item.jqdom_init();
 	}
 	//设置丢弃数
 	game_temp.dropped=0;
@@ -1288,10 +1345,14 @@ function start_trade(target="bank",target_val="bank"){
 	game_temp.action_now="action_trade";
 	game_temp.trade_basic_give_num=0;
 	game_temp.trade_basic_get_num=0;
+	game_temp.trade_target_value=target_val;
+	game_temp.action_trade_items_function=trade_items;
+	game_temp.trade_step="selecting_items";
 	switch(target){
 		//银行,目标可以是任何银行还有的资源,给予栏只显示有的
 		case "bank":
 			game_temp.trade_target="bank";
+			var cards=game_info.cards;
 			game_temp.trade_ratio=4;
 			action_text="发起交易";
 			head_text="与银行交易 4:1";
@@ -1301,6 +1362,7 @@ function start_trade(target="bank",target_val="bank"){
 		//港口,实际交易目标还是银行
 		case "harbour":
 			game_temp.trade_target="bank";
+			var cards=game_info.cards;
 			action_text="发起交易";
 			if(target_val=="6"){
 				game_temp.trade_ratio=3;
@@ -1312,9 +1374,19 @@ function start_trade(target="bank",target_val="bank"){
 				init_give_items_avaliable.push(parseInt(target_val));
 				head_text="与"+order_ch[target_val]+"港交易 2:1";
 			}
-			init_wonder_items_avaliable.push(1,2,3,4,5);		
+			init_wonder_items_avaliable.push(1,2,3,4,5);
+			break;
+		//玩家,交易的各个选项都不受限制,且出于资源保密,会设置不显示资源数
+		case "player":
+			game_temp.trade_target="player";
+			var cards=game_info.players[target_val].src_secret?unknown_cards:game_info.players[target_val];
+			action_text="发起交易";
+			game_temp.trade_ratio=1;
+			init_give_items_avaliable.push(1,2,3,4,5);
+			init_wonder_items_avaliable.push(1,2,3,4,5);
+			head_text="与 "+game_info.player_list[target_val][1]+" 交易";
 	}
-
+	//没有打开过交易窗口则先生成UI
 	if(game_UI.hasOwnProperty("trade_items_created")==false){
 		for(var src_id=1;src_id<6;src_id++){
 			var src_name=order[src_id];
@@ -1328,36 +1400,11 @@ function start_trade(target="bank",target_val="bank"){
 					//0,0:给予栏选中 0,1：给予栏备选 1,0:索取栏选中 1,1:索取栏备选
 					var jqitem=$("trade_window").children().filter("src_select_window."+menu1[v1]).children().filter("srcs_"+menu2[v2]).children().filter("."+src_name);
 					if(v2==0){
-						src_num=0;
-						if(v1==0){
-							trade_ratio=game_temp.trade_ratio;
-						}
-						else if(v1==1){
-							trade_ratio=1;
-						}
-						var a_selected_item=new Selected_Trade_item(jqitem,null,src_name,src_num,trade_ratio,menu1[v1]);
+						var a_selected_item=new Selected_Trade_item(jqitem,null,src_name,menu1[v1]);
 						var item=a_selected_item;
 					}
 					else{
-						if(v1==0){
-							if(init_give_items_avaliable.indexOf(src_id)==-1){
-								src_num=0;
-							}
-							else{
-								src_num=self_player[src_name+"_num"];
-							}			
-							trade_ratio=game_temp.trade_ratio;
-						}
-						else if(v1==1){
-							if(init_wonder_items_avaliable.indexOf(src_id)==-1){
-								src_num=0;
-							}
-							else{
-								src_num=game_info.cards[src_name+"_num"];
-							}						
-							trade_ratio=1;
-						}
-						var a_avaliable_item_item=new Avaliable_Trade_item(jqitem,a_selected_item,src_name,src_num,trade_ratio,menu1[v1]);
+						var a_avaliable_item_item=new Avaliable_Trade_item(jqitem,a_selected_item,src_name,menu1[v1]);
 						a_selected_item.rlt_item=a_avaliable_item_item;
 						var item=a_avaliable_item_item;
 					}				
@@ -1369,53 +1416,81 @@ function start_trade(target="bank",target_val="bank"){
 			}
 		}
 		game_UI.trade_items_created=true;
+	}	
+	var items=game_UI_list.trade_items._give.selected;
+	for(var i=0;i<items.length;i++){
+		var UI_id=items[i];
+		var item=game_UI[UI_id];
+		item.ratio_num=game_temp.trade_ratio;
+		item.own_num=0;
+		item.jqdom_init();
 	}
-	else{
-		var items=game_UI_list.trade_items._give.selected;
-		for(var i=0;i<items.length;i++){
-			var UI_id=items[i];
-			var item=game_UI[UI_id];
-			item.own_num=0;
-			item.jqdom_init();
+	items=game_UI_list.trade_items._get.selected;
+	for(var i=0;i<items.length;i++){
+		var UI_id=items[i];
+		var item=game_UI[UI_id];
+		item.ratio_num=1;
+		item.own_num=0;
+		item.jqdom_init();
+	}
+	items=game_UI_list.trade_items._give.avaliable;
+	for(var i=0;i<items.length;i++){
+		var UI_id=items[i];
+		var item=game_UI[UI_id];
+		if(init_give_items_avaliable.indexOf(src_reflection[item.item_type])==-1){
+			var src_num=0;
 		}
-		items=game_UI_list.trade_items._get.selected;
-		for(var i=0;i<items.length;i++){
-			var UI_id=items[i];
-			var item=game_UI[UI_id];
-			item.own_num=0;
-			item.jqdom_init();
+		else{
+			var src_num=self_player[item.item_type+"_num"];
 		}
-		items=game_UI_list.trade_items._give.avaliable;
-		for(var i=0;i<items.length;i++){
-			var UI_id=items[i];
-			var item=game_UI[UI_id];
-			if(init_give_items_avaliable.indexOf(src_reflection[item.item_type])==-1){
-				var src_num=0;
-			}
-			else{
-				var src_num=self_player[item.item_type+"_num"];
-			}
-			item.own_num=src_num;
-			item.jqdom_init();
+		item.ratio_num=game_temp.trade_ratio;
+		item.own_num=src_num;
+		item.jqdom_init();
+	}
+	items=game_UI_list.trade_items._get.avaliable;
+	for(var i=0;i<items.length;i++){
+		var UI_id=items[i];
+		var item=game_UI[UI_id];
+		item.ratio_num=1;
+		//如果玩家选择保密自己的资源数,则应用secret属性
+		item.secret=game_temp.trade_target=="player"?game_info.players[target_val].src_secret:false;
+		if(init_wonder_items_avaliable.indexOf(src_reflection[item.item_type])==-1){
+			var src_num=0;
 		}
-		items=game_UI_list.trade_items._get.avaliable;
-		for(var i=0;i<items.length;i++){
-			var UI_id=items[i];
-			var item=game_UI[UI_id];
-			if(init_wonder_items_avaliable.indexOf(src_reflection[item.item_type])==-1){
-				var src_num=0;
-			}
-			else{
-				var src_num=game_info.cards[item.item_type+"_num"];
-			}
-			item.own_num=src_num;
-			item.jqdom_init();
+		else{
+			var src_num=cards[item.item_type+"_num"];
 		}
+		item.own_num=src_num;
+		item.jqdom_init();
 	}
 	$("#action_trade_items").addClass("disabled");
 	$("trade_window").children().filter("window_head").children().filter("head_text").text(head_text);
 	$("#action_trade_items").text(action_text);
+	$("trade_state").text("");
 	$("trade_window").show();
+}
+//--------------------------------------------------------
+// 结束交易窗口
+//--------------------------------------------------------
+window_finish_trade=function(trade_state){
+	//更新交易信息
+	switch(trade_state){
+		case "success":
+			his_window.push(game_info.player_list[game_temp.trade_accepter_index][1]+" 接受了交易!",'important');
+			$("trade_state").text("交易成功!");
+			break;
+		case "refused":
+			his_window.push(game_info,player_list[game_temp.trade_accepter_index][1]+" 拒绝了交易!","important");
+			$("trade_state").text("对方拒绝交易!");
+			break;
+		case "canceled":
+			his_window.push("交易被取消!","important");
+			$("trade_state").text("交易被取消!");
+			break;
+	}
+	$("#action_trade_items").text("关闭窗口");
+	game_temp.action_trade_items_function=close_trade_window;
+	game_temp.trade_step="finished_trade";
 }
 //--------------------------------------------------------
 // 关闭交易窗口
@@ -1544,12 +1619,12 @@ function union(arr1,arr2){
 // 交易资源的对象,用于处理复杂的前置判断和资源交换
 //--------------------------------------------------------
 class Src_item {
-    constructor(jq_object,relative_object,item_type,own_num,exchange_ratio){
+    constructor(jq_object,relative_object,item_type){
         this.jqdom=jq_object;
 		this.rlt_item=relative_object;
 		this.item_type=item_type;
-		this.ratio_num=exchange_ratio;
-		this.own_num=own_num;
+		this.ratio_num=0;
+		this.own_num=0;
     }
     reduce(){
 		this.own_num-=this.ratio_num;	
@@ -1559,25 +1634,28 @@ class Src_item {
 		this.own_num+=this.ratio_num;
 		this.jqdom_update();	
 	}
-}
-class Selected_item extends Src_item{
-	constructor(jq_object,relative_object,item_type,own_num,exchange_ratio){
-		super(jq_object,relative_object,item_type,own_num,exchange_ratio);
-	}
-	can_reduce(){
-		return this.own_num>=this.ratio_num;
-	}
 	jqdom_update(){
-		this.jqdom.attr("num",this.own_num);	
+		this.jqdom.attr("num",this.own_num);
+	}
+	jqdom_init(){	
 		if(this.own_num==0){
 			this.jqdom.hide();
 		}
 		else{
 			this.jqdom.show();
 		}
+		this.jqdom_update();
+	}	
+}
+class Selected_item extends Src_item{
+	constructor(jq_object,relative_object,item_type){
+		super(jq_object,relative_object,item_type);
 	}
-	jqdom_init(){
-		this.jqdom.attr("num",this.own_num);	
+	can_reduce(){
+		return this.own_num>=this.ratio_num;
+	}
+	jqdom_update(){
+		super.jqdom_update();
 		if(this.own_num==0){
 			this.jqdom.hide();
 		}
@@ -1587,8 +1665,8 @@ class Selected_item extends Src_item{
 	}
 }
 class Avaliable_item extends Src_item{
-	constructor(jq_object,relative_object,item_type,own_num,exchange_ratio){
-		super(jq_object,relative_object,item_type,own_num,exchange_ratio);
+	constructor(jq_object,relative_object,item_type){
+		super(jq_object,relative_object,item_type);
 	}
 	can_reduce(){
 		if(this.own_num<this.ratio_num){
@@ -1597,7 +1675,7 @@ class Avaliable_item extends Src_item{
 		return true;
 	}
 	jqdom_update(){
-		this.jqdom.attr("num",this.own_num);	
+		super.jqdom_update();	
 		if(this.own_num<this.ratio_num){
 			this.jqdom.addClass("disabled");
 		}
@@ -1605,26 +1683,10 @@ class Avaliable_item extends Src_item{
 			this.jqdom.removeClass("disabled");
 		}
 	}
-	jqdom_init(){
-		this.jqdom.attr("num",this.own_num);	
-		if(this.own_num==0){
-			this.jqdom.hide();
-		}
-		else{
-			this.jqdom.show();
-			if(this.own_num<this.ratio_num){
-				this.jqdom.addClass("disabled");
-			}
-			else{
-				this.jqdom.removeClass("disabled");
-			}
-		}
-	}
 }
 class Selected_Drop_item extends Selected_item{
-	constructor(jq_object,relative_object,item_type,own_num,exchange_ratio){
-		super(jq_object,relative_object,item_type,own_num,exchange_ratio);
-		this.jqdom_init();
+	constructor(jq_object,relative_object,item_type){
+		super(jq_object,relative_object,item_type);
 	}
 	reduce(){
 		super.reduce();
@@ -1636,9 +1698,8 @@ class Selected_Drop_item extends Selected_item{
 	}
 }
 class Avaliable_Drop_item extends Avaliable_item{
-	constructor(jq_object,relative_object,item_type,own_num,exchange_ratio){
-		super(jq_object,relative_object,item_type,own_num,exchange_ratio);
-		this.jqdom_init();
+	constructor(jq_object,relative_object,item_type){
+		super(jq_object,relative_object,item_type);
 	}
 	can_reduce(){
 		if(super.can_reduce()==false){
@@ -1651,10 +1712,10 @@ class Avaliable_Drop_item extends Avaliable_item{
 	}
 }
 class Selected_Trade_item extends Selected_item{
-	constructor(jq_object,relative_object,item_type,own_num,exchange_ratio,own_type){
-		super(jq_object,relative_object,item_type,own_num,exchange_ratio);
+	constructor(jq_object,relative_object,item_type,own_type){
+		super(jq_object,relative_object,item_type);
 		this.own_type=own_type;
-		this.jqdom_init();
+		this.secret=false;
 	}
 	reduce(){
 		super.reduce();
@@ -1676,21 +1737,27 @@ class Selected_Trade_item extends Selected_item{
 	}
 }
 class Avaliable_Trade_item extends Avaliable_item{
-	constructor(jq_object,relative_object,item_type,own_num,exchange_ratio,own_type){
-		super(jq_object,relative_object,item_type,own_num,exchange_ratio);
+	constructor(jq_object,relative_object,item_type,own_type){
+		super(jq_object,relative_object,item_type);
 		this.own_type=own_type;
-		this.jqdom_init();
+		this.secret=false;
 	}
 	can_reduce(){
 		if(super.can_reduce()==false){
 			return false;
 		}
 		if(this.own_type=="give"){
-			if(game_temp.trade_basic_give_num>=game_temp.trade_basic_get_num){
+			if(game_temp.trade_basic_give_num>=game_temp.trade_basic_get_num && game_temp.trade_target!="player"){
 				return false;
 			}	
 		}	
 		return true;
+	}
+	jqdom_update(){
+		super.jqdom_update();
+		if(this.secret){
+			this.jqdom.attr("num","--");
+		}
 	}
 }
 

@@ -69,16 +69,29 @@ function handle_msg(msg){
 					break;
 				//交易
 				case 2:
-				 switch(val[1]){
-				 	//与银行交易
-				 	case 1:
-				 		trade_with_bank(val[2],val[3],msg.message.starter);
-				 		break;
-			 		//与港口交易,本质还是与银行交易
-			 		case 2:
-			 			trade_with_bank(val[2],val[3],msg.message.starter);
-				 }
-				 break;
+					switch(val[1]){
+					    //与银行交易
+					 	case 1:
+					 		trade_with_bank(val[2],val[3],msg.message.starter);
+					 		break;
+				 		//与港口交易,本质还是与银行交易
+				 		case 2:
+				 			trade_with_bank(val[2],val[3],msg.message.starter);
+				 			break;
+				 		//与玩家交易(请求)
+				 		case 3:
+				 			break;
+				 		//响应玩家交易
+				 		case 4:
+				 			switch(val[2]){
+				 				//接受交易
+				 				case 1:
+				 					trade_with_player(val[3],val[4],msg.message.accepter,msg.message.starter);
+				 					break;
+				 			}
+				 			break;		
+					}
+				    break;
 				//发展
 				case 3:
 					switch(val[1]){
@@ -333,6 +346,32 @@ function trade_with_bank(give_list,get_list,trader_index){
 
 }
 //--------------------------------------------------------
+// 与玩家交易
+// 由于没有服务器进行裁断,在玩家发出接受交易,信息未到时交易发起者想取消是做不到的
+//--------------------------------------------------------
+function trade_with_player(give_list,get_list,trade_stater_index,trade_accepter_index){
+	game_temp.trade_accepter_index=trade_accepter_index;
+	var trade_stater=game_info.players[trade_stater_index];
+	var trade_accepter=game_info.players[trade_accepter_index];
+	var names=game_info.player_list
+	//进行资源转移
+	for(var src_id in give_list){
+		var src_name=order[src_id]+"_num";
+		trade_stater[src_name]-=give_list[src_id];
+		trade_accepter[src_name]+=give_list[src_id];
+		his_window.push(names[trade_stater_index][1]+" 给了 "+names[trade_accepter_index][1]+" "+order_ch[src_id]+" x "+give_list[src_id]);
+	}
+	for(var src_id in get_list){
+		var src_name=order[src_id]+"_num";
+		trade_stater[src_name]+=get_list[src_id];
+		trade_accepter[src_name]-=get_list[src_id];
+		his_window.push(names[trade_accepter_index][1]+" 给了 "+names[trade_stater_index][1]+" "+order_ch[src_id]+" x "+get_list[src_id]);
+	}
+	
+	//UI回调,结束交易
+	window_finish_trade("success");
+}
+//--------------------------------------------------------
 // 设置强盗
 //--------------------------------------------------------
 function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false)
@@ -342,6 +381,7 @@ function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false
 	$("#action_use_dev_soldier").removeClass("active");
 	$("#cancel_robbing").hide();
 	$("#to_before_action").hide();
+
 	if(cost){
 		game_info.players[robber_index].soldier_num--;
 		game_info.players[robber_index].soldier_used++;

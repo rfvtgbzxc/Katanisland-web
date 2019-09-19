@@ -76,6 +76,7 @@ test_game_info={
 	"players": {
 		"1": {
 			"index": 1,
+			"src_secret":'true',
 			"brick_num": 10,
 			"wool_num": 20,
 			"wood_num": 10,
@@ -97,6 +98,7 @@ test_game_info={
 		},
 		"2": {
 			"index": 2,
+			"src_secret":'true',
 			"brick_num": 10,
 			"wool_num": 10,
 			"wood_num": 10,
