@@ -84,9 +84,9 @@ function handle_msg(msg){
 				 		//响应玩家交易
 				 		case 4:
 				 			switch(val[2]){
-				 				//接受交易
+				 				//尝试接受交易
 				 				case 1:
-				 					trade_with_player(val[3],val[4],msg.message.accepter,msg.message.starter);
+				 					response_trade_with_player(msg.message.accepter,msg.message.starter);
 				 					break;
 				 			}
 				 			break;		
