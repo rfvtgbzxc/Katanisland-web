@@ -406,10 +406,20 @@ function load_game(){
 	for(var i=1;i<7;i++){
 		$("actions2").append("<button trade_target='harbour' target_val='"+i+"' type='button' class='action_prepare_trade list-group-item'>"+order_ch[i]+"港</button>");
 	}
-	//加载玩家
+	//加载交易玩家
 	for(var player_index in game_info.player_list){
 		$("actions2").append("<button trade_target='player' target_val='"+player_index+"' type='button' class='action_prepare_trade list-group-item'>"+game_info.player_list[player_index][1]+"</button>");
 	}
+	//加载资源栏对象
+	create_trade_items();
+	//加载交易记录,共生成i^2+i项
+	var tdobj_lth=game_info.players.length+1;
+	for(i=1;i<tdobj_lth;i++){
+		for(j=0;j<tdobj_lth;j++){
+			game_trades[i*tdobj_lth+j]=new Transaction(i*tdobj_lth+j,i,j);
+		}
+	}
+	game_temp.bank_trade=new Transaction(0,0,0);
 	//加载文字
 	$youziku.submit("playername_update");
 }
@@ -489,4 +499,35 @@ function add_city(point_id){
 	$("#cities").append("<img class='city' id='"+point_id+"' src='/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png'/>");
 	//调整位置
 	$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"999"});
+}
+
+function create_trade_items(){
+	for(var src_id=1;src_id<6;src_id++){
+		var src_name=order[src_id];
+		var src_num=0;
+
+		var menu1=["give","get"];
+		var menu2=["selected","avaliable"];
+
+		for(var v1 in menu1){
+			for(var v2 in menu2){
+				//0,0:给予栏选中 0,1：给予栏备选 1,0:索取栏选中 1,1:索取栏备选
+				var jqitem=$("trade_window").children().filter("src_select_window."+menu1[v1]).children().filter("srcs_"+menu2[v2]).children().filter("."+src_name);
+				if(v2==0){
+					var a_selected_item=new Selected_Trade_item(jqitem,null,src_name,menu1[v1]);
+					var item=a_selected_item;
+				}
+				else{
+					var a_avaliable_item_item=new Avaliable_Trade_item(jqitem,a_selected_item,src_name,menu1[v1]);
+					a_selected_item.rlt_item=a_avaliable_item_item;
+					var item=a_avaliable_item_item;
+				}				
+				jqitem.attr("id",game_UI.UI_count);
+				game_UI[game_UI.UI_count]=item;
+				game_UI_list.trade_items["_"+menu1[v1]][menu2[v2]].push(game_UI.UI_count);
+				game_UI.UI_count++;
+			}
+		}
+	}
+	game_UI.trade_items_created=true;
 }

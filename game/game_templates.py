@@ -176,5 +176,6 @@ test_game_info={
 		"monopoly_num": 2,
 		"road_making_num": 2
 	},
-	"active_trade_list":{}
+	"trades":{},
+	"active_trades":[]
 }
