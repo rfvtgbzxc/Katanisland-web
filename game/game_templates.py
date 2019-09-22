@@ -65,6 +65,7 @@ test_game_info={
 	"owner": 233,
 	"step_list": [1,2],
 	"online_list": [1,2],
+	"trade_count":0,
 	"player_list": {
 		"1": [233,"解忧唯杜康"],
 		"2": [666,"Fade into fate"]
@@ -174,5 +175,6 @@ test_game_info={
 		"plenty_num": 2,
 		"monopoly_num": 2,
 		"road_making_num": 2
-	}
+	},
+	"active_trade_list":{}
 }
