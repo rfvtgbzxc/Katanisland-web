@@ -80,15 +80,24 @@ function handle_msg(msg){
 				 			break;
 				 		//与玩家交易(请求)
 				 		case 3:
+				 			give_trade_with_player(val[2])
 				 			break;
 				 		//响应玩家交易
 				 		case 4:
 				 			switch(val[2]){
 				 				//尝试接受交易
 				 				case 1:
-				 					response_trade_with_player(msg.message.accepter,msg.message.starter);
+				 					response_trade_with_player(val[3],msg.message.starter);
+				 					break;
+				 				//取消交易
+				 				case 3:
+				 					msg_cancel_trade(val[3]);
 				 					break;
 				 			}
+				 			break;
+				 		//执行交易
+				 		case 5:
+				 			trade_with_player(val[2],val[3]);
 				 			break;		
 					}
 				    break;
@@ -330,6 +339,7 @@ function trade_with_bank(give_list,get_list,trader_index){
 
 	var trader=game_info.players[trader_index];
 	var bank=game_info.cards;
+	game_info.active_trades.splice(game_info.active_trades.indexOf(0),1);
 	//进行资源转移
 	for(var src_id in give_list){
 		var src_num=order[src_id]+"_num";
@@ -346,30 +356,79 @@ function trade_with_bank(give_list,get_list,trader_index){
 
 }
 //--------------------------------------------------------
-// 与玩家交易
-// 由于没有服务器进行裁断,在玩家发出接受交易,信息未到时交易发起者想取消是做不到的
+// (被)生成交易
 //--------------------------------------------------------
-function trade_with_player(give_list,get_list,trade_stater_index,trade_accepter_index){
-	game_temp.trade_accepter_index=trade_accepter_index;
-	var trade_stater=game_info.players[trade_stater_index];
-	var trade_accepter=game_info.players[trade_accepter_index];
+function give_trade_with_player(new_trade){
+	//更新交易状态
+	//如果是交易发起者则不需要
+	if(new_trade.starter!=user_index){
+		game_info.trades[new_trade.id].refresh(new_trade);
+		game_info.active_trades.push(new_trade.id);
+		if(new_trade.accepter==user_index){
+			his_window.push(game_info.player_list[new_trade.starter][1]+" 想要与你交易","important");
+			show_special_actions("trade",new_trade.starter);
+		}	
+	}	
+	if(offline && new_trade.accepter!=0){
+		ws.sendmsg("mes_action",{"starter":new_trade.accepter,"accepter":new_trade.starter,"val":[2,4,1,new_trade.id]});
+	}
+}
+//--------------------------------------------------------
+// (被)取消交易
+//--------------------------------------------------------
+function msg_cancel_trade(trade_id){
+	//更新交易状态
+	var trade=game_info.trades[trade_id];
+	//如果是交易发起者则不需要
+	if(trade.starter!=user_index){	
+		trade.trade_state="canceled";
+		game_info.active_trades.splice(game_info.active_trades.indexOf(trade.id),1);
+		window_finish_trade(trade);
+	}
+}
+//--------------------------------------------------------
+// 与玩家交易
+//--------------------------------------------------------
+function response_trade_with_player(trade_id,accepter_index){
+	//检查交易状态
+	var trade=game_info.trades[trade_id];
+	if(trade.trade_state=="requesting"){
+		//达成交易
+		trade.trade_state="success";
+		trade.final_accepter=accepter_index;
+		ws.sendmsg("mes_action",{"val":[2,5,trade_id,accepter_index]});
+	}
+}
+//--------------------------------------------------------
+// 执行与玩家交易
+//--------------------------------------------------------
+function trade_with_player(trade_id,accepter_index){
+	var trade=game_info.trades[trade_id];
+	//更新交易状态
+	trade.final_accepter=accepter_index;
+	trade.trade_state="success";
+	game_info.active_trades.splice(game_info.active_trades.indexOf(trade_id),1);
+	//执行交易
+	var trade_starter=game_info.players[trade.starter];
+	var trade_accepter=game_info.players[trade.final_accepter];
 	var names=game_info.player_list
 	//进行资源转移
-	for(var src_id in give_list){
+	for(var src_id in trade.starter_list){
 		var src_name=order[src_id]+"_num";
-		trade_stater[src_name]-=give_list[src_id];
-		trade_accepter[src_name]+=give_list[src_id];
-		his_window.push(names[trade_stater_index][1]+" 给了 "+names[trade_accepter_index][1]+" "+order_ch[src_id]+" x "+give_list[src_id]);
+		var src_num=trade.starter_list[src_id];
+		trade_starter[src_name]-=src_num;
+		trade_accepter[src_name]+=src_num;
+		his_window.push(names[trade.starter][1]+" 给了 "+names[trade.final_accepter][1]+" "+order_ch[src_id]+" x "+src_num);
 	}
-	for(var src_id in get_list){
+	for(var src_id in trade.accepter_list){
 		var src_name=order[src_id]+"_num";
-		trade_stater[src_name]+=get_list[src_id];
-		trade_accepter[src_name]-=get_list[src_id];
-		his_window.push(names[trade_accepter_index][1]+" 给了 "+names[trade_stater_index][1]+" "+order_ch[src_id]+" x "+get_list[src_id]);
+		var src_num=trade.accepter_list[src_id];
+		trade_starter[src_name]+=src_num;
+		trade_accepter[src_name]-=src_num;
+		his_window.push(names[trade.final_accepter][1]+" 给了 "+names[trade.starter][1]+" "+order_ch[src_id]+" x "+src_num);
 	}
-	
 	//UI回调,结束交易
-	window_finish_trade("success");
+	window_finish_trade(trade);
 }
 //--------------------------------------------------------
 // 设置强盗

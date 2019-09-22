@@ -12,7 +12,7 @@ function update_static_Graphic(){
 	}
 	//加载玩家自己所有资源的数字
 	for(var i=1;i<6;i++){
-		$(".src_"+order[i]).text(""+self_player[order[i]+"_num"]);
+		$(".src_"+order[i]).children().filter("truely_own").text(""+self_player[order[i]+"_num"]);
 	}
 	//刷新全玩家状态卡
 	$("player").each(function(){
@@ -48,8 +48,8 @@ function update_static_Graphic(){
 	});
 	//强盗地点更新
 	set_robber(game_info.occupying);
-	//最后如果是自己的回合,关闭等待窗口
-	if((user_index==game_info.step_list[game_info.step_index] && game_temp.action_now!="action_drop_srcs_for_7") || offline){
+	//最后关闭等待窗口
+	if((game_temp.action_now!="action_drop_srcs_for_7") || offline){
 		$("wait_window").hide();
 	}	
 }
@@ -326,7 +326,7 @@ function load_game(){
 	var self_player=players[user_index];
 	//加载所有资源的数字
 	for(var i=1;i<5;i++){
-		$(".src_"+order[i]).text(""+self_player[order[i]+"_num"]);
+		$(".src_"+order[i]).children().filter("truely_own").text(""+self_player[order[i]+"_num"]);
 	}
 	//显示回合数
 	$("#rounds").text(('00'+game_info.play_turns).slice(-2));
@@ -409,16 +409,22 @@ function load_game(){
 	//加载交易玩家
 	for(var player_index in game_info.player_list){
 		$("actions2").append("<button trade_target='player' target_val='"+player_index+"' type='button' class='action_prepare_trade list-group-item'>"+game_info.player_list[player_index][1]+"</button>");
+		$("special_actions").append("<button trade_target='player' target_val='"+player_index+"' type='button' class='action_prepare_trade list-group-item'>"+game_info.player_list[player_index][1]+"</button>");
 	}
 	//加载资源栏对象
 	create_trade_items();
 	//加载交易记录,共生成i^2+i项
-	var tdobj_lth=game_info.players.length+1;
+	for(var trade_id in game_info.trades){
+		game_info.trades[trade_id]=new Transaction(game_info.trades[trade_id]);
+	}
+	/*var game_trades={};
+	var tdobj_lth=Object.keys(game_info.players).length+1;
 	for(i=1;i<tdobj_lth;i++){
 		for(j=0;j<tdobj_lth;j++){
 			game_trades[i*tdobj_lth+j]=new Transaction(i*tdobj_lth+j,i,j);
 		}
 	}
+	console.log(JSON.stringify(game_trades));*/
 	game_temp.bank_trade=new Transaction(0,0,0);
 	//加载文字
 	$youziku.submit("playername_update");

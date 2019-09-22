@@ -58,17 +58,17 @@ test_game_info={
 	"step_index": 1,
 	"game_process": 3,
 	"occupying": 19,
-	"longest_road":0,
-	"max_minitory":0,
+	"longest_road": 0,
+	"max_minitory": 0,
 	"play_turns": 4,
-	"dice_num":[0,0],
+	"dice_num": [0, 0],
 	"owner": 233,
-	"step_list": [1,2],
-	"online_list": [1,2],
-	"trade_count":0,
+	"step_list": [1, 2],
+	"online_list": [1, 2],
+	"trade_count": 0,
 	"player_list": {
-		"1": [233,"解忧唯杜康"],
-		"2": [666,"Fade into fate"]
+		"1": [233, "解忧唯杜康"],
+		"2": [666, "Fade into fate"]
 	},
 	"user_list": {
 		"233": 1,
@@ -77,7 +77,7 @@ test_game_info={
 	"players": {
 		"1": {
 			"index": 1,
-			"src_secret":'true',
+			"src_secret": "true",
 			"brick_num": 10,
 			"wool_num": 20,
 			"wood_num": 10,
@@ -93,13 +93,13 @@ test_game_info={
 			"soldier_get_before": 0,
 			"plenty_get_before": 0,
 			"monopoly_get_before": 0,
-			"road_making_get_before":0,
+			"road_making_get_before": 0,
 			"road_longest": [42],
 			"own_cities": [28, 44]
 		},
 		"2": {
 			"index": 2,
-			"src_secret":'true',
+			"src_secret": "true",
 			"brick_num": 10,
 			"wool_num": 10,
 			"wood_num": 10,
@@ -115,9 +115,9 @@ test_game_info={
 			"soldier_get_before": 0,
 			"plenty_get_before": 0,
 			"monopoly_get_before": 0,
-			"road_making_get_before":0,
-			"road_longest": [79,78],
-			"own_cities": [53, 54 ,27]
+			"road_making_get_before": 0,
+			"road_longest": [79, 78],
+			"own_cities": [53, 54, 27]
 		}
 	},
 	"cities": {
@@ -176,6 +176,55 @@ test_game_info={
 		"monopoly_num": 2,
 		"road_making_num": 2
 	},
-	"trades":{},
-	"active_trades":[]
+	"trades": {
+		"3": {
+			"id": 3,
+			"starter": 1,
+			"accepter": 0,
+			"trade_state": "prepare",
+			"starter_list": {},
+			"accepter_list": {}
+		},
+		"4": {
+			"id": 4,
+			"starter": 1,
+			"accepter": 1,
+			"trade_state": "prepare",
+			"starter_list": {},
+			"accepter_list": {}
+		},
+		"5": {
+			"id": 5,
+			"starter": 1,
+			"accepter": 2,
+			"trade_state": "prepare",
+			"starter_list": {},
+			"accepter_list": {}
+		},
+		"6": {
+			"id": 6,
+			"starter": 2,
+			"accepter": 0,
+			"trade_state": "prepare",
+			"starter_list": {},
+			"accepter_list": {}
+		},
+		"7": {
+			"id": 7,
+			"starter": 2,
+			"accepter": 1,
+			"trade_state": "prepare",
+			"starter_list": {},
+			"accepter_list": {}
+		},
+		"8": {
+			"id": 8,
+			"starter": 2,
+			"accepter": 2,
+			"trade_state": "prepare",
+			"starter_list": {},
+			"accepter_list": {}
+		}
+	},
+	"active_trades": []
 }

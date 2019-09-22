@@ -85,6 +85,12 @@ pt_selector
 {
 	position: absolute;
 }
+/*资源栏*/
+pre_pay
+{
+	color:red;
+}
+
 /*菜单选项*/
 button.active:after
 {
@@ -873,6 +879,10 @@ src_item.disabled{
     filter: grayscale(100%);
 	
     filter: gray;
+}
+src_item.tooless{
+	filter: none;
+	border-color:red;
 }
 pre-load-text{
 	-webkit-user-select:none;

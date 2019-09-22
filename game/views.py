@@ -272,11 +272,7 @@ def t_virtual_websocket(request):
 		return HttpResponse(json.dumps({"data":evt}))
 	#好吧现在还有向玩家的交易请求,会等待一秒
 	if(evt["message"]["val"][0]==2 and evt["message"]["val"][1]==3):
-		time.sleep(1)
-		evt["message"]["val"][1]=4
-		a=evt["message"]["starter"]
-		evt["message"]["starter"]=evt["message"]["accepter"]
-		evt["message"]["accepter"]=a
+		time.sleep(3)
 		return HttpResponse(json.dumps({"data":evt}))
 
 	return HttpResponse(json.dumps(request.GET))

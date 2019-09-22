@@ -69,11 +69,11 @@
 	</confirm_window>
 	<!--资源栏(暂定为静态资源,而非动态加载)-->
 	<source_list>
-		<img src="/media/img/icon_1.png" width="25px"><span class="src_brick">0</span>
-		<img src="/media/img/icon_2.png" width="25px"><span class="src_wood">0</span>
-		<img src="/media/img/icon_3.png" width="25px"><span class="src_wool">0</span>
-		<img src="/media/img/icon_4.png" width="25px"><span class="src_grain">0</span>
-		<img src="/media/img/icon_5.png" width="25px"><span class="src_ore">0</span>
+		<img src="/media/img/icon_1.png" width="25px"><span class="src_brick"><truely_own>0</truely_own><pre_pay></pre_pay></span>
+		<img src="/media/img/icon_2.png" width="25px"><span class="src_wood"><truely_own>0</truely_own><pre_pay></pre_pay></span>
+		<img src="/media/img/icon_3.png" width="25px"><span class="src_wool"><truely_own>0</truely_own><pre_pay></pre_pay></span>
+		<img src="/media/img/icon_4.png" width="25px"><span class="src_grain"><truely_own>0</truely_own><pre_pay></pre_pay></span>
+		<img src="/media/img/icon_5.png" width="25px"><span class="src_ore"><truely_own>0</truely_own><pre_pay></pre_pay></span>
 	</source_list>
 	<!--骰子-->
 	<dice dice_id="0" style="left:10px;"><span id="debug_show_selectors" on="off">打开选择器</span><span id="debug_show_ids" on="off">显示元素id</span></dice>
@@ -167,22 +167,23 @@
 		</window_head>
 		<!--资源选框1-->
 		<src_select_window class="give">
-			<head_text>你想给予：</head_text>
+			<head_text><person></person>想给予：</head_text>
 			<srcs_selected></srcs_selected>
 			<srcs_avaliable></srcs_avaliable>
 		</src_select_window>
 		<!--资源选框2-->
 		<src_select_window class="get">
-			<head_text>你想获得：</head_text>
+			<head_text><person></person>想获得：</head_text>
 			<srcs_selected></srcs_selected>
 			<srcs_avaliable></srcs_avaliable>
 		</src_select_window>
 		<src_confirm_window>
 			<trade_state></trade_state>
 			<button class="btn-success" id="action_trade_items"></button>
+			<button class="btn-success" id="action_refuse_trade_items">拒绝交易</button>
 		</src_confirm_window>
 	</trade_window>
 	<!--部分文字预加载-->
-	<pre-load-text style="z-index:-1;color:white;">发起交易 关闭窗口 拒绝交易 接受交易 放弃交易</pre-load-text>
+	<pre-load-text style="z-index:-1;color:white;">他 你 发起交易 关闭窗口 拒绝 接受 放弃</pre-load-text>
 </body>
 </html>

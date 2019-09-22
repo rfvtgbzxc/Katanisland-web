@@ -2,7 +2,7 @@
 //debug模式
 debug=false;
 //脱机模式
-offline=true;
+offline=false;
 //提示窗口
 info_window={
 	"set":function(text){
@@ -495,7 +495,7 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	$("src_select_window").on("click","src_item",function(){
 		//已经发起交易请求则不无返回
-		if(game_temp.trade_step!="selecting_items"){
+		if(game_temp.action_now=="action_trade" && game_temp.trade_now.trade_state!="prepare"){
 			return;
 		}
 		//进行资源的转移
@@ -566,44 +566,12 @@ $(document).ready(function(){
 		game_temp.action_trade_items_function();
 	});
 	//--------------------------------------------------------
-	// 发起交易
+	// UI：拒绝交易
 	//--------------------------------------------------------
-	trade_items = function(){
-		//更新交易信息
-		$("trade_state").text("等待对方响应...");
-		$("#action_trade_items").text("取消交易");
-		game_temp.trade_step="requesting_trade";
-		//获取交易栏的所有资源
-		var give_list={};
-		var get_list={};
-		var items1=game_UI_list.trade_items._give.selected;
-		var items2=game_UI_list.trade_items._get.selected;
-		for(var i in items1){
-			var UI_id=items1[i];
-			var item=game_UI[UI_id];
-			if(item.own_num==0){continue;}
-			give_list[src_reflection[item.item_type]]=item.own_num;
-		}
-		for(var i in items2){
-			var UI_id=items2[i];
-			var item=game_UI[UI_id];
-			if(item.own_num==0){continue;}
-			get_list[src_reflection[item.item_type]]=item.own_num;
-		}
-		//根据交易类型,有不同的处理
-		switch(game_temp.trade_target){
-			case "bank":
-				//发送消息
-				ws.sendmsg("mes_action",{"starter":user_index,"val":[2,1,give_list,get_list]});
-				break;
-			case "player":
-				//发送消息
-				ws.sendmsg("mes_action",{"starter":user_index,"accepter":game_temp.trade_target_value,"val":[2,3,give_list,get_list]});
-				break;
-		}
-		//手动关闭等待页面,以此让玩家有取消交易的机会
-		$("wait_window").hide();
-	}
+	$("#action_refuse_trade_items").click(function(){
+		//依据当前功能执行对应函数
+		refuse_trade();
+	});
 	//--------------------------------------------------------
 	// UI：菜单
 	//--------------------------------------------------------
@@ -719,7 +687,17 @@ $(document).ready(function(){
 		//激活自己
 		$(this).addClass("active");
 		//启动交易选择
-		start_trade($(this).attr("trade_target"),$(this).attr("target_val"));
+		start_trade_window($(this).attr("trade_target"),$(this).attr("target_val"));
+	});
+	//--------------------------------------------------------
+	// UI：准备交易
+	// 适用于非自己回合的适配版
+	//--------------------------------------------------------
+	$("special_actions").on("click",".action_prepare_trade",function(){
+		//激活自己
+		$(this).addClass("active");
+		//启动交易选择
+		start_trade_window($(this).attr("trade_target"),$(this).attr("target_val"));
 	});
 	//--------------------------------------------------------
 	// UI：使用发展卡
@@ -1219,11 +1197,24 @@ function init_menu_lv(menu_level,menu_item){
 // 展开特殊选项
 //--------------------------------------------------------
 function show_special_actions(...actions){
-	for(var i in actions){
-		$("#"+actions[i]).show();
+	if(actions[0]=="trade"){
+		for(var i=1;i<actions.length;i++){
+			$("special_actions").children().filter(function(){
+				return parseInt($(this).attr("target_val"))==actions[i];
+			}).show();
+		}
+		//安置按钮组位置
+		$("special_actions").css({"top":100,"left":$("actions0").position().left+123});
 	}
-	//安置按钮组位置
-	$("special_actions").css({"top":$("actions0").position().top,"left":$("actions0").position().left+123});
+	else{
+		for(var i in actions){
+			$("#"+actions[i]).show();
+		}
+		//安置按钮组位置
+		$("special_actions").css({"top":$("actions0").position().top,"left":$("actions0").position().left+123});
+	}
+	
+	
 }
 //--------------------------------------------------------
 // 隐藏特殊选项
@@ -1333,38 +1324,7 @@ function start_robber_set(){
 	}
 }
 
-//--------------------------------------------------------
-// 结束交易窗口
-//--------------------------------------------------------
-window_finish_trade=function(trade_state){
-	//更新交易信息
-	switch(trade_state){
-		case "success":
-			his_window.push(game_info.player_list[game_temp.trade_accepter_index][1]+" 接受了交易!",'important');
-			$("trade_state").text("交易成功!");
-			break;
-		case "refused":
-			his_window.push(game_info,player_list[game_temp.trade_accepter_index][1]+" 拒绝了交易!","important");
-			$("trade_state").text("对方拒绝交易!");
-			break;
-		case "canceled":
-			his_window.push("交易被取消!","important");
-			$("trade_state").text("交易被取消!");
-			break;
-	}
-	$("#action_trade_items").text("关闭窗口");
-	game_temp.action_trade_items_function=close_trade_window;
-	game_temp.trade_step="finished_trade";
-}
-//--------------------------------------------------------
-// 关闭交易窗口
-//--------------------------------------------------------
-function close_trade_window(){
-	//关闭窗口,并取消激活状态
-	$("trade_window").hide();
-	//可优化,定位之前的UI
-	$(".action_prepare_trade").removeClass("active");
-}
+
 //--------------------------------------------------------
 // game_info对象函数
 //--------------------------------------------------------
@@ -1622,6 +1582,7 @@ class Avaliable_Trade_item extends Avaliable_item{
 		if(this.secret){
 			this.jqdom.attr("num","--");
 		}
+		this.own_num<0?this.jqdom.addClass("tooless"):this.jqdom.removeClass("tooless");
 	}
 }
 
