@@ -274,9 +274,6 @@ def t_virtual_websocket(request):
 	if(evt["message"]["val"][0]==2 and evt["message"]["val"][1]==3):
 		time.sleep(1)
 		evt["message"]["val"][1]=4
-		evt["message"]["val"].append(evt["message"]["val"][3])
-		evt["message"]["val"][3]=evt["message"]["val"][2]
-		evt["message"]["val"][2]=1
 		a=evt["message"]["starter"]
 		evt["message"]["starter"]=evt["message"]["accepter"]
 		evt["message"]["accepter"]=a
