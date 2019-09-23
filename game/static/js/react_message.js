@@ -112,6 +112,17 @@ function handle_msg(msg){
 						case 1:
 							set_robber_info(val[2],msg.message.starter,val[3],val[5],true);
 							break;
+						//丰收卡
+						case 2:
+							dev_plenty(val[2],msg.message.starter);
+							break;
+						//垄断卡
+						case 3:
+							dev_monopoly(val[2],msg.message.starter);
+							break;
+						//修路卡
+						case 4:
+							dev_road_making(val[2],val[3],msg.message.starter);
 					}
 					break;
 				//设置强盗(因7)
@@ -206,14 +217,16 @@ function set_dice(num1,num2){
 //--------------------------------------------------------
 // 建造道路
 //--------------------------------------------------------
-function build_road(edge_id,player_index){
+function build_road(edge_id,player_index,cost=true){
 	//建造道路的UI回调函数,只需要清除selectors和active
 	clear_selectors();
 	$("#action_build_road").removeClass("active");
 	var player=game_info.players[player_index];
 	//扣除资源
-	player.brick_num--;
-	player.wood_num--;
+	if(cost){
+		player.brick_num--;
+		player.wood_num--;
+	}
 	//安置道路(更新game_info)
 	game_info.roads[edge_id]=new Road(player_index);
 	his_window.push(game_info.player_list[player_index][1]+" 建造了一条道路");
@@ -462,6 +475,9 @@ function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false
 	if(cost){
 		game_info.players[robber_index].soldier_num--;
 		game_info.players[robber_index].soldier_used++;
+		//UI回调,设置菜单级数为1
+		init_menu_lv(1,$("#action_use_dev_soldier"));
+		UI_use_dev_update();
 	}
 	game_info.occupying=place_id;
 	var place=map_info.places[place_id];
@@ -526,6 +542,53 @@ function drop_srcs(drop_list,dropper_index){
 		his_window.push("等待其他玩家选择丢弃资源...");
 		$("wait_window").show();
 	}
+}
+//--------------------------------------------------------
+// 丰收
+//--------------------------------------------------------
+function dev_plenty(src_id,player_index){
+	var player=game_info.players[player_index];
+	player.dev("plenty","-=",1);
+	player.src(src_id,"+=",2);
+	his_window.push(player.name+" 使用了 "+"丰收卡");
+	his_window.push(player.name+" 获得了2份 "+order_ch[src_id]);
+	//UI回调,设置菜单级数为1
+	init_menu_lv(1,$("#action_use_dev_plenty"));
+	UI_use_dev_update();
+}
+//--------------------------------------------------------
+// 垄断
+//--------------------------------------------------------
+function dev_monopoly(src_id,starter_index){
+	var starter=game_info.players[starter_index];
+	his_window.push(starter.name+" 使用了 "+"垄断卡");
+	starter.dev("monopoly","-=",1);
+	for(var player_index in game_info.players){
+		//自己是垄断者则不受影响
+		if(starter_index==player_index){
+			continue;
+		}
+		var player=game_info.players[player_index];	
+		starter.src(src_id,"+=",player.src(src_id));
+		his_window.push(player.name+" 交出了 "+player.src(src_id)+" 份 "+order_ch[src_id]);
+		player.src(src_id,0);
+	}	
+	//UI回调,设置菜单级数为1
+	init_menu_lv(1,$("#action_use_dev_monopoly"));
+	UI_use_dev_update();
+}
+//--------------------------------------------------------
+// 修路
+//--------------------------------------------------------
+function dev_road_making(road_id1,road_id2,builder_index){
+	var builder=game_info.players[builder_index];
+	builder.dev("road_making","-=",1);
+	his_window.push(builder.name+" 使用了 "+"道路建设卡");
+	build_road(road_id1,builder_index,false);
+	build_road(road_id2,builder_index,false);
+	//UI回调,设置菜单级数为1
+	init_menu_lv(1,$("#action_use_dev_road_making"));
+	UI_use_dev_update();
 }
 //--------------------------------------------------------
 // 新的回合

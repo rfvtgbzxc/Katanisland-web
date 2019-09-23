@@ -103,9 +103,10 @@ function avaliable_places(){
 }
 //--------------------------------------------------------
 // 获取玩家可修路的边
+// temp_edge:额外考虑temp_edge
 //--------------------------------------------------------
-function avaliable_edges(player_index){
-	var roads=all_roads(player_index);
+function avaliable_edges(player_index,temp_edge=[]){
+	var roads=union(all_roads(player_index),temp_edge);
 	var available_edges_from_road={};
 	var available_edges_all=[];
 	for(var base_road_index in roads){
@@ -139,7 +140,7 @@ function avaliable_edges(player_index){
 	available_edges_all=union(available_edges_all,available_edges_from_city);
 	//删除已有道路的边
 	for(var i in available_edges_all){
-		if(game_info.roads.hasOwnProperty(available_edges_all[i])){
+		if(game_info.roads.hasOwnProperty(available_edges_all[i]) || temp_edge.indexOf(available_edges_all[i])!=-1){
 			delete available_edges_all[i];
 			continue;
 		}			

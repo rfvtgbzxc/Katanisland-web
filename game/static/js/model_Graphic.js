@@ -1,15 +1,6 @@
 //根据game_info处理画面的刷新，此部分只能对已经存在的DOM元素进行操作,且不对动画进行处理。
 function update_static_Graphic(){
 	var self_player=game_info.players[user_index];
-	//如果某种发展卡已使用完,不显示;或之前购买的已使用完,变灰
-	for(var i=0;i<4;i++){
-		if(self_player[devs[i]+"_num"]==0){
-			$("#action_use_dev_"+devs[i]).hide();
-		}
-		else if(self_player[devs[i]+"_num"]<=self_player[devs[i]+"_get_before"]){
-			$("#action_use_dev_"+devs[i]).addClass("part_disabled");
-		}
-	}
 	//加载玩家自己所有资源的数字
 	for(var i=1;i<6;i++){
 		$(".src_"+order[i]).children().filter("truely_own").text(""+self_player[order[i]+"_num"]);
@@ -320,7 +311,7 @@ function load_map(){
 //--------------------------------------------------------
 // 游戏数据加载(非地图UI)
 //--------------------------------------------------------
-function load_game(){
+function load_UI(){
 	var player_list=game_info.player_list;
 	var players=game_info.players;
 	var self_player=players[user_index];
@@ -401,10 +392,14 @@ function load_game(){
 		$("srcs_selected").append("<src_item num='0' class='"+order[i]+"'></src_item>");
 		$("srcs_avaliable").append("<src_item num='0' class='"+order[i]+"'></src_item>");
 	}
-	//加载动态菜单：交易对象
+	//加载动态菜单
 	//加载港口
 	for(var i=1;i<7;i++){
 		$("actions2").append("<button trade_target='harbour' target_val='"+i+"' type='button' class='action_prepare_trade list-group-item'>"+order_ch[i]+"港</button>");
+	}
+	//加载垄断资源
+	for(var i=1;i<6;i++){
+		$("actions2").append("<button src_id='"+i+"' type='button' class='src_selector list-group-item'>"+order_ch[i]+"</button>");
 	}
 	//加载交易玩家
 	for(var player_index in game_info.player_list){
@@ -413,10 +408,6 @@ function load_game(){
 	}
 	//加载资源栏对象
 	create_trade_items();
-	//加载交易记录,共生成i^2+i项
-	for(var trade_id in game_info.trades){
-		game_info.trades[trade_id]=new Transaction(game_info.trades[trade_id]);
-	}
 	/*var game_trades={};
 	var tdobj_lth=Object.keys(game_info.players).length+1;
 	for(i=1;i<tdobj_lth;i++){

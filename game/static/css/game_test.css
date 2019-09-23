@@ -205,6 +205,7 @@ dice
 	height: 50px;
 	width: 50px;	
 	background: url(/media/img/dice_num0.png);
+	z-index: 4000;
 }
 dice.num1
 {
@@ -503,7 +504,7 @@ img.self
 map
 {
 	position: absolute;
-	left: 300px;
+	left: calc(50% - 400px);
 	top:0;
 	user-select:none;
 }

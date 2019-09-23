@@ -222,7 +222,7 @@ function start_trade_window(target="bank",target_val=0){
 		//扣除已置于列表中的资源
 		item.own_num-=item.rlt_item.own_num;
 		//如果资源不足,不允许接受交易
-		@if(item.own_num<0){$("#action_trade_items").addClass("disabled");}
+		if(item.own_num<0){$("#action_trade_items").addClass("disabled");}
 		item.jqdom_update();
 	}
 	if(game_info.active_trades.indexOf(game_temp.trade_now_id)==-1){		

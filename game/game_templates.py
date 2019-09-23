@@ -67,8 +67,8 @@ test_game_info={
 	"online_list": [1, 2],
 	"trade_count": 0,
 	"player_list": {
-		"1": [233, "解忧唯杜康"],
-		"2": [666, "Fade into fate"]
+		"1": [1, "解忧唯杜康"],
+		"2": [2, "Fade into fate"]
 	},
 	"user_list": {
 		"233": 1,
@@ -109,9 +109,9 @@ test_game_info={
 			"soldier_used": 0,
 			"score_unshown": [],
 			"score_shown": [],
-			"plenty_num": 0,
-			"monopoly_num": 0,
-			"road_making_num": 0,
+			"plenty_num": 1,
+			"monopoly_num": 1,
+			"road_making_num": 1,
 			"soldier_get_before": 0,
 			"plenty_get_before": 0,
 			"monopoly_get_before": 0,
