@@ -8,8 +8,8 @@ def map_setting():
 	c_map_setting["rand_seed"]=random.randint(0,1000000)
 	return c_map_setting
 
-def game_info():
-	return test_game_info
+def game_info(num):
+	return test_game_info[str(num)];
 
 t_base_info={
 	"index":0,
@@ -55,14 +55,189 @@ t_map_setting={
 }
 
 test_game_info={
-	"step_index": 1,
-	"game_process": 3,
+	"1":{
+		"step_index": 1,
+		"game_process": 3,
+		"occupying": 19,
+		"longest_road": 0,
+		"max_minitory": 0,
+		"play_turns": 4,
+		"dice_num": [0, 0],
+		"owner": 233,
+		"step_list": [1, 2],
+		"online_list": [1, 2],
+		"trade_count": 0,
+		"player_list": {
+			"1": [1, "解忧唯杜康"],
+			"2": [2, "Fade into fate"]
+		},
+		"user_list": {
+			"233": 1,
+			"666": 2
+		},
+		"players": {
+			"1": {
+				"index": 1,
+				"src_secret": "true",
+				"brick_num": 10,
+				"wool_num": 20,
+				"wood_num": 10,
+				"grain_num": 10,
+				"ore_num": 3,
+				"soldier_num": 0,
+				"soldier_used": 0,
+				"score_unshown": [],
+				"score_shown": [],
+				"plenty_num": 0,
+				"monopoly_num": 0,
+				"road_making_num": 0,
+				"soldier_get_before": 0,
+				"plenty_get_before": 0,
+				"monopoly_get_before": 0,
+				"road_making_get_before": 0,
+				"road_longest": [42],
+				"own_cities": [28, 44]
+			},
+			"2": {
+				"index": 2,
+				"src_secret": "true",
+				"brick_num": 10,
+				"wool_num": 10,
+				"wood_num": 10,
+				"grain_num": 10,
+				"ore_num": 3,
+				"soldier_num": 0,
+				"soldier_used": 0,
+				"score_unshown": [],
+				"score_shown": [],
+				"plenty_num": 1,
+				"monopoly_num": 1,
+				"road_making_num": 1,
+				"soldier_get_before": 0,
+				"plenty_get_before": 0,
+				"monopoly_get_before": 0,
+				"road_making_get_before": 0,
+				"road_longest": [79, 78],
+				"own_cities": [53, 54, 27]
+			}
+		},
+		"cities": {
+			"28": {
+				"owner": 1,
+				"level": 1,
+				"ex_type": 0
+			},
+			"44": {
+				"owner": 1,
+				"level": 0,
+				"ex_type": 0
+			},
+			"53": {
+				"owner": 2,
+				"level": 0,
+				"ex_type": 0
+			},
+			"54": {
+				"owner": 2,
+				"level": 0,
+				"ex_type": 0
+			},
+			"27": {
+				"owner": 2,
+				"level": 0,
+				"ex_type": 3
+			}
+		},
+		"roads": {
+			"42": {
+				"owner": 1
+			},
+			"50": {
+				"owner": 1
+			},
+			"81": {
+				"owner": 2
+			},
+			"78": {
+				"owner": 2
+			},
+			"79": {
+				"owner": 2
+			}
+		},
+		"cards": {
+			"brick_num": 17,
+			"wool_num": 16,
+			"wood_num": 18,
+			"grain_num": 19,
+			"ore_num": 19,
+			"soldier_num": 14,
+			"score_cards": ["阿尔忒弥斯神庙", "牛津大学", "巴拿马运河", "紫禁城", "圣米歇尔山"],
+			"plenty_num": 2,
+			"monopoly_num": 2,
+			"road_making_num": 2
+		},
+		"trades": {
+			"3": {
+				"id": 3,
+				"starter": 1,
+				"accepter": 0,
+				"trade_state": "prepare",
+				"starter_list": {},
+				"accepter_list": {}
+			},
+			"4": {
+				"id": 4,
+				"starter": 1,
+				"accepter": 1,
+				"trade_state": "prepare",
+				"starter_list": {},
+				"accepter_list": {}
+			},
+			"5": {
+				"id": 5,
+				"starter": 1,
+				"accepter": 2,
+				"trade_state": "prepare",
+				"starter_list": {},
+				"accepter_list": {}
+			},
+			"6": {
+				"id": 6,
+				"starter": 2,
+				"accepter": 0,
+				"trade_state": "prepare",
+				"starter_list": {},
+				"accepter_list": {}
+			},
+			"7": {
+				"id": 7,
+				"starter": 2,
+				"accepter": 1,
+				"trade_state": "prepare",
+				"starter_list": {},
+				"accepter_list": {}
+			},
+			"8": {
+				"id": 8,
+				"starter": 2,
+				"accepter": 2,
+				"trade_state": "prepare",
+				"starter_list": {},
+				"accepter_list": {}
+			}
+		},
+		"active_trades": []
+	},
+	"2":{
+	"step_index": 0,
+	"game_process": 2,
 	"occupying": 19,
 	"longest_road": 0,
 	"max_minitory": 0,
-	"play_turns": 4,
+	"play_turns": 0,
 	"dice_num": [0, 0],
-	"owner": 233,
+	"owner": 1,
 	"step_list": [1, 2],
 	"online_list": [1, 2],
 	"trade_count": 0,
@@ -71,18 +246,18 @@ test_game_info={
 		"2": [2, "Fade into fate"]
 	},
 	"user_list": {
-		"233": 1,
-		"666": 2
+		"1": 1,
+		"2": 2
 	},
 	"players": {
 		"1": {
 			"index": 1,
 			"src_secret": "true",
-			"brick_num": 10,
-			"wool_num": 20,
-			"wood_num": 10,
-			"grain_num": 10,
-			"ore_num": 3,
+			"brick_num": 0,
+			"wool_num": 0,
+			"wood_num": 0,
+			"grain_num": 0,
+			"ore_num": 0,
 			"soldier_num": 0,
 			"soldier_used": 0,
 			"score_unshown": [],
@@ -94,82 +269,42 @@ test_game_info={
 			"plenty_get_before": 0,
 			"monopoly_get_before": 0,
 			"road_making_get_before": 0,
-			"road_longest": [42],
-			"own_cities": [28, 44]
+			"road_longest": [],
+			"own_cities": []
 		},
 		"2": {
 			"index": 2,
 			"src_secret": "true",
-			"brick_num": 10,
-			"wool_num": 10,
-			"wood_num": 10,
-			"grain_num": 10,
-			"ore_num": 3,
+			"brick_num": 0,
+			"wool_num": 0,
+			"wood_num": 0,
+			"grain_num": 0,
+			"ore_num": 0,
 			"soldier_num": 0,
 			"soldier_used": 0,
 			"score_unshown": [],
 			"score_shown": [],
-			"plenty_num": 1,
-			"monopoly_num": 1,
-			"road_making_num": 1,
+			"plenty_num": 0,
+			"monopoly_num": 0,
+			"road_making_num": 0,
 			"soldier_get_before": 0,
 			"plenty_get_before": 0,
 			"monopoly_get_before": 0,
 			"road_making_get_before": 0,
-			"road_longest": [79, 78],
-			"own_cities": [53, 54, 27]
+			"road_longest": [],
+			"own_cities": []
 		}
 	},
 	"cities": {
-		"28": {
-			"owner": 1,
-			"level": 1,
-			"ex_type": 0
-		},
-		"44": {
-			"owner": 1,
-			"level": 0,
-			"ex_type": 0
-		},
-		"53": {
-			"owner": 2,
-			"level": 0,
-			"ex_type": 0
-		},
-		"54": {
-			"owner": 2,
-			"level": 0,
-			"ex_type": 0
-		},
-		"27": {
-			"owner": 2,
-			"level": 0,
-			"ex_type": 3
-		}
 	},
 	"roads": {
-		"42": {
-			"owner": 1
-		},
-		"50": {
-			"owner": 1
-		},
-		"81": {
-			"owner": 2
-		},
-		"78": {
-			"owner": 2
-		},
-		"79": {
-			"owner": 2
-		}
 	},
 	"cards": {
-		"brick_num": 17,
-		"wool_num": 16,
-		"wood_num": 18,
-		"grain_num": 19,
-		"ore_num": 19,
+		"brick_num": 20,
+		"wool_num": 20,
+		"wood_num": 20,
+		"grain_num": 20,
+		"ore_num": 20,
 		"soldier_num": 14,
 		"score_cards": ["阿尔忒弥斯神庙", "牛津大学", "巴拿马运河", "紫禁城", "圣米歇尔山"],
 		"plenty_num": 2,
@@ -227,4 +362,5 @@ test_game_info={
 		}
 	},
 	"active_trades": []
+}
 }

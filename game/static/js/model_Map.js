@@ -184,6 +184,33 @@ function avaliable_points(player_index){
 	return avaliable_points_all;
 }
 //--------------------------------------------------------
+// 获取玩家可定居的点(开局时)
+//--------------------------------------------------------
+function avaliable_points_st(player_index){
+	var avaliable_points_all=Object.values(map_info.points);
+	//删除自己或周围有其他城市的点
+	var i=0;
+	while(i<avaliable_points_all.length){
+		var can_settle=true;
+		if(game_info.cities.hasOwnProperty(avaliable_points_all[i])){
+			avaliable_points_all.splice(i,1);
+			continue;
+		}
+		var near_pts=pt_round_points(avaliable_points_all[i]);	
+		for(var j in near_pts){
+			if(game_info.cities.hasOwnProperty(near_pts[j])){
+				avaliable_points_all.splice(i,1);
+				can_settle=false;
+				break;
+			}
+		}
+		if(can_settle){
+			i++;
+		}			
+	}
+	return avaliable_points_all;
+}
+//--------------------------------------------------------
 // 获取玩家所有城市
 //--------------------------------------------------------
 function all_cities(player_index){
@@ -569,10 +596,10 @@ function pt_round_edges(point_id){
 	var pos=point_id%2;
 	var edges;
 	if(pos==0){
-		edges=[3*place_id,3*place_id+1,3*((xi-1)*ysize+ysize-1+xi%2)+2];
+		edges=[3*place_id,3*place_id+1,3*((xi-1)*ysize+yi-1+xi%2)+2];
 	}
 	else{
-		edges=[3*place_id+1,3*place_id+2,3*((xi+1)*ysize+ysize-1+xi%2)];
+		edges=[3*place_id+1,3*place_id+2,3*((xi+1)*ysize+yi-1+xi%2)];
 	}
 	//删除不存在的边
 	var i=0;

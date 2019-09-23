@@ -257,11 +257,24 @@ class Game_Test(WebsocketConsumer):
         #转发给客户端
         self.send(text_data=json.dumps(event))
 
+    def mes_member(self, event):
+        #指定接收人则不被发送至客户端
+        if("accepter" in event['message']):
+            if(self.user_index!=event['message']['accepter']):
+                return
+        #转发给客户端
+        self.send(text_data=json.dumps(event))
+
     #处理从客户端发来的消息
     def receive(self, text_data):
-        #目前只会是游戏操作信息,对其中的随机数信息处理后发送至对话组
+        #对游戏操作信息的随机数信息处理后发送至对话组
         evt=json.loads(text_data)
         msg=evt
+        if(evt["type"]=="mes_member"):
+            async_to_sync(self.channel_layer.group_send)(
+            self.room_group_id,evt
+            )
+            return
         if(evt["message"]["val"][0]==0 and evt["message"]["val"][1]==0):
             #msg={"type":"mes_action","message":{"val":[0,1,random.randint(1,6),random.randint(1,6)]}}
             msg={"type":"mes_action","message":{"val":[0,1,3,3]}}

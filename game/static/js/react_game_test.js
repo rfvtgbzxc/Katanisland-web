@@ -1,6 +1,6 @@
 //初始化全局数据
 //debug模式
-debug=false;
+debug=true;
 //脱机模式
 offline=true;
 //提示窗口
@@ -58,9 +58,9 @@ game_UI_list={
 		}		
 	},
 };
-//个人标记（测试版本默认为第二位玩家）
-user_id=666;
-user_index=2;
+//个人标记（测试版本默认为第一位玩家）
+user_id=1;
+user_index=1;
 //数据映射
 load_process={
 	"map":false,
@@ -288,6 +288,14 @@ $(document).ready(function(){
 			case "action_use_dev_road_making":
 				ws.sendmsg("mes_action",{"starter":user_index,"val":[3,4,game_temp.selected_edge[0],game_temp.selected_edge[1]]});
 				break;
+			case "fst_set_home":
+				if(game_temp.home_step%2==0){
+					ws.sendmsg("mes_action",{"starter":user_index,"val":[8,game_temp.home_step,game_temp.selected_point]});
+				}
+				else{
+					ws.sendmsg("mes_action",{"starter":user_index,"val":[8,game_temp.home_step,game_temp.selected_edge]});
+				}
+				break;
 			case "alert":
 				$("wait_window").hide();
 				break;
@@ -440,12 +448,11 @@ $(document).ready(function(){
 	    		return;
 	    	}
 	    	$(this).addClass("selector_selected"); 
-	    	if(game_temp.action_now=="action_build_road"){
+	    	//打开确认窗口
+		    confirm_window.clear();
+	    	if(game_temp.action_now=="action_build_road" || "fst_set_home"){
 	    		game_temp.selected_edge=parseInt($(this).attr("id"));
-		    	//打开确认窗口
-		    	confirm_window.clear();
 		    	confirm_window.set("要在此处建造道路吗?");
-		    	confirm_window.show();
 	    	}
 	    	else if(game_temp.action_now=="action_use_dev_road_making"){
 	    		game_temp.selected_edge.push(parseInt($(this).attr("id")));
@@ -458,11 +465,10 @@ $(document).ready(function(){
 					}
 	    		}
 	    		else{
-	    			confirm_window.clear();
 			    	confirm_window.set("要在这两处建造道路吗?");
-			    	confirm_window.show();
-	    		}
+	    		} 		
 	    	}
+	    	confirm_window.show();
 	    	
 	    }
 	);
@@ -496,7 +502,7 @@ $(document).ready(function(){
 	    	game_temp.selected_point=parseInt($(this).attr("id"));
 	    	//打开确认窗口
 	    	confirm_window.clear();
-	    	if(game_temp.action_now=="action_build_city0"){
+	    	if(game_temp.action_now=="action_build_city0" || game_temp.action_now=="fst_set_home"){
 	    		confirm_window.set("要在此处建立定居点吗?");
 	    	}
 	    	else if(game_temp.action_now=="action_build_city1"){
@@ -1280,7 +1286,7 @@ function init_ui(){
 			//等待所有玩家加入完毕
 			break;
 		//前期坐城
-		case 1:
+		case 2:
 			if(game_info.step_list[game_info.step_index]==user_index || offline){
 				//开始前期坐城设置
 				//还是状态机法好啊
@@ -1395,29 +1401,35 @@ function hide_special_actions(){
 //--------------------------------------------------------
 // 新的回合
 //--------------------------------------------------------
-function UI_new_turn(){
+function UI_new_turn(force=false){
 	//将UI重置到回合开始的状态
 	//清除selectors
 	clear_selectors();
-	//清空所有状态类
-	$("dice").removeClass();
-	$("actions0").children().children().removeClass("disabled active part_disabled");
-	//$("actions1").children().removeClass("active part_disabled");
-	//隐藏除投骰子以外的按钮,如果本回合不是你行动,则隐藏所有按钮
-	//此处应有拉长历史消息窗口的动作
-	if(game_info.step_list[game_info.step_index]==user_index || offline)
-	{
-		$("actions0").show();
-		$("actions0").children().not(".fst_action").hide();
-		$("actions1").children().not("actions2").hide();
-		$("actions2").children().hide();
-		$("special_actions").children().hide();
+	hide_special_actions();
+	//当处于前期坐城状态,必定为要求建设新定居点
+	if(game_info.game_process==2 && user_index==game_info.step_list[game_info.step_index]){
+		start_set_home(game_temp.home_step+1);
 	}
-	else{
-		$("actions0").hide();
-	}
-	//刷新回合数
-	$("#rounds").text(('00'+game_info.play_turns).slice(-2));
+	if(game_info.game_process!=2 || force){
+		//清空所有状态类
+		$("dice").removeClass();
+		$("actions0").children().children().removeClass("disabled active part_disabled");
+		//隐藏除投骰子以外的按钮,如果本回合不是你行动,则隐藏所有按钮
+		//此处应有拉长历史消息窗口的动作
+		if(game_info.step_list[game_info.step_index]==user_index || offline)
+		{
+			$("actions0").show();
+			$("actions0").children().not(".fst_action").hide();
+			$("actions1").children().not("actions2").hide();
+			$("actions2").children().hide();
+			$("special_actions").children().hide();
+		}
+		else{
+			$("actions0").hide();
+		}
+		//刷新回合数
+		$("#rounds").text(('00'+game_info.play_turns).slice(-2));
+	}	
 }
 //--------------------------------------------------------
 // 设置骰子
@@ -1434,8 +1446,25 @@ function UI_set_dices(){
 // 开始选择前期坐城点
 // step:0 第一座定居点,1 第一条路,2 第二座定居点,3 第二条路
 //--------------------------------------------------------
-function start_set_home(step){
-
+function start_set_home(step,point_id=0){
+	game_temp.action_now="fst_set_home";
+	game_temp.home_step=step;
+	switch(step%2){
+		case 0:
+			//展示所有的可坐城点			
+			var points=avaliable_points_st(user_index);
+			for(var i in points){
+				$("pt_selector").filter("#"+points[i]).addClass("selector_avaliable active").show();
+			}
+			break;
+		case 1:
+			//展示第一座定居点周围的所有边
+			var edges=pt_round_edges(point_id);
+			for(var i in edges){
+				$("edge_selector").filter("#"+edges[i]).addClass("selector_avaliable active").show();
+			}
+			break;
+	}
 }
 //--------------------------------------------------------
 // 开始选择资源丢弃

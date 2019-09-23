@@ -123,6 +123,7 @@ function handle_msg(msg){
 						//修路卡
 						case 4:
 							dev_road_making(val[2],val[3],msg.message.starter);
+							break;
 					}
 					break;
 				//设置强盗(因7)
@@ -136,6 +137,10 @@ function handle_msg(msg){
 				//结束回合
 				case 6:
 					new_turn();
+					break;
+				//初始坐城内容
+				case 8:
+					set_home(val[1],val[2],msg.message.starter);
 					break;
 			}
 			break;		
@@ -237,16 +242,18 @@ function build_road(edge_id,player_index,cost=true){
 //--------------------------------------------------------
 // 建立定居点
 //--------------------------------------------------------
-function build_city0(point_id,player_index){
+function build_city0(point_id,player_index,cost=true){
 	//建造定居点的UI回调函数,只需要清除selectors和active
 	clear_selectors();
 	$("#action_build_city0").removeClass("active");
 	var player=game_info.players[player_index];
 	//扣除资源
-	player.brick_num--;
-	player.wood_num--;
-	player.wool_num--;
-	player.grain_num--;
+	if(cost){
+		player.brick_num--;
+		player.wood_num--;
+		player.wool_num--;
+		player.grain_num--;
+	}
 	//建立新定居点(更新game_info)
 	var ex_type=0;
 	//检查该点附近是否有港口
@@ -635,6 +642,44 @@ function new_turn()
 	//emmm好像没什么要做的了= =||
 	//UI更新
 	UI_new_turn();
+}
+//--------------------------------------------------------
+// 初始坐城
+//--------------------------------------------------------
+function set_home(step,val,setter_index){
+	var setter=game_info.players[setter_index];
+	switch(step%2){
+		//建立定居点
+		case 0:
+			build_city0(val,setter_index,false);
+			his_window.push("由 "+setter.name+" 建设道路");
+			if(setter_index==user_index){
+				//接着请求修建道路
+				start_set_home(step+1,val);
+			}	
+			break;
+		//修建道路
+		case 1:
+			build_road(val,setter_index,false);
+			//判断是否所有玩家都完成了一轮坐城
+			if(game_info.step_index==game_info.step_list.length-1){
+				//逆序行动列表
+				game_info.step_list.reverse();
+				//判断轮数
+				if(step>2){
+					if(!offline || step>Object.keys(game_info.player_list).length*4-2){
+						//更改游戏状态,正式游戏开始
+						game_info.game_process=3;
+					}					
+				}
+
+			}
+			//结束回合,移交行动权
+			new_turn();
+			break;
+	}
+
+
 }
 //--------------------------------------------------------
 // 检查胜利条件
