@@ -89,6 +89,10 @@ function handle_msg(msg){
 				 				case 1:
 				 					response_trade_with_player(val[3],msg.message.starter);
 				 					break;
+				 				//拒绝交易
+				 				case 2:
+				 					msg_refuse_trade(val[3]);
+				 					break;
 				 				//取消交易
 				 				case 3:
 				 					msg_cancel_trade(val[3]);
@@ -374,10 +378,24 @@ function give_trade_with_player(new_trade){
 	}
 }
 //--------------------------------------------------------
+// (被)拒绝交易
+//--------------------------------------------------------
+function msg_refuse_trade(trade_id){
+	//更新交易状态
+	//交易已被移除则不做任何事
+	if(game_info.active_trades.indexOf(trade_id)==-1){return;}
+	var trade=game_info.trades[trade_id];
+	trade.trade_state="refused";
+	window_finish_trade(trade);
+	game_info.active_trades.splice(game_info.active_trades.indexOf(trade.id),1);
+}
+//--------------------------------------------------------
 // (被)取消交易
 //--------------------------------------------------------
 function msg_cancel_trade(trade_id){
 	//更新交易状态
+	//交易已被移除则不做任何事
+	if(game_info.active_trades.indexOf(trade_id)==-1){return;}
 	var trade=game_info.trades[trade_id];
 	//如果是交易发起者则不需要
 	if(trade.starter!=user_index){	

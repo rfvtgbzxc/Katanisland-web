@@ -812,6 +812,12 @@ src_confirm_window{
 	align-items: center;
 	flex-direction: column;
 }
+src_confirm_actions{
+	display:flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: row;
+}
 #action_drop_items.disabled{
 	-webkit-filter: grayscale(100%);
     -moz-filter: grayscale(100%);

@@ -160,6 +160,7 @@ function start_trade_window(target="bank",target_val=0){
 			trade_state="请作出回应...";
 			action_text="接受交易";
 			game_temp.action_trade_items_function=accept_trade;
+			$("#action_refuse_trade_items").show();
 		}
 		
 	}
@@ -220,6 +221,8 @@ function start_trade_window(target="bank",target_val=0){
 		item.jqdom_init();
 		//扣除已置于列表中的资源
 		item.own_num-=item.rlt_item.own_num;
+		//如果资源不足,不允许接受交易
+		@if(item.own_num<0){$("#action_trade_items").addClass("disabled");}
 		item.jqdom_update();
 	}
 	if(game_info.active_trades.indexOf(game_temp.trade_now_id)==-1){		
@@ -274,7 +277,9 @@ trade_items = function(){
 			break;
 	}
 	//手动关闭等待页面,以此让玩家有取消交易的机会
-	$("wait_window").hide();
+	if(game_temp.trade_now_id!=0){
+		$("wait_window").hide();
+	}
 }
 //--------------------------------------------------------
 // 接受交易
@@ -284,15 +289,20 @@ accept_trade=function(){
 	//发送消息
 	ws.sendmsg("mes_action",{"starter":trade.accepter,"accepter":trade.starter,"val":[2,4,1,trade.id]});
 }
+//--------------------------------------------------------
+// 拒绝交易
+//--------------------------------------------------------
 refuse_trade=function(){
 	var trade=game_temp.trade_now;
-	//发送消息
-	!@#ws.sendmsg("mes_action",{"starter":trade.accepter,"accepter":trade.starter,"val":[2,4,1,trade.id]});
+	//发送消息 
+	ws.sendmsg("mes_action",{"starter":trade.accepter,"val":[2,4,2,trade.id]});
 }
 //--------------------------------------------------------
 // 取消交易
 //--------------------------------------------------------
 cancel_trade=function(){
+	//已不是活动交易,则什么也不做
+	if(game_info.active_trades.indexOf(trade_now_id)==-1){return;}
 	var trade=game_temp.trade_now;
 	trade.trade_state="canceled";
 	game_info.active_trades.splice(game_info.active_trades.indexOf(trade.id),1);
@@ -305,15 +315,27 @@ cancel_trade=function(){
 //--------------------------------------------------------
 window_finish_trade=function(trade){
 	//更新交易信息
+	var person;
+	//无关者
+	var neither=trade.starter!=user_index && trade.final_accepter!=user_index && trade.accepter!=user_index ;
 	switch(trade.trade_state){
 		case "success":
-			his_window.push(game_info.player_list[trade.accepter][1]+" 接受了交易!",'important');
+			if(neither){
+				his_window.push(game_info.player_list[trade.starter][1]+" 与 "+game_info.player_list[trade.accepter][1]+" 达成了交易！",'important');
+			}
+			else{
+				person=trade.accepter==user_index?"你":game_info.player_list[trade.accepter][1];
+				his_window.push(person+" 接受了交易!",'important');
+			}		
 			break;
 		case "refused":
-			his_window.push(game_info,player_list[game_temp.trade_accepter_index][1]+" 拒绝了交易!","important");
+			if(neither){break;}
+		    person=trade.accepter==user_index?"你":game_info.player_list[trade.accepter][1];
+			his_window.push(person+" 拒绝了交易!","important");
 			break;
 		case "canceled":
-			var person=trade.starter==user_index?"你":game_info.player_list[trade.starter][1];
+			if(neither && trade.accepter!=0){break;}
+			person=trade.starter==user_index?"你":game_info.player_list[trade.starter][1];
 			his_window.push("交易被 "+person+" 取消!","important");
 			break;
 	}
@@ -325,7 +347,8 @@ window_finish_trade=function(trade){
 				$("trade_state").text("交易成功!");
 				break;
 			case "refused":
-				$("trade_state").text("对方拒绝交易!");
+				person=trade.accepter==user_index?"":"对方";
+				$("trade_state").text(person+"拒绝交易!");
 				break;
 			case "canceled":
 				$("trade_state").text("交易被取消!");
@@ -334,6 +357,7 @@ window_finish_trade=function(trade){
 		$("#action_trade_items").text("关闭窗口");
 		game_temp.action_trade_items_function=close_trade_window;
 	}
+	$("#action_refuse_trade_items").hide();
 	//关闭特殊选项中的快捷交易
 	$("special_actions").children().filter(function(){
 		return parseInt($(this).attr("target_val"))==trade.starter;
