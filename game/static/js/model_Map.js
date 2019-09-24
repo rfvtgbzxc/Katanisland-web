@@ -123,11 +123,6 @@ function avaliable_edges(player_index,temp_edge=[]){
 			else{
 				var t_edges=available_edges_from_road[base_road_id][available_pt];
 				available_edges_all=union(available_edges_all,t_edges);
-				/*for(i in t_edges){
-					//已有道路的边无法选择
-					if(game_info.roads.hasOwnProperty(t_edges[i])){continue;}
-					$("edge_selector").filter("#"+t_edges[i]).addClass("active").show();
-				}*/
 			}
 		}			
 	}
@@ -579,6 +574,38 @@ function edge_round_points(edge_id){
 		i++;			
 	}
 	return points;
+}
+//--------------------------------------------------------
+// 获取一个点周围所有地块的id
+// point_id：点id
+//--------------------------------------------------------
+function pt_round_places(point_id){
+	point_id=parseInt(point_id);
+	//检查输入
+	if(isNaN(point_id)){
+		return [];
+	}
+	var place_id=parseInt(point_id/2);
+	var xi=parseInt(place_id/ysize);
+	var yi=place_id%ysize;
+	var pos=point_id%2;
+	var places;
+	if(pos==0){
+		places=union(place_id,plc_near_places(place_id,[0,5]));
+	}
+	else{
+		places=union(place_id,plc_near_places(place_id,[0,1]));
+	}
+	//删除不存在的块
+	var i=0;
+	while(i<places.length){
+		if(map_info.places.indexOf(places[i])==-1){
+			places.splice(i,1);
+			continue;
+		}
+		i++;			
+	}
+	return places;
 }
 //--------------------------------------------------------
 // 获取一个点周围所有边的id

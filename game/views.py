@@ -252,8 +252,8 @@ def t_createMap(request):
 
 def t_load_game(request):
 	#读取保存的模拟数据
-	#return HttpResponse(json.dumps(gm_temp.game_info()))
-	return HttpResponse(json.dumps(gm_temp.game_info(2)))
+	game_info=gm_temp.game_info(2)
+	return HttpResponse(json.dumps(game_info))
 
 def t_virtual_websocket(request):
 	evt=json.loads(request.GET.get("data"))

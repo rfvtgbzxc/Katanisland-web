@@ -302,7 +302,7 @@ refuse_trade=function(){
 //--------------------------------------------------------
 cancel_trade=function(){
 	//已不是活动交易,则什么也不做
-	if(game_info.active_trades.indexOf(trade_now_id)==-1){return;}
+	if(game_info.active_trades.indexOf(game_temp.trade_now_id)==-1){return;}
 	var trade=game_temp.trade_now;
 	trade.trade_state="canceled";
 	game_info.active_trades.splice(game_info.active_trades.indexOf(trade.id),1);

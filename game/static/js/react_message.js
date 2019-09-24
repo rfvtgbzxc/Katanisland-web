@@ -160,6 +160,10 @@ function handle_msg(msg){
 // 设置骰子
 //--------------------------------------------------------
 function set_dice(num1,num2){
+	if(debug){
+		num1=3;
+		num2=3;
+	}
 	//刷新game_info
 	game_info.dice_num[0]=num1;
 	game_info.dice_num[1]=num2;
@@ -652,6 +656,16 @@ function set_home(step,val,setter_index){
 		//建立定居点
 		case 0:
 			build_city0(val,setter_index,false);
+			//判断轮数
+			if(step>1){
+				//收获资源
+				var places=pt_round_places();
+				for(i in places){
+					var palce=map_info.palces[places[i]];
+					his_window.push(setter.name+" 获得 "+order_ch[place.create_type]+" x 1")
+					setter.src(place.create_type,"+=",1);
+				}				
+			}
 			his_window.push("由 "+setter.name+" 建设道路");
 			if(setter_index==user_index){
 				//接着请求修建道路

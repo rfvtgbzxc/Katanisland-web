@@ -116,7 +116,7 @@ def createmap(var):
 
 	#初始化
 	#random.seed(rand_seed)
-	random.seed(0)
+	random.seed(5)
 	places={}
 	points=[]
 	edges=[]
@@ -192,6 +192,10 @@ def createmap(var):
 		t=place["create_num"]
 		place["create_num"]=ex_place["create_num"]
 		ex_place["create_num"]=t
+
+	for place_id in places:
+		if(places[place_id]["create_type"]==0):
+			map_info["basic_roober"]=place_id
 
 	#检查高频数字是否紧邻，是则重生成
 	np=False

@@ -1,8 +1,8 @@
 //初始化全局数据
 //debug模式
-debug=true;
+debug=false;
 //脱机模式
-offline=true;
+offline=false;
 //提示窗口
 info_window={
 	"set":function(text){
@@ -35,6 +35,7 @@ last_step_index=0;
 src_size=5;
 //临时数据
 game_temp={
+	home_step:0,
 	"action_now":"",
 	"set_option":"",
 	"recive_list":[]
@@ -1263,6 +1264,8 @@ function load_game(){
 	for(var trade_id in game_info.trades){
 		game_info.trades[trade_id]=new Transaction(game_info.trades[trade_id]);
 	}
+	//初始化强盗位置
+	game_info.occupying=map_info.basic_roober;
 }
 //--------------------------------------------------------
 // UI初始化
@@ -1277,6 +1280,7 @@ function init_ui(){
 		$("#debug_show_selectors").hide();
 	}
 	UI_new_turn();
+	update_static_Graphic();
 	//截至以上,是一个正常的游戏中的状态
 
 	//检测当前游戏状态
@@ -1408,7 +1412,13 @@ function UI_new_turn(force=false){
 	hide_special_actions();
 	//当处于前期坐城状态,必定为要求建设新定居点
 	if(game_info.game_process==2 && user_index==game_info.step_list[game_info.step_index]){
-		start_set_home(game_temp.home_step+1);
+		if(game_temp.home_step%2==0){
+			start_set_home(game_temp.home_step);
+		}
+		else{
+			start_set_home(game_temp.home_step+1);
+		}
+		
 	}
 	if(game_info.game_process!=2 || force){
 		//清空所有状态类
