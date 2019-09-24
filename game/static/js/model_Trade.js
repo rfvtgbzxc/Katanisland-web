@@ -155,6 +155,7 @@ function start_trade_window(target="bank",target_val=0){
 		if(trade.starter==user_index){
 			trade_state="等待对方响应...";
 			action_text="取消交易";
+			game_temp.action_trade_items_function=cancel_trade;
 		}
 		else{
 			trade_state="请作出回应...";

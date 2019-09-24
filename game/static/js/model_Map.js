@@ -591,15 +591,15 @@ function pt_round_places(point_id){
 	var pos=point_id%2;
 	var places;
 	if(pos==0){
-		places=union(place_id,plc_near_places(place_id,[0,5]));
+		places=union([place_id],plc_near_places(place_id,[0,5]));
 	}
 	else{
-		places=union(place_id,plc_near_places(place_id,[0,1]));
+		places=union([place_id],plc_near_places(place_id,[0,1]));
 	}
 	//删除不存在的块
 	var i=0;
 	while(i<places.length){
-		if(map_info.places.indexOf(places[i])==-1){
+		if(map_info.places.hasOwnProperty(places[i])==-1){
 			places.splice(i,1);
 			continue;
 		}

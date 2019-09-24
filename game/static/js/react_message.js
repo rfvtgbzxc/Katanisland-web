@@ -107,6 +107,7 @@ function handle_msg(msg){
 				    break;
 				//发展
 				case 3:
+					game_temp.dev_used=true;
 					switch(val[1]){
 						//士兵卡
 						case 1:
@@ -584,6 +585,8 @@ function dev_monopoly(src_id,starter_index){
 		his_window.push(player.name+" 交出了 "+player.src(src_id)+" 份 "+order_ch[src_id]);
 		player.src(src_id,0);
 	}	
+	//垄断卡使用后,本回合无法再进行建设
+	game_temp.no_build_dev_used=true;
 	//UI回调,设置菜单级数为1
 	init_menu_lv(1,$("#action_use_dev_monopoly"));
 	UI_use_dev_update();
@@ -634,6 +637,9 @@ function new_turn()
 			player[devs[i]+"_get_before"]=0;
 		}
 	}	
+	//清空已使用发展卡的标记
+	game_temp.dev_used=false;
+	game_temp.no_build_dev_used=false;
 	//offline模式下,核心角色移交
 	if(offline){
 		user_index=game_info.step_list[game_info.step_index];
@@ -659,9 +665,9 @@ function set_home(step,val,setter_index){
 			//判断轮数
 			if(step>1){
 				//收获资源
-				var places=pt_round_places();
+				var places=pt_round_places(val);
 				for(i in places){
-					var palce=map_info.palces[places[i]];
+					var place=map_info.places[places[i]];
 					his_window.push(setter.name+" 获得 "+order_ch[place.create_type]+" x 1")
 					setter.src(place.create_type,"+=",1);
 				}				
@@ -745,6 +751,18 @@ function update_vp_infos(){
 			game_info.max_minitory=player_index;
 		}
 	}
+
+	//计算总胜利点
+	for(var player_index in players){
+		var player=players[player_index];
+		if(player.vp_update()>=10){
+			if(player.index==user_index){
+				player.show_score_cards();
+				his_window.push(player.name+"取得了胜利！","important");
+			}		
+		}
+	}
+
 }
 //--------------------------------------------------------
 // 数据构造函数

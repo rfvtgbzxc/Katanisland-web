@@ -246,13 +246,13 @@ def gotoMapTest(request):
 
 def t_createMap(request):
 	#按照基础设置生成一张随机地图
-	map_setting=gm_temp.map_setting()
+	map_setting=gm_temp.map_setting(0)
 	map_info=gm_map.createmap(json.dumps(map_setting))
 	return HttpResponse(json.dumps(map_info))
 
 def t_load_game(request):
 	#读取保存的模拟数据
-	game_info=gm_temp.game_info(2)
+	game_info=gm_temp.game_info(1)
 	return HttpResponse(json.dumps(game_info))
 
 def t_virtual_websocket(request):

@@ -230,7 +230,7 @@ class Game_Test(WebsocketConsumer):
     #准备连接时的操作
     def connect(self):
         print("linking...");
-        self.user_index = self.scope['url_route']['kwargs']['user_index']
+        self.user_index = int(self.scope['url_route']['kwargs']['user_index'])
         self.room_group_id="room_999"
         #加入对话组
         async_to_sync(self.channel_layer.group_add)(
@@ -258,10 +258,6 @@ class Game_Test(WebsocketConsumer):
         self.send(text_data=json.dumps(event))
 
     def mes_member(self, event):
-        #指定接收人则不被发送至客户端
-        if("accepter" in event['message']):
-            if(self.user_index!=event['message']['accepter']):
-                return
         #转发给客户端
         self.send(text_data=json.dumps(event))
 

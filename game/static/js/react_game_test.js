@@ -2,7 +2,7 @@
 //debug模式
 debug=false;
 //脱机模式
-offline=false;
+offline=true;
 //提示窗口
 info_window={
 	"set":function(text){
@@ -38,7 +38,9 @@ game_temp={
 	home_step:0,
 	"action_now":"",
 	"set_option":"",
-	"recive_list":[]
+	"recive_list":[],
+	dev_used:false,
+	no_build_dev_used:false,
 };
 game_UI={
 	"UI_count":0,
@@ -365,6 +367,20 @@ $(document).ready(function(){
 		}		
 	});
 	//--------------------------------------------------------
+	// UI：无效提示
+	//--------------------------------------------------------
+	$("actions1").on("mouseenter",".part_disabled",
+		function(){
+			if(!!$(this).attr("tip")){
+				info_window.set($(this).attr("tip"));
+			}
+			$("info_window").show();
+	});
+	$("actions1").on("mouseleave",".part_disabled",
+		function(){
+			$("info_window").hide();
+	});
+	//--------------------------------------------------------
 	// UI：图块选择器
 	//--------------------------------------------------------
 	$("#places").on("mouseenter","plc_selector",
@@ -655,11 +671,14 @@ $(document).ready(function(){
 		if(init_menu_lv(0,$(this))==false){return;}
 		//激活自己
 		$(this).addClass("active");
+		var next_action=["#action_build_road","#action_build_city0","#action_build_city1","#action_buy_dev_card"];
 		//激活下一级窗口：四项建设
-		$("#action_build_road").show();
-		$("#action_build_city0").show();
-		$("#action_build_city1").show();
-		$("#action_buy_dev_card").show();
+		for(let action of next_action){
+			$(action).show();
+			if(game_temp.no_build_dev_used){
+				$(action).attr("tip","本回合使用过垄断等使用后禁止建设的发展卡").addClass("part_disabled");
+			}
+		}
 		//安置按钮组位置
 		$("actions1").css("top",$(this).position().top-3*25);
 	});
@@ -767,20 +786,12 @@ $(document).ready(function(){
 		var count=0;
 		var self_player=game_info.players[user_index];
 		for(var i=0;i<4;i++){
-			if(self_player[devs[i]+"_num"]>0){
-				count++;
-				$("#action_use_dev_"+devs[i]).show();
-				if(self_player[devs[i]+"_num"]<=self_player[devs[i]+"_get_before"]){
-					$("#action_use_dev_"+devs[i]).addClass("part_disabled");
-				}
-			}
+			$("#action_use_dev_"+devs[i]).show();
 		}
+		count=UI_use_dev_update();
 		if(count==0){
 			return;
 		}
-		//$("#action_show_score_cards").show();
-		//安置按钮组位置
-		$("actions1").css("top",$(this).position().top-(count-1)*25);
 		//激活自己
 		$(this).addClass("active");
 	});
@@ -993,18 +1004,6 @@ $(document).ready(function(){
 		for(var i in edges){
 			var selector=$("edge_selector").filter("#"+edges[i]).addClass("active selector_avaliable").show();
 		}
-	});
-	//--------------------------------------------------------
-	// UI：无法使用卡片提示
-	//--------------------------------------------------------
-	$("actions1").on("mouseenter",".part_disabled",
-		function(){
-			info_window.set("你已使用完之前获得的卡片,剩余的卡片需要等一回合才能使用");
-			$("info_window").show();
-	});
-	$("actions1").on("mouseleave",".part_disabled",
-		function(){
-			$("info_window").hide();
 	});
 	//--------------------------------------------------------
 	// UI：结束回合
@@ -1306,6 +1305,8 @@ function init_ui(){
 // 菜单层级初始化
 //--------------------------------------------------------
 function init_menu_lv(menu_level,menu_item){
+	//如果本身处于无效状态不作任何响应
+	if(menu_item.hasClass("disabled") || menu_item.hasClass("part_disabled")){return false;}
 	//清除选择器
 	clear_selectors();
 	//关闭特殊选项
@@ -1364,13 +1365,17 @@ function UI_use_dev_update(){
 			$("#action_use_dev_"+devs[i]).hide();
 			continue;
 		}
+		else if(game_temp.dev_used){
+			$("#action_use_dev_"+devs[i]).attr("tip","本回合已使用发展卡").addClass("part_disabled");
+		}
 		else if(self_player[devs[i]+"_num"]<=self_player[devs[i]+"_get_before"]){
-			$("#action_use_dev_"+devs[i]).addClass("part_disabled");
+			$("#action_use_dev_"+devs[i]).attr("tip","本回合获得的发展卡不能使用").addClass("part_disabled");
 		}
 		count+=1;
 	}
 	//安置按钮组位置
 	$("actions1").css("top",$("#action_develop").position().top-count*25);
+	return count;
 
 }
 //--------------------------------------------------------
@@ -1603,8 +1608,9 @@ function vp_num(index)
 // 获取玩家胜利点数的具体组成
 // 依次为城市、定居点、最长道路、最大军队、奇观
 // index：玩家的index
+// truth：包括未公开的分数卡
 //--------------------------------------------------------
-function vp_info(player,index){
+function vp_info(player,index,truth=false){
 	var info=[0,0,0,0,0];
 	var own_cities=player.own_cities;
 	var all_cities=game_info.cities;
@@ -1618,7 +1624,13 @@ function vp_info(player,index){
 	if(index==game_info.max_minitory){
 		info[3]+=2;
 	}
-	info[4]+=player.score_shown.length;
+	if(truth){
+		info[4]+=(player.score_shown.length+player.score_unshown.length);
+	}
+	else{
+		info[4]+=player.score_shown.length;
+	}
+	
 	return info;
 }
 //--------------------------------------------------------

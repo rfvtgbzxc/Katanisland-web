@@ -3,9 +3,10 @@ import random
 def base_info():
 	return copy.deepcopy(t_base_info)
 
-def map_setting():
+def map_setting(num):
 	c_map_setting=copy.deepcopy(t_map_setting)
-	c_map_setting["rand_seed"]=random.randint(0,1000000)
+	#c_map_setting["rand_seed"]=random.randint(0,1000000)
+	c_map_setting["rand_seed"]=num
 	return c_map_setting
 
 def game_info(num):
@@ -56,7 +57,7 @@ t_map_setting={
 
 test_game_info={
 	"1":{
-		"step_index": 1,
+		"step_index": 0,
 		"game_process": 3,
 		"occupying": 19,
 		"longest_road": 0,
@@ -84,13 +85,13 @@ test_game_info={
 				"wood_num": 10,
 				"grain_num": 10,
 				"ore_num": 3,
-				"soldier_num": 0,
+				"soldier_num": 1,
 				"soldier_used": 0,
 				"score_unshown": [],
 				"score_shown": [],
-				"plenty_num": 0,
-				"monopoly_num": 0,
-				"road_making_num": 0,
+				"plenty_num": 1,
+				"monopoly_num": 1,
+				"road_making_num": 1,
 				"soldier_get_before": 0,
 				"plenty_get_before": 0,
 				"monopoly_get_before": 0,
