@@ -8,7 +8,7 @@ if(offline){
 		ws.onmessage(evt);},"json");
 	}
 }
-function load_ws_function(){
+function load_ws_function_msg(){
 	//只属于ws的封装函数
 	ws.sendmsg=function(typ,mes){
 		//打开等待窗口
@@ -148,6 +148,9 @@ function handle_msg(msg){
 					fst_dice(val[2],val[3],msg.message.starter);
 					break;
 			}
+			break;
+		case "mes_member":
+			member_handle_msg(msg.message);
 			break;		
 	}
 	//由model_Debug进行额外解读
@@ -158,6 +161,9 @@ function handle_msg(msg){
 
 	};
 	//然后由房主更新game_info
+	if(game_info.player_list[user_index][0]==game_info.owner){
+		upload_game_info();
+	}
 	//暂不设计
 	//再然后检查胜利条件
 	update_vp_infos();
@@ -658,6 +664,8 @@ function new_turn()
 			player[devs[i]+"_get_before"]=0;
 		}
 	}	
+	//清空所有交易
+	game_info.active_trades.length=0;
 	//清空已使用发展卡的标记
 	game_temp.dev_used=false;
 	game_temp.no_build_dev_used=false;

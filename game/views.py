@@ -275,6 +275,13 @@ def t_load_game(request):
 	}
 	return HttpResponse(json.dumps(info))
 
+def t_update_game_info(request):
+	#更新测试房间数据库
+	test_room=Room.objects.get(out_room_ID=1)
+	test_room.game_info=request.POST.get("game_info")
+	test_room.save()
+	return HttpResponse("更新成功!")
+
 def t_virtual_websocket(request):
 	evt=json.loads(request.GET.get("data"))
 	#只有随机数请求会被特殊化响应

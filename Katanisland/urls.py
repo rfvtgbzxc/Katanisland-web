@@ -37,6 +37,7 @@ urlpatterns = [
     path('ajax/t_create_map/',views.t_createMap),
     path('ajax/t_create_room/',views.t_createRoom),
     path('ajax/t_load_game/',views.t_load_game),
+    path('ajax/t_update_game_info/',views.t_update_game_info),
     path('ajax/t_virtual_websocket/',views.t_virtual_websocket), 
     #path('websocket/',views.websoketest),
     #path('ajax/regist',views.giveRegist),

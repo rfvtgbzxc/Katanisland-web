@@ -64,7 +64,7 @@ def init_game_info(player_size):
 	max_minitory=0
 	play_turns=0
 	dice_num=[0,0]
-	owner=0
+	owner=1
 	active_trades=[]
 	step_list=[]
 	online_list=[]
@@ -93,7 +93,7 @@ def init_game_info(player_size):
 	game_info["dice_num"]=dice_num
 	game_info["game_process"]=game_process
 	
-	game_info["owner"]=game_process
+	game_info["owner"]=owner
 	game_info["step_list"]=step_list
 	game_info["online_list"]=online_list		
 	game_info["player_list"]=player_list
@@ -109,5 +109,5 @@ def init_game_info(player_size):
 
 	return game_info
 
-print(init_game_info(4))
+#print(init_game_info(4))
 

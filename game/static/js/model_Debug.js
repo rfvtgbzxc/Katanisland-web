@@ -6,7 +6,7 @@ $(document).ready(function(){
 	// 加载游戏
 	//--------------------------------------------------------
 	$("#load_game").click(function(){
-		load_ws_function();
+		load_ws_function_msg();
 		request_game_info();
 	});
 	//--------------------------------------------------------
@@ -26,9 +26,11 @@ $(document).ready(function(){
 		//ws = new WebSocket("ws://192.168.50.50:80/ws/game_test/"+user_index+"/");
 		//阿里云服务器
 		ws = new WebSocket("ws://119.23.218.46:80/ws/game_test/"+user_index+"/");
-		load_ws_function();
+		load_ws_function_msg();
+		load_ws_function_link();
 		ws.onopen = function () {
             //当连接成功时，从数据库载入游戏信息
+            ws.sendmsg("mes_member",{change:"relink",value:[user_index]});
             request_t_game_info();
         };	
 	});
@@ -174,7 +176,7 @@ function debug_handel_msg(msg){
 			switch(msg.message.change){
 				//玩家就绪
 				case "ready":
-					t_player_ready(msg.message.value[0],msg.message.value[1])
+					t_player_ready(msg.message.value[0],msg.message.value[1]);
 					break;
 			}
 		break;
@@ -185,6 +187,9 @@ function debug_handel_msg(msg){
 // 玩家就绪(debug模块专用)
 //--------------------------------------------------------
 function t_player_ready(player_index,player_name){
+	if(game_info.game_process!=0){
+		return;
+	}
 	//未曾收到过该人的信息,则额外发送自己的
 	if(ready_list[player_index]==false){
 		ws.sendmsg("mes_member",{change:"ready",value:[user_index,user_name]});
@@ -214,4 +219,19 @@ function t_player_ready(player_index,player_name){
 			UI_new_turn();
 		}
 	}	
+}
+//--------------------------------------------------------
+// 更新游戏数据(debug模块专用)
+//--------------------------------------------------------
+function upload_game_info(){
+	$.ajax({ 
+		type : "post", 
+		url : "/ajax/t_update_game_info/", 
+		data : {game_info:JSON.stringify(game_info)}, 
+		async : false, 
+		headers:{"X-CSRFToken":$.cookie("csrftoken")},
+		error : function(){ 
+			alert("更新服务器数据失败!");
+		} 
+	}); 
 }
