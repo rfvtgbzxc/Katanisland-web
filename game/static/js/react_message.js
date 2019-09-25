@@ -566,7 +566,7 @@ function drop_srcs(drop_list,dropper_index){
 			start_robber_set();
 		}
 		else{
-			his_window.push("由 "+game_info.player_list[dropper_index][1]+" 设置强盗");
+			his_window.push("由 "+game_info.player_list[game_info.step_list[game_info.step_index]][1]+" 设置强盗");
 		}
 	}
 	else if(game_info.step_list[game_info.step_index]==user_index && dropper_index==user_index){

@@ -20,12 +20,13 @@ $(document).ready(function(){
 		}
 		user_index=parseInt($("#set_user_index").val());
 		user_name=$("#set_user_name").val();
+		room_pswd=$("#room_pswd").val();
 		//本地局域网1
-		//ws = new WebSocket("ws://172.24.10.250:80/ws/game_test/"+user_index+"/");
+		//ws = new WebSocket("ws://172.24.10.250:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
 		//本地局域网2
 		//ws = new WebSocket("ws://192.168.50.50:80/ws/game_test/"+user_index+"/");
 		//阿里云服务器
-		ws = new WebSocket("ws://119.23.218.46:80/ws/game_test/"+user_index+"/");
+		ws = new WebSocket("ws://119.23.218.46:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
 		load_ws_function_msg();
 		load_ws_function_link();
 		ws.onopen = function () {
@@ -40,12 +41,13 @@ $(document).ready(function(){
 	$("#create_game_online").click(function(){
 		//获取房间人数
 		var player_size=parseInt($("#room_size").val());
+		var room_pswd=$("#room_pswd").val();
 		//发起请求
 		$.ajax({
 	        async:false,
 	        url:"/ajax/t_create_room/",
 	        type:"get",
-	        data:"&room_size=" + player_size,
+	        data:"&room_size=" + player_size+"&room_pswd="+room_pswd,
 	        headers:{"X-CSRFToken":$.cookie("csrftoken")},
 	        success:function(info){
 	        	alert(info);
@@ -107,7 +109,7 @@ function request_t_game_info(){
 		async:false,
 		url:"/ajax/t_load_game/",
 		type:"get",
-		data:"&player_index=" + user_index,
+		data:"&room_pswd=" + room_pswd,
 		dataType:"json",
 		headers:{"X-CSRFToken":$.cookie("csrftoken")},
 		success:function(info){
@@ -158,13 +160,21 @@ function init_t_ui(){
 			break;
 		//前期坐城
 		case 2:
+			create_step_list();
 			if(game_info.step_list[game_info.step_index]==user_index || offline){
 				//开始前期坐城设置
 				//还是状态机法好啊
 				start_set_home(0);
 			}
 			break;
-			
+		//正常游戏
+		case 3:
+			create_step_list();
+			//debug下掉线不会切换玩家,因此要额外判断
+			if(game_info.dice_num[0]!=0){
+				UI_set_dices(game_info.dice_num[0],game_info.dice_num[1]);			
+			}
+			break;		
 	}
 }
 //--------------------------------------------------------
@@ -227,7 +237,7 @@ function upload_game_info(){
 	$.ajax({ 
 		type : "post", 
 		url : "/ajax/t_update_game_info/", 
-		data : {game_info:JSON.stringify(game_info)}, 
+		data : {"room_pswd":room_pswd,game_info:JSON.stringify(game_info)}, 
 		async : false, 
 		headers:{"X-CSRFToken":$.cookie("csrftoken")},
 		error : function(){ 

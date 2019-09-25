@@ -86,6 +86,7 @@ function start_trade_window(target="bank",target_val=0){
 	var person="你";
 	var trade_ratio=1;
 	var trades=game_info.trades;
+	var can_trade=true;
 	target_val=parseInt(target_val);
 	game_temp.action_now="action_trade";
 	game_temp.trade_target=target;
@@ -223,15 +224,16 @@ function start_trade_window(target="bank",target_val=0){
 		//扣除已置于列表中的资源
 		item.own_num-=item.rlt_item.own_num;
 		//如果资源不足,不允许接受交易
-		if(item.own_num<0){$("#action_trade_items").addClass("disabled");}
+		if(item.own_num<0){can_trade=false;}
 		item.jqdom_update();
 	}
-	if(game_info.active_trades.indexOf(game_temp.trade_now_id)==-1){		
-		$("#action_trade_items").addClass("disabled");
+	if(game_info.active_trades.indexOf(game_temp.trade_now_id)==-1){
+		can_trade=false;			
 	}
 	else{
-		$("#action_trade_items").text("取消交易").removeClass("disabled");
-	}	
+		$("#action_trade_items").text("取消交易");
+	}
+	can_trade?$("#action_trade_items").removeClass("disabled"):$("#action_trade_items").addClass("disabled");	
 	$("trade_window").children().filter("window_head").children().filter("head_text").text(head_text);
 	$("trade_window").children().filter("src_select_window").children().filter("head_text").children().filter("person").text(person);
 	$("#action_trade_items").text(action_text);
@@ -355,7 +357,7 @@ window_finish_trade=function(trade){
 				$("trade_state").text("交易被取消!");
 				break;
 		}
-		$("#action_trade_items").text("关闭窗口");
+		$("#action_trade_items").text("关闭窗口").removeClass("disabled");
 		game_temp.action_trade_items_function=close_trade_window;
 	}
 	$("#action_refuse_trade_items").hide();

@@ -253,33 +253,56 @@ def t_createMap(request):
 
 def t_createRoom(request):
 	#获取房间大小
-	room_size=int(request.GET.get("room_size"));
-	test_room=Room.objects.get(out_room_ID=1)
+	room_size=int(request.GET.get("room_size"))
+	room_pswd=request.GET.get("room_pswd")
+	if(Room.objects.filter(password=room_pswd)):
+		return HttpResponse("密码重复！")
+	#test_room=Room.objects.get(out_room_ID=1)
 	#生成对应数据并保存在测试房间
+	maxid=Room.objects.all().aggregate(Max('out_room_ID'))
 	map_setting=gm_temp.map_setting()
 	map_info=gm_map.createmap(json.dumps(map_setting))
 	base_game_info=gm_game.init_game_info(room_size)
-	test_room.map_info=json.dumps(map_info)
-	test_room.game_info=json.dumps(base_game_info)
-	test_room.save()
+	new_room=Room(
+		out_room_ID=maxid["out_room_ID__max"]+1,
+		room_owner=1,
+		member_max=room_size,
+		password=room_pswd,
+		map_setting=json.dumps(map_setting),
+		map_info=json.dumps(map_info),
+		game_info=json.dumps(base_game_info),
+		room_name="新房间")
+	new_room.save()
+	#test_room.map_info=json.dumps(map_info)
+	#test_room.game_info=json.dumps(base_game_info)
+	#test_room.save()
 	return HttpResponse("创建成功!")
 
 
 def t_load_game(request):
 	#读取保存的数据
 	#game_info=gm_temp.game_info(2)
-	test_room=Room.objects.get(out_room_ID=1)
+	#test_room=Room.objects.get(out_room_ID=1)
+	room_pswd=request.GET.get("room_pswd")
+	room=Room.objects.filter(password=room_pswd)
+	if(room.exists()==False):
+		return HttpResponse("找不到房间!")
+	room=room[0]
 	info={
-		"map_info":json.loads(test_room.map_info),
-		"game_info":json.loads(test_room.game_info)
+		"map_info":json.loads(room.map_info),
+		"game_info":json.loads(room.game_info)
 	}
 	return HttpResponse(json.dumps(info))
 
 def t_update_game_info(request):
 	#更新测试房间数据库
-	test_room=Room.objects.get(out_room_ID=1)
-	test_room.game_info=request.POST.get("game_info")
-	test_room.save()
+	room_pswd=request.POST.get("room_pswd")
+	room=Room.objects.filter(password=room_pswd)
+	if(room.exists()==False):
+		return HttpResponse("找不到房间!")
+	room=room[0]
+	room.game_info=request.POST.get("game_info")
+	room.save()
 	return HttpResponse("更新成功!")
 
 def t_virtual_websocket(request):

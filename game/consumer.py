@@ -231,7 +231,12 @@ class Game_Test(WebsocketConsumer):
     def connect(self):
         print("linking...");
         self.user_index = int(self.scope['url_route']['kwargs']['user_index'])
-        self.room_group_id="room_999"
+        self.room_group_id=self.scope['url_route']['kwargs']['room_pswd']
+        room=Room.objects.filter(password=room_pswd)
+        if(room.exists()==False):
+            return
+        if(self.room_group_id==""):
+            return
         #加入对话组
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_id,

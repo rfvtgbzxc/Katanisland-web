@@ -44,7 +44,8 @@ function player_ready(readyer_id){
 }
 
 function load_ws_function_link(){
-	ws.on_close=function(){
+	ws.onclose=function(){
 		his_window.push("与服务器连接断开","important");
+		alert("与服务器连接断开!");
 	}
 }
