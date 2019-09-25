@@ -56,7 +56,7 @@ function clear_selectors(){
 	//清除边选择器
 	$("pt_selector").attr("tip","").removeClass("active selector_avaliable selector_selected selector_disabled selector_displaying").hide();
 	//清除玩家选择器
-	$("player").removeClass("player_select_avaliable player_select_selected");
+	$("player").removeClass("active player_select_avaliable player_select_selected");
 }
 //--------------------------------------------------------
 // 取消选择器
@@ -88,10 +88,10 @@ function turn_rounds(){
 	var new_steper=$("steper").filter(function(){return $(this).attr("pos")==step_list_width+1});
 	//alert(new_steper.attr("pos"));
 	//alert(last_step_index);
-	var player_index=last_step_index+parseInt(new_steper.attr("pos"));
-	if(player_index>game_info.step_list.length-1){player_index-=game_info.step_list.length;}
+	var step_index=last_step_index+parseInt(new_steper.attr("pos"));
+	if(step_index>game_info.step_list.length-1){step_index-=game_info.step_list.length;}
 	//获取真·player_index
-	player_index=step_list[player_index];
+	player_index=step_list[step_index];
 	//alert(user_index);
 	if(player_index==user_index){
 		new_steper.addClass("self");
@@ -321,37 +321,6 @@ function load_UI(){
 	}
 	//显示回合数
 	$("#rounds").text(('00'+game_info.play_turns).slice(-2));
-	//加载行动列表
-	//确定行动列表宽度
-	var step_list=game_info.step_list;
-	var step_list_width=parseInt(game_info.step_list.length/2);
-	var dx=0;
-	for(var i=-1*step_list_width;i<step_list_width+1;i++)
-	{
-		$("step_list").append("<steper pos='"+i+"'></steper>");
-		$("steper").filter(function(){return $(this).attr("pos")==i}).css({
-			"left":dx
-		});
-		if(i==0){
-			$("steper").filter(function(){return $(this).attr("pos")==i}).addClass("ownround");
-			dx+=65;
-		}
-		else{
-			dx+=45;
-		}
-	}
-	//设置颜色与自我标记
-	$("steper").each(function(){
-		var player_index=game_info.step_index+parseInt($(this).attr("pos"));
-		if(player_index<0){player_index+=game_info.step_list.length;}
-		if(player_index>game_info.step_list.length-1){player_index-=game_info.step_list.length;}
-		//干得漂亮(无视我的疯言疯语)
-		player_index=step_list[player_index];
-		if(player_index==user_index){
-			$(this).addClass("self");
-		}
-		$(this).css("color",color_reflection_hex[color_reflection[player_index]]);
-	});
 	//加载玩家状态栏
 	var dy=0;
 	dy+=205;
@@ -497,6 +466,41 @@ function add_city(point_id){
 	//调整位置
 	$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"999"});
 }
+
+function create_step_list(){
+	//加载行动列表
+	//确定行动列表宽度
+	var step_list=game_info.step_list;
+	var step_list_width=parseInt(game_info.step_list.length/2);
+	var dx=0;
+	for(var i=-1*step_list_width;i<step_list_width+1;i++)
+	{
+		$("step_list").append("<steper pos='"+i+"'></steper>");
+		$("steper").filter(function(){return $(this).attr("pos")==i}).css({
+			"left":dx
+		});
+		if(i==0){
+			$("steper").filter(function(){return $(this).attr("pos")==i}).addClass("ownround");
+			dx+=65;
+		}
+		else{
+			dx+=45;
+		}
+	}
+	//设置颜色与自我标记
+	$("steper").each(function(){
+		var player_index=game_info.step_index+parseInt($(this).attr("pos"));
+		if(player_index<0){player_index+=game_info.step_list.length;}
+		if(player_index>game_info.step_list.length-1){player_index-=game_info.step_list.length;}
+		//干得漂亮(无视我的疯言疯语)
+		player_index=step_list[player_index];
+		if(player_index==user_index){
+			$(this).addClass("self");
+		}
+		$(this).css("color",color_reflection_hex[color_reflection[player_index]]);
+	});
+}
+
 
 function create_trade_items(){
 	for(var src_id=1;src_id<6;src_id++){

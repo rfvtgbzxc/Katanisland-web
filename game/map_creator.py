@@ -115,8 +115,8 @@ def createmap(var):
 			return False
 
 	#初始化
-	#random.seed(rand_seed)
-	random.seed(5)
+	random.seed(rand_seed)
+	#random.seed(5)
 	places={}
 	points=[]
 	edges=[]

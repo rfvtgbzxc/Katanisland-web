@@ -3,10 +3,10 @@ import random
 def base_info():
 	return copy.deepcopy(t_base_info)
 
-def map_setting(num):
+def map_setting():
 	c_map_setting=copy.deepcopy(t_map_setting)
-	#c_map_setting["rand_seed"]=random.randint(0,1000000)
-	c_map_setting["rand_seed"]=num
+	c_map_setting["rand_seed"]=random.randint(0,1000000)
+	#c_map_setting["rand_seed"]=num
 	return c_map_setting
 
 def game_info(num):
@@ -232,7 +232,7 @@ test_game_info={
 	},
 	"2":{
 	"step_index": 0,
-	"game_process": 2,
+	"game_process": 1,
 	"occupying": 19,
 	"longest_road": 0,
 	"max_minitory": 0,
@@ -241,7 +241,6 @@ test_game_info={
 	"owner": 1,
 	"step_list": [1, 2],
 	"online_list": [1, 2],
-	"trade_count": 0,
 	"player_list": {
 		"1": [1, "解忧唯杜康"],
 		"2": [2, "Fade into fate"]

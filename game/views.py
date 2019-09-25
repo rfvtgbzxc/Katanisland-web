@@ -4,6 +4,7 @@ from .models import User,Room
 from django.db.models import F,Max
 from . import game_templates as gm_temp
 from . import map_creator as gm_map
+from . import game_creator as gm_game
 import json
 #from dwebsocket.decorators import accept_websocket
 import time,random
@@ -246,14 +247,33 @@ def gotoMapTest(request):
 
 def t_createMap(request):
 	#按照基础设置生成一张随机地图
-	map_setting=gm_temp.map_setting(0)
+	map_setting=gm_temp.map_setting()
 	map_info=gm_map.createmap(json.dumps(map_setting))
 	return HttpResponse(json.dumps(map_info))
 
+def t_createRoom(request):
+	#获取房间大小
+	room_size=int(request.GET.get("room_size"));
+	test_room=Room.objects.get(out_room_ID=1)
+	#生成对应数据并保存在测试房间
+	map_setting=gm_temp.map_setting()
+	map_info=gm_map.createmap(json.dumps(map_setting))
+	base_game_info=gm_game.init_game_info(room_size)
+	test_room.map_info=json.dumps(map_info)
+	test_room.game_info=json.dumps(base_game_info)
+	test_room.save()
+	return HttpResponse("创建成功!")
+
+
 def t_load_game(request):
-	#读取保存的模拟数据
-	game_info=gm_temp.game_info(1)
-	return HttpResponse(json.dumps(game_info))
+	#读取保存的数据
+	#game_info=gm_temp.game_info(2)
+	test_room=Room.objects.get(out_room_ID=1)
+	info={
+		"map_info":json.loads(test_room.map_info),
+		"game_info":json.loads(test_room.game_info)
+	}
+	return HttpResponse(json.dumps(info))
 
 def t_virtual_websocket(request):
 	evt=json.loads(request.GET.get("data"))
@@ -270,6 +290,11 @@ def t_virtual_websocket(request):
 		return HttpResponse(json.dumps({"data":evt}))
 	if(evt["message"]["val"][0]==3 and evt["message"]["val"][1]==1 and evt["message"]["val"][4]==0):
 		evt["message"]["val"][5]=random.randint(0,evt["message"]["val"][5]-1)
+		return HttpResponse(json.dumps({"data":evt}))
+	if(evt["message"]["val"][0]==9 and evt["message"]["val"][1]==0):
+		evt[1]=1
+		evt.append(random.randint(1,6))
+		evt.append(random.randint(1,6))
 		return HttpResponse(json.dumps({"data":evt}))
 	#好吧现在还有向玩家的交易请求,会等待一秒
 	if(evt["message"]["val"][0]==2 and evt["message"]["val"][1]==3):

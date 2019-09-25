@@ -5,7 +5,7 @@ class Room(models.Model):
 	out_room_ID=models.IntegerField(default=0) #外部查看id，便于玩家查找
 	room_name=models.CharField(max_length=20) #房间名
 	room_owner=models.IntegerField(default=0) #房主id
-	password=models.CharField(max_length=20,default="")	#房间密码
+	password=models.CharField(max_length=20,default="",null=True)#房间密码
 	game_state=models.IntegerField(null=True,default=0) #游戏状态
 	map_size=models.IntegerField(null=True,default=0) #地图大小
 	game_info=models.CharField(max_length=100000) #游戏数据

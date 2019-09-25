@@ -143,9 +143,20 @@ function handle_msg(msg){
 				case 8:
 					set_home(val[1],val[2],msg.message.starter);
 					break;
+				//初始投骰
+				case 9:
+					fst_dice(val[2],val[3],msg.message.starter);
+					break;
 			}
 			break;		
 	}
+	//由model_Debug进行额外解读
+	try{
+		debug_handel_msg(msg);
+	}
+	catch(err){
+
+	};
 	//然后由房主更新game_info
 	//暂不设计
 	//再然后检查胜利条件
@@ -168,7 +179,7 @@ function set_dice(num1,num2){
 	//刷新game_info
 	game_info.dice_num[0]=num1;
 	game_info.dice_num[1]=num2;
-	UI_set_dices();
+	UI_set_dices(num1,num2);
 	//根据数字和收取资源
 	var num_sum=num1+num2;
 	var places=map_info.places;
@@ -251,6 +262,7 @@ function build_city0(point_id,player_index,cost=true){
 	//建造定居点的UI回调函数,只需要清除selectors和active
 	clear_selectors();
 	$("#action_build_city0").removeClass("active");
+
 	var player=game_info.players[player_index];
 	//扣除资源
 	if(cost){
@@ -483,6 +495,7 @@ function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false
 	$("#action_use_dev_soldier").removeClass("active");
 	$("#cancel_robbing").hide();
 	$("#to_before_action").hide();
+	$("actions0").children().not(".fst_action").show();
 
 	if(cost){
 		game_info.players[robber_index].soldier_num--;
@@ -514,6 +527,7 @@ function rob_player(robber_index,victim_index,randomint){
 			victim[order[i]+"_num"]--;
 			game_info.players[robber_index][order[i]+"_num"]++;
 			his_window.push(names[robber_index][1]+" 掠夺了 "+names[victim_index][1]+" 的一份 "+order_ch[i]);
+			break;
 		}
 		count-=victim[order[i]+"_num"];
 	}
@@ -534,8 +548,7 @@ function drop_srcs(drop_list,dropper_index){
 		$("drop_window").hide();
 	}
 	//完成丢弃后,检查recive_list,释放操作权或保持等待。
-	game_temp.recive_list.splice(game_temp.recive_list.indexOf(dropper_index),1);
-	if(game_temp.recive_list.length==0 || offline){
+	if(msg_recive(dropper_index)==true){
 		$("wait_window").hide();
 		//由掷出者设置强盗
 		if(game_info.step_list[game_info.step_index]==user_index){
@@ -547,10 +560,10 @@ function drop_srcs(drop_list,dropper_index){
 			start_robber_set();
 		}
 		else{
-			his_window.push("由 "+game_info.player_list[dropper_index][1]+" 设置强盗");	
+			his_window.push("由 "+game_info.player_list[dropper_index][1]+" 设置强盗");
 		}
 	}
-	else if(game_info.step_list[game_info.step_index]==user_index){
+	else if(game_info.step_list[game_info.step_index]==user_index && dropper_index==user_index){
 		his_window.push("等待其他玩家选择丢弃资源...");
 		$("wait_window").show();
 	}
@@ -609,6 +622,10 @@ function dev_road_making(road_id1,road_id2,builder_index){
 //--------------------------------------------------------
 function new_turn()
 {
+	if(game_info.step_list==[]){
+		alert("出现死循环!");
+		return;
+	}
 	//记录当前值
 	last_step_index=game_info.step_index;
 	//寻找没有掉线的下一位玩家
@@ -629,7 +646,11 @@ function new_turn()
 	game_info.step_index=index;
 	//清空骰子值
 	game_info.dice_num=[0,0];
-	game_info.play_turns++;
+	if(game_info.game_process==3){
+		game_info.play_turns++;
+	}
+	//重置recive_list
+	game_temp.recive_list=[].concat(game_info.online_list);
 	//清空所有玩家的发展卡get_before限制(尽管对于某位玩家来说只需要清除自己的)
 	for(player_index in game_info.players){
 		var player=game_info.players[player_index];	
@@ -668,6 +689,7 @@ function set_home(step,val,setter_index){
 				var places=pt_round_places(val);
 				for(i in places){
 					var place=map_info.places[places[i]];
+					if(place==null){continue;}
 					his_window.push(setter.name+" 获得 "+order_ch[place.create_type]+" x 1")
 					setter.src(place.create_type,"+=",1);
 				}				
@@ -701,6 +723,63 @@ function set_home(step,val,setter_index){
 
 
 }
+//--------------------------------------------------------
+// 初始投骰
+//--------------------------------------------------------
+function fst_dice(num1,num2,dicer_index){
+	var player=game_info.players[dicer_index];
+	if(user_index==dicer_index){
+		//显示骰子数
+		UI_set_dices(num1,num2);
+	}	
+	var num_sum=num1+num2;
+	//添加消息
+	his_window.push(player.name+" 掷出点数: "+num1+","+num2+" ,共计 "+num_sum,"important");
+	//更新骰子计数
+	game_temp.fst_dices[dicer_index]=num_sum;
+	dices=game_temp.fst_dices;
+	var player_ranks=[];
+	if(msg_recive(dicer_index)){
+		//对所有玩家投出的值进行排序:选择排序
+		var count=0;
+		while(Object.keys(dices).length>1){
+			let max_index=0;
+			for(let player_index in dices){
+				if(dices[player_index]>dices[max_index]){
+					max_index=player_index;
+				}
+			}
+			player_ranks.push(parseInt(max_index));
+			delete dices[max_index];
+			count++;
+			if(count>100){
+				alert("循环次数过多!");
+				return;
+			}
+		}
+		//应用该行动列表,进入前期坐城阶段
+		game_info.step_list=player_ranks;
+		game_info.step_index=-1;
+		game_info.game_process=2;
+		var text="";
+		for(let player_index of game_info.step_list){
+			text+=(" "+game_info.players[player_index].name+"->");
+		}
+		text.substring(-2,2);
+		his_window.push("行动顺序为:"+text,"important");
+		his_window.push("----开始安放前期定居点----");
+		create_step_list();
+		new_turn();
+	}
+}
+//--------------------------------------------------------
+// 同步操作完成人数
+//--------------------------------------------------------
+function msg_recive(player_index){
+	game_temp.recive_list.splice(game_temp.recive_list.indexOf(player_index),1);
+	return game_temp.recive_list.length==0 || offline;
+}
+
 //--------------------------------------------------------
 // 检查胜利条件
 //--------------------------------------------------------

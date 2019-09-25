@@ -272,8 +272,8 @@ class Game_Test(WebsocketConsumer):
             )
             return
         if(evt["message"]["val"][0]==0 and evt["message"]["val"][1]==0):
-            #msg={"type":"mes_action","message":{"val":[0,1,random.randint(1,6),random.randint(1,6)]}}
-            msg={"type":"mes_action","message":{"val":[0,1,3,3]}}
+            msg={"type":"mes_action","message":{"val":[0,1,random.randint(1,6),random.randint(1,6)]}}
+            #msg={"type":"mes_action","message":{"val":[0,1,3,3]}}
         if(evt["message"]["val"][0]==1 and evt["message"]["val"][1]==4 and evt["message"]["val"][2]==0):
             msg={"type":"mes_action","message":{"starter":evt["message"]["starter"],"val":[1,4,1,random.randint(0,evt["message"]["val"][3]-1)]}}
         if(evt["message"]["val"][0]==4 and evt["message"]["val"][3]==0):
@@ -281,6 +281,11 @@ class Game_Test(WebsocketConsumer):
             msg=evt
         if(evt["message"]["val"][0]==3 and evt["message"]["val"][1]==1 and evt["message"]["val"][4]==0):
             evt["message"]["val"][5]=random.randint(0,evt["message"]["val"][5]-1)
+            msg=evt
+        if(evt["message"]["val"][0]==9 and evt["message"]["val"][1]==0):
+            evt["message"]["val"][1]=1
+            evt["message"]["val"].append(random.randint(1,6))
+            evt["message"]["val"].append(random.randint(1,6))
             msg=evt
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_id,msg

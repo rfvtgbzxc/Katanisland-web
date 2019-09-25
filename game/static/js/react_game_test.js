@@ -2,7 +2,7 @@
 //debug模式
 debug=false;
 //脱机模式
-offline=true;
+offline=false;
 //提示窗口
 info_window={
 	"set":function(text){
@@ -41,6 +41,7 @@ game_temp={
 	"recive_list":[],
 	dev_used:false,
 	no_build_dev_used:false,
+	fst_dices:{"0":0},
 };
 game_UI={
 	"UI_count":0,
@@ -98,7 +99,11 @@ src_reflection={
 };
 color_reflection={
 	1:"light-blue",
-	2:"dark-green"
+	2:"dark-green",
+	3:"light-orange",
+	4:"light-red",
+	5:"light-purple",
+	6:"light-green",
 };
 color_reflection_hex={
 	"light-blue":"#029ed9",
@@ -145,88 +150,7 @@ $(document).ready(function(){
 	$("confirm_window").hide();
 	$("source_list").hide();
 	$("special_actions").children().hide();
-	//--------------------------------------------------------
-	// 加载游戏
-	//--------------------------------------------------------
-	$("#load_game").click(function(){
-		load_ws_function();
-		request_game_info();
-	});
-	//--------------------------------------------------------
-	// 以联机模式加载游戏
-	// 将会进入一个测试房间,房间数据固定,该房间只会有两名玩家,后进入的玩家会成为第二位玩家。
-	//--------------------------------------------------------
-	$("#load_game_online").click(function(){
-		if(offline){
-			alert("请先关闭脱机模式！")
-			return;
-		}
-		user_index=parseInt($("#set_user_index").val());
-		//本地局域网1
-		//ws = new WebSocket("ws://172.24.10.250:80/ws/game_test/"+user_index+"/");
-		//本地局域网2
-		//ws = new WebSocket("ws://192.168.50.50:80/ws/game_test/"+user_index+"/");
-		//阿里云服务器
-		ws = new WebSocket("ws://119.23.218.46:80/ws/game_test/"+user_index+"/");
-		load_ws_function();
-		ws.onopen = function () {
-            //当连接成功时，从数据库载入游戏信息
-            request_game_info();
-        };	
-	});
-	//--------------------------------------------------------
-	// 检查图块
-	//--------------------------------------------------------
-	/*$("#places").on("click",".plc",function(){
-		var place_id=$(this).attr("id");
-		var place=places[place_id];
-		alert("地块id："+place_id+"\n"+"产出数字："+place.create_num+"\n"+"产出类型："+order[place.create_type]);
-	})*/
-
-	//--------------------------------------------------------
-	// DEBUG-UI：激活所有选择器
-	//--------------------------------------------------------
-	$("#debug_show_selectors").click(function(){
-		if($(this).attr("on")=="off")
-		{
-			$(this).attr("on","on");
-			$("plc_selector").addClass("active selector_avaliable").show();
-			$("edge_selector").addClass("active selector_avaliable").show();
-			$("pt_selector").addClass("active selector_avaliable").show();
-		}
-		else
-		{
-			$(this).attr("on","off");
-			$("plc_selector").removeClass("active selector_avaliable").hide();
-			$("edge_selector").removeClass("active selector_avaliable").hide();
-			$("pt_selector").removeClass("active selector_avaliable").hide();
-		}		
-	});
-	//--------------------------------------------------------
-	// DEBUG-UI：显示数字
-	//--------------------------------------------------------
-	$("#debug_show_ids").click(function(){
-		if($(this).attr("on")=="off")
-		{
-			$(this).attr("on","on");
-			$("plc_selector").each(function(){
-				$(this).attr("tip",$(this).attr("id"));
-			});
-			$("edge_selector").each(function(){
-				$(this).attr("tip",$(this).attr("id"));
-			});
-			$("pt_selector").each(function(){
-				$(this).attr("tip",$(this).attr("id"));
-			});
-		}
-		else
-		{
-			$(this).attr("on","off");
-			$("plc_selector").text("");
-			$("edge_selector").text("");
-			$("pt_selector").text("");
-		}		
-	});
+	
 	//--------------------------------------------------------
 	// UI：确认窗口
 	//--------------------------------------------------------
@@ -418,7 +342,7 @@ $(document).ready(function(){
 	    				//激活非自己的玩家选框
 	    				if(user_index!=city.owner){
 	    					ever_find_city=true;
-	    					$("player").filter("#"+city.owner).addClass("player_select_avaliable");
+	    					$("player").filter("#"+city.owner).addClass("active player_select_avaliable");
 	    				}			
 	    			}
 	    		}
@@ -657,10 +581,13 @@ $(document).ready(function(){
 		if(game_info.dice_num[0]!=0){
 			return;
 		}
-		//重置recive_list
-		game_temp.recive_list=[].concat(game_info.online_list);
 		//发送消息
-		ws.sendmsg("mes_action",{"val":[0,0]});
+		if(game_info.game_process==1){
+			ws.sendmsg("mes_action",{"starter":user_index,"val":[9,0]});
+		}
+		else{
+			ws.sendmsg("mes_action",{"val":[0,0]});
+		}	
 	});
 	//--------------------------------------------------------
 	// UI：建设选项
@@ -1246,7 +1173,7 @@ function request_game_info(){
 	init_ui();
 	if(!offline){
 		//一切就绪后,发送ready消息
-		ws.sendmsg("mes_member",{change:"ready",value:user_id});
+		ws.sendmsg("mes_member",{change:"ready",value:[user_id]});
 	}
 }
 //--------------------------------------------------------
@@ -1282,11 +1209,16 @@ function init_ui(){
 	update_static_Graphic();
 	//截至以上,是一个正常的游戏中的状态
 
+	//初始化recive_list
+	game_temp.recive_list=[].concat(game_info.online_list);
 	//检测当前游戏状态
 	switch(game_info.game_process){
 		//尚未开始
 		case 0:
 			//等待所有玩家加入完毕
+			break;
+		//投掷骰子
+		case 1:
 			break;
 		//前期坐城
 		case 2:
@@ -1295,6 +1227,7 @@ function init_ui(){
 				//还是状态机法好啊
 				start_set_home(0);
 			}
+			break;
 			
 	}
 }
@@ -1375,7 +1308,7 @@ function UI_use_dev_update(){
 	}
 	//安置按钮组位置
 	$("actions1").css("top",$("#action_develop").position().top-count*25);
-	return count;
+	return count+1;
 
 }
 //--------------------------------------------------------
@@ -1431,7 +1364,7 @@ function UI_new_turn(force=false){
 		$("actions0").children().children().removeClass("disabled active part_disabled");
 		//隐藏除投骰子以外的按钮,如果本回合不是你行动,则隐藏所有按钮
 		//此处应有拉长历史消息窗口的动作
-		if(game_info.step_list[game_info.step_index]==user_index || offline)
+		if(game_info.step_list[game_info.step_index]==user_index || offline || game_info.game_process==1)
 		{
 			$("actions0").show();
 			$("actions0").children().not(".fst_action").hide();
@@ -1449,13 +1382,15 @@ function UI_new_turn(force=false){
 //--------------------------------------------------------
 // 设置骰子
 //--------------------------------------------------------
-function UI_set_dices(){
+function UI_set_dices(...dices){
 	$("dice").each(function(){
-			$(this).addClass("num"+game_info.dice_num[$(this).attr("dice_id")]);
+			$(this).addClass("num"+dices[$(this).attr("dice_id")]);
 	});	
 	//禁用投掷骰子,启用其他0级选项	
 	$("actions0").children().filter(".fst_action").children().addClass("disabled");
-	$("actions0").children().not(".fst_action").show();
+	if(game_info.game_process!=1 && game_info.dice_num[0]+game_info.dice_num[1]!=7){
+		$("actions0").children().not(".fst_action").show();
+	}
 }
 //--------------------------------------------------------
 // 开始选择前期坐城点
