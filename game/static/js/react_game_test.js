@@ -391,9 +391,10 @@ $(document).ready(function(){
 	    	$(this).addClass("selector_selected"); 
 	    	//打开确认窗口
 		    confirm_window.clear();
-	    	if(game_temp.action_now=="action_build_road" || "fst_set_home"){
+	    	if(game_temp.action_now=="action_build_road" || game_temp.action_now=="fst_set_home"){
 	    		game_temp.selected_edge=parseInt($(this).attr("id"));
 		    	confirm_window.set("要在此处建造道路吗?");
+		    	confirm_window.show();
 	    	}
 	    	else if(game_temp.action_now=="action_use_dev_road_making"){
 	    		game_temp.selected_edge.push(parseInt($(this).attr("id")));
@@ -407,9 +408,10 @@ $(document).ready(function(){
 	    		}
 	    		else{
 			    	confirm_window.set("要在这两处建造道路吗?");
+			    	confirm_window.show();
 	    		} 		
 	    	}
-	    	confirm_window.show();
+	    	
 	    	
 	    }
 	);
