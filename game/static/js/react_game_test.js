@@ -24,6 +24,19 @@ confirm_window={
 	"show":function(){$("confirm_window").show();},
 	"hide":function(){$("confirm_window").hide();}
 };
+//计时器
+timer={
+	"reset":function(){
+		 $("timer").children().removeClass("active").removeClass("play");
+	}
+	"start":function(){
+            $("timer").children().addClass("active").addClass("play");
+            setTimeout(timer.finished);
+	}
+	"stop":function(){
+        $("timer").children().removeClass("active");
+	}
+}
 //游戏数据
 map_info={};
 game_info={};
@@ -657,7 +670,7 @@ $(document).ready(function(){
 		//激活自己
 		$(this).addClass("active");
 		//激活下一级窗口：所有的玩家
-		var count=-1;
+		var count=0;
 		for(var player_index in game_info.players){
 			if(player_index==user_index){continue;}
 			//var a=$("actions2").children().filter(function(){return $(this).attr("harbour_type")=="wool";});
@@ -671,6 +684,7 @@ $(document).ready(function(){
 			item_player.show();
 			count++;
 		}
+		var item_player=$("actions2").children().filter(function(){return $(this).attr("trade_target")=="player" && $(this).attr("target_val")=="0";});
 		//安置按钮组位置
 		$("actions2").css("top",$(this).position().top-count*25);
 	});
@@ -1481,7 +1495,6 @@ function start_robber_set(){
 		$("plc_selector").filter("#"+places[i]).addClass("active selector_avaliable").show();
 	}
 }
-
 
 //--------------------------------------------------------
 // game_info对象函数

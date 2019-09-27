@@ -143,7 +143,12 @@ function start_trade_window(target="bank",target_val=0){
 			trade_ratio=1;
 			init_give_items_avaliable.push(1,2,3,4,5);
 			init_wonder_items_avaliable.push(1,2,3,4,5);
-			head_text="与 "+game_info.player_list[target_val][1]+" 交易";
+			if(trade.accepter==0){
+				head_text=game_info.players[target_val].name+" 的公开交易"
+			}
+			else{
+				head_text="与 "+game_info.player_list[target_val][1]+" 交易";
+			}	
 			break;
 	}
 	//设置已选择资源
@@ -316,23 +321,23 @@ cancel_trade=function(){
 //--------------------------------------------------------
 // 结束交易窗口
 //--------------------------------------------------------
-window_finish_trade=function(trade){
+window_finish_trade=function(trade,excutor=user_index){
 	//更新交易信息
 	var person;
 	//无关者
-	var neither=trade.starter!=user_index && trade.final_accepter!=user_index && trade.accepter!=user_index ;
+	var neither=trade.starter!=user_index && trade.final_accepter!=user_index; //&& trade.accepter!=user_index ;
 	switch(trade.trade_state){
 		case "success":
 			if(neither){
 				his_window.push(game_info.player_list[trade.starter][1]+" 与 "+game_info.player_list[trade.accepter][1]+" 达成了交易！",'important');
 			}
 			else{
-				person=trade.accepter==user_index?"你":game_info.player_list[trade.accepter][1];
+				person=trade.final_accepter==user_index?"你":game_info.player_list[trade.final_accepter][1];
 				his_window.push(person+" 接受了交易!",'important');
 			}		
 			break;
 		case "refused":
-			if(neither){break;}
+			if(neither && trade.accepter!=0){break;}
 		    person=trade.accepter==user_index?"你":game_info.player_list[trade.accepter][1];
 			his_window.push(person+" 拒绝了交易!","important");
 			break;
@@ -343,11 +348,16 @@ window_finish_trade=function(trade){
 			break;
 	}
 	//如果正在查看与结束的交易无关的窗口,不会刷新窗口内容
-	if(game_temp.trade_now_id==trade.id)
+	if(game_temp.trade_now_id==trade.id && (trade.accepter==0?trade.trade_state!="refused":true))
 	{
 		switch(trade.trade_state){
 			case "success":
-				$("trade_state").text("交易成功!");
+			    if(neither){
+			    	$("trade_state").text("交易被抢先!");
+			    }
+			    else{
+			    	$("trade_state").text("交易成功!");
+			    }	
 				break;
 			case "refused":
 				person=trade.accepter==user_index?"":"对方";
@@ -364,7 +374,12 @@ window_finish_trade=function(trade){
 	//关闭特殊选项中的快捷交易
 	$("special_actions").children().filter(function(){
 		return parseInt($(this).attr("target_val"))==trade.starter;
-	}).hide();		
+	}).hide();	
+	if(trade.accepter==0){
+		$("special_actions").children().filter(function(){
+			return parseInt($(this).attr("target_val"))=="0";
+		}).hide();	
+	}		
 }
 //--------------------------------------------------------
 // 关闭交易窗口

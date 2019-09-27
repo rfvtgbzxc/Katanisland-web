@@ -91,7 +91,7 @@ function handle_msg(msg){
 				 					break;
 				 				//拒绝交易
 				 				case 2:
-				 					msg_refuse_trade(val[3]);
+				 					msg_refuse_trade(val[3],msg.message.starter);
 				 					break;
 				 				//取消交易
 				 				case 3:
@@ -414,7 +414,12 @@ function give_trade_with_player(new_trade){
 		if(new_trade.accepter==user_index){
 			his_window.push(game_info.player_list[new_trade.starter][1]+" 想要与你交易","important");
 			show_special_actions("trade",new_trade.starter);
+		}
+		else if(new_trade.accepter==0){
+			his_window.push(game_info.player_list[new_trade.starter][1]+" 发起了公开交易","important");	
+			show_special_actions("trade","0");	
 		}	
+		
 	}	
 	if(offline && new_trade.accepter!=0){
 		ws.sendmsg("mes_action",{"starter":new_trade.accepter,"accepter":new_trade.starter,"val":[2,4,1,new_trade.id]});
@@ -423,14 +428,17 @@ function give_trade_with_player(new_trade){
 //--------------------------------------------------------
 // (被)拒绝交易
 //--------------------------------------------------------
-function msg_refuse_trade(trade_id){
+function msg_refuse_trade(trade_id,refuser_index){
 	//更新交易状态
 	//交易已被移除则不做任何事
 	if(game_info.active_trades.indexOf(trade_id)==-1){return;}
 	var trade=game_info.trades[trade_id];
+	//公开交易在各自玩家的状态中显示不同
 	trade.trade_state="refused";
-	window_finish_trade(trade);
-	game_info.active_trades.splice(game_info.active_trades.indexOf(trade.id),1);
+	if(refuser_index==user_index){	
+		game_info.active_trades.splice(game_info.active_trades.indexOf(trade.id),1);
+	}	
+	window_finish_trade(trade,refuser_index);
 }
 //--------------------------------------------------------
 // (被)取消交易
@@ -502,6 +510,11 @@ function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false
 	$("#cancel_robbing").hide();
 	$("#to_before_action").hide();
 	$("actions0").children().not(".fst_action").show();
+
+	//理论上来说此时可以正式开始操作,因此启动计时器
+	timer.reset();
+	timer.start();
+
 
 	if(cost){
 		game_info.players[robber_index].soldier_num--;
@@ -842,8 +855,8 @@ function update_vp_infos(){
 	//计算总胜利点
 	for(var player_index in players){
 		var player=players[player_index];
-		if(player.vp_update()>=10){
-			if(player.index==user_index){
+		if(player.vp_update(true)>=10){
+			if(player.index==game_info.step_list[game_info.step_index]){
 				player.show_score_cards();
 				his_window.push(player.name+"取得了胜利！","important");
 			}		

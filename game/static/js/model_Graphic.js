@@ -371,20 +371,14 @@ function load_UI(){
 		$("actions2").append("<button src_id='"+i+"' type='button' class='src_selector list-group-item'>"+order_ch[i]+"</button>");
 	}
 	//加载交易玩家
+	$("actions2").append("<button trade_target='player' target_val='0' type='button' class='action_prepare_trade list-group-item'>公开交易</button>");
+	$("special_actions").append("<button trade_target='player' target_val='0' type='button' class='action_prepare_trade list-group-item'>公开交易</button>");
 	for(var player_index in game_info.player_list){
 		$("actions2").append("<button trade_target='player' target_val='"+player_index+"' type='button' class='action_prepare_trade list-group-item'>"+game_info.player_list[player_index][1]+"</button>");
 		$("special_actions").append("<button trade_target='player' target_val='"+player_index+"' type='button' class='action_prepare_trade list-group-item'>"+game_info.player_list[player_index][1]+"</button>");
 	}
 	//加载资源栏对象
 	create_trade_items();
-	/*var game_trades={};
-	var tdobj_lth=Object.keys(game_info.players).length+1;
-	for(i=1;i<tdobj_lth;i++){
-		for(j=0;j<tdobj_lth;j++){
-			game_trades[i*tdobj_lth+j]=new Transaction(i*tdobj_lth+j,i,j);
-		}
-	}
-	console.log(JSON.stringify(game_trades));*/
 	game_temp.bank_trade=new Transaction(0,0,0);
 	//加载文字
 	$youziku.submit("playername_update");

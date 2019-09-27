@@ -232,7 +232,7 @@ class Game_Test(WebsocketConsumer):
         print("linking...");
         self.user_index = int(self.scope['url_route']['kwargs']['user_index'])
         self.room_group_id=self.scope['url_route']['kwargs']['room_pswd']
-        room=Room.objects.filter(password=room_pswd)
+        room=Room.objects.filter(password=self.room_group_id)
         if(room.exists()==False):
             return
         if(self.room_group_id==""):
