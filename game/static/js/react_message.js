@@ -182,6 +182,7 @@ function set_dice(num1,num2){
 		num1=3;
 		num2=3;
 	}
+	var can_start_build=true;
 	//刷新game_info
 	game_info.dice_num[0]=num1;
 	game_info.dice_num[1]=num2;
@@ -198,6 +199,7 @@ function set_dice(num1,num2){
 			his_window.push("你需要丢弃 "+game_temp.drop_required+" 份资源");
 			game_temp.action_base="action_drop_srcs_for_7";
 			game_temp.action_now="action_drop_srcs_for_7";
+			can_start_build=false;
 			//打开丢弃窗口
 			UI_start_drop_select();
 			//手动关闭等待窗口
@@ -238,6 +240,9 @@ function set_dice(num1,num2){
 				}
 			}
 		}
+	}
+	if(can_start_build){
+		UI_start_build();
 	}
 	//alert("end");
 }
@@ -509,13 +514,9 @@ function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false
 	$("#action_use_dev_soldier").removeClass("active");
 	$("#cancel_robbing").hide();
 	$("#to_before_action").hide();
-	$("actions0").children().not(".fst_action").show();
-
-	//理论上来说此时可以正式开始操作,因此启动计时器
-	timer.reset();
-	timer.start();
-
-
+	if(!cost){
+		UI_start_build();
+	}	
 	if(cost){
 		game_info.players[robber_index].soldier_num--;
 		game_info.players[robber_index].soldier_used++;
@@ -645,6 +646,8 @@ function new_turn()
 		alert("出现死循环!");
 		return;
 	}
+	timer.stop();
+	close_trade_window();
 	//记录当前值
 	last_step_index=game_info.step_index;
 	//寻找没有掉线的下一位玩家

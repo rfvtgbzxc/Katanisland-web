@@ -172,7 +172,8 @@ function init_t_ui(){
 			create_step_list();
 			//debug下掉线不会切换玩家,因此要额外判断
 			if(game_info.dice_num[0]!=0){
-				UI_set_dices(game_info.dice_num[0],game_info.dice_num[1]);			
+				UI_set_dices(game_info.dice_num[0],game_info.dice_num[1]);	
+				UI_start_build();		
 			}
 			break;		
 	}

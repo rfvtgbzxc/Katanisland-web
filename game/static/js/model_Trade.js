@@ -87,6 +87,7 @@ function start_trade_window(target="bank",target_val=0){
 	var trade_ratio=1;
 	var trades=game_info.trades;
 	var can_trade=true;
+	var secret;
 	target_val=parseInt(target_val);
 	game_temp.action_now="action_trade";
 	game_temp.trade_target=target;
@@ -125,17 +126,18 @@ function start_trade_window(target="bank",target_val=0){
 			break;
 		//玩家,交易的各个选项都不受限制,且出于资源保密,会设置不显示资源数
 		case "player":
+		    secret=target_val==0?true:game_info.players[target_val].src_secret;
 			//检查是否有target玩家发起给本机玩家的进行中交易
 			var recive_trade_id=target_val*(Object.keys(game_info.players).length+1)+user_index;
 			if(game_info.active_trades.indexOf(recive_trade_id)==-1){
 				//没有则认为是在向target发起交易
 				game_temp.trade_now_id=user_index*(Object.keys(game_info.players).length+1)+target_val;
 				starter_cards=game_info.players[user_index];
-				accepter_cards=game_info.players[target_val].src_secret?unknown_cards:game_info.players[target_val];
+				accepter_cards=secret?unknown_cards:game_info.players[target_val];
 			}
 			else{
 				game_temp.trade_now_id=recive_trade_id;
-				starter_cards=game_info.players[target_val].src_secret?unknown_cards:game_info.players[target_val];
+				starter_cards=secret?unknown_cards:game_info.players[target_val];
 				accepter_cards=game_info.players[user_index];
 				person="他";
 			}				
@@ -143,7 +145,7 @@ function start_trade_window(target="bank",target_val=0){
 			trade_ratio=1;
 			init_give_items_avaliable.push(1,2,3,4,5);
 			init_wonder_items_avaliable.push(1,2,3,4,5);
-			if(trade.accepter==0){
+			if(target_val=="0"){
 				head_text=game_info.players[target_val].name+" 的公开交易"
 			}
 			else{
@@ -197,7 +199,7 @@ function start_trade_window(target="bank",target_val=0){
 		var UI_id=items[i];
 		var item=game_UI[UI_id];
 		//如果目标玩家选择保密自己的资源数,则应用secret属性
-		item.secret=(game_temp.trade_target=="player" && person=="他")?game_info.players[target_val].src_secret:false;
+		item.secret=(game_temp.trade_target=="player" && person=="他")?secret:false;
 		if(init_give_items_avaliable.indexOf(src_reflection[item.item_type])==-1){
 			var src_num=0;
 		}
@@ -217,7 +219,7 @@ function start_trade_window(target="bank",target_val=0){
 		var item=game_UI[UI_id];
 		item.ratio_num=1;
 		//如果目标玩家选择保密自己的资源数,则应用secret属性
-		item.secret=(game_temp.trade_target=="player" && person=="你")?game_info.players[target_val].src_secret:false;
+		item.secret=(game_temp.trade_target=="player" && person=="你")?secret:false;
 		if(init_wonder_items_avaliable.indexOf(src_reflection[item.item_type])==-1){
 			var src_num=0;
 		}

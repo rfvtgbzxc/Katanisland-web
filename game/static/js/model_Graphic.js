@@ -474,7 +474,10 @@ function create_step_list(){
 			"left":dx
 		});
 		if(i==0){
-			$("steper").filter(function(){return $(this).attr("pos")==i}).addClass("ownround");
+			//设置计时器
+			var this_seteper=$("steper").filter(function(){return $(this).attr("pos")==i})
+			$("timer-container").css({"left":this_seteper.position().left,"top":0});
+			this_seteper.addClass("ownround");
 			dx+=65;
 		}
 		else{
@@ -492,7 +495,8 @@ function create_step_list(){
 			$(this).addClass("self");
 		}
 		$(this).css("color",color_reflection_hex[color_reflection[player_index]]);
-	});
+	});	
+
 }
 
 

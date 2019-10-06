@@ -27,15 +27,25 @@ confirm_window={
 //计时器
 timer={
 	"reset":function(){
-		 $("timer").children().removeClass("active").removeClass("play");
-	}
+		//$("timer").children().removeClass("active").removeClass("play");
+	},
 	"start":function(){
-            $("timer").children().addClass("active").addClass("play");
-            setTimeout(timer.finished);
-	}
+        $("timer").children().addClass("active").show();
+        $("timer").children().addClass("active").addClass("play");
+        if(game_info.step_list[game_info.step_index]==user_index){
+        	this.timer_id=setTimeout(timer.finished,60000);
+        }        
+	},
 	"stop":function(){
-        $("timer").children().removeClass("active");
-	}
+        $("timer").children().removeClass("active play").hide();
+        if(game_info.step_list[game_info.step_index]==user_index){
+        	clearTimeout(this.timer_id);
+        }     
+	},
+	"finished":function(){
+		//发送消息
+		ws.sendmsg("mes_action",{"val":[6]});
+	},
 }
 //游戏数据
 map_info={};
@@ -685,6 +695,7 @@ $(document).ready(function(){
 			count++;
 		}
 		var item_player=$("actions2").children().filter(function(){return $(this).attr("trade_target")=="player" && $(this).attr("target_val")=="0";});
+		item_player.show();
 		//安置按钮组位置
 		$("actions2").css("top",$(this).position().top-count*25);
 	});
@@ -953,6 +964,8 @@ $(document).ready(function(){
 	// 层级：0  值：1
 	//--------------------------------------------------------
 	$("#action_end_turn").click(function(){
+		//结束计时
+		timer.stop();
 		//发送消息
 		ws.sendmsg("mes_action",{"val":[6]});
 	});
@@ -1400,13 +1413,24 @@ function UI_new_turn(force=false){
 //--------------------------------------------------------
 function UI_set_dices(...dices){
 	$("dice").each(function(){
-			$(this).addClass("num"+dices[$(this).attr("dice_id")]);
+		$(this).addClass("num"+dices[$(this).attr("dice_id")]);
 	});	
-	//禁用投掷骰子,启用其他0级选项	
+	//禁用投掷骰子
 	$("actions0").children().filter(".fst_action").children().addClass("disabled");
-	if(game_info.game_process!=1 && game_info.dice_num[0]+game_info.dice_num[1]!=7){
-		$("actions0").children().not(".fst_action").show();
+}
+//--------------------------------------------------------
+// 开始正常行动
+//--------------------------------------------------------
+function UI_start_build(){
+	if(game_info.step_list[game_info.step_index]==user_index){
+		//启用其他0级选项
+		if(game_info.game_process!=1){
+			$("actions0").children().not(".fst_action").show();
+		}
 	}
+	//启动计时器
+	timer.reset();
+	timer.start();
 }
 //--------------------------------------------------------
 // 开始选择前期坐城点
