@@ -694,8 +694,9 @@ $(document).ready(function(){
 			item_player.show();
 			count++;
 		}
-		var item_player=$("actions2").children().filter(function(){return $(this).attr("trade_target")=="player" && $(this).attr("target_val")=="0";});
-		item_player.show();
+		//暂时屏蔽公开交易选项
+		//var item_player=$("actions2").children().filter(function(){return $(this).attr("trade_target")=="player" && $(this).attr("target_val")=="0";});
+		//item_player.show();
 		//安置按钮组位置
 		$("actions2").css("top",$(this).position().top-count*25);
 	});
