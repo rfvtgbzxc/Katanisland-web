@@ -1,6 +1,6 @@
 # Katanisland-web
 前端：Bootstrap+Jquery+大量纯js
-后端：Django+Django-redis
+后端：Django+Channels
 
 由于采用了css新特性，对部分浏览器不兼容，已知有Edge。
 使用Chrome上可以完美运行。
