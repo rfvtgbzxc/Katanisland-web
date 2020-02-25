@@ -3,6 +3,7 @@
 <head>
 	<title>地图测试</title>
 	{% load static %}
+	{% csrf_token %}
 	<link rel="stylesheet" type="text/css" href="{%static 'css/game_test.css'%}">
 	<script type="text/javascript" src="http://cdn.repository.webfont.com/wwwroot/js/wf/youziku.api.min.js"></script>
 	<script type="text/javascript">
@@ -18,18 +19,21 @@
     <link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 	<script src="{% static 'js/react_game_test.js' %}"></script>
 	<script src="{% static 'js/react_message.js' %}"></script>
-	<script src="{% static 'js/model_Player.js' %}"></script>	
-	<script src="{% static 'js/model_Trade.js' %}"></script>
-	<script src="{% static 'js/model_Graphic.js' %}"></script>
-	<script src="{% static 'js/model_Map.js' %}"></script>
-	<script src="{% static 'js/model_Debug.js' %}"></script>
-	<script src="{% static 'js/model_Connection.js' %}"></script>
+	<script src="{% static 'js/module_System.js' %}"></script>
+	<script src="{% static 'js/module_Player.js' %}"></script>	
+	<script src="{% static 'js/module_Trade.js' %}"></script>
+	<script src="{% static 'js/module_Graphic.js' %}"></script>
+	<script src="{% static 'js/module_Map.js' %}"></script>
+	<script src="{% static 'js/module_Debug.js' %}"></script>
+	<script src="{% static 'js/module_Connection.js' %}"></script>
+	<script src="{% static 'js/module_DataManager.js' %}"></script>
 	<meta http-equiv="Pragma" content="no-cache">
 	<meta http-equiv="Cache-Control" content="no-cache">
 	<meta http-equiv="Expires" content="0">	
 </head>
 <body>
-	<span id="load_game" style="cursor:pointer;display: inline;z-index:100;">(离线)生成随机地图</span>
+	<!--<span id="load_game" style="cursor:pointer;display: inline;z-index:100;">(离线)生成随机地图</span>-->
+	<span style="position:absolute; left:20%"> 
 	<input id="room_size" type="text" style="width:40px" placeholder="人数">
 	<input id="room_pswd" type="text" style="width:80px" placeholder="房间密码">
 	<span id="create_game_online" style="cursor:pointer;display: inline;z-index:100;">创建房间</span>
@@ -37,6 +41,7 @@
 	<input id="set_user_name" type="text" style="width:120px" placeholder="昵称">	
 	<span id="load_game_online" style="cursor:pointer;display: inline;z-index:100;">加入房间</span>
 	<span >随机数种：<span id="seed_id"></span><span id="debuging"> debug</span></span>
+	</span>
 	<div></div>
 	<!--地图模块-->
 	<map ondragstart="return false;" onselectstart="return false;" unselectable="on">

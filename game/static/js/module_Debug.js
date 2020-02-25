@@ -14,19 +14,20 @@ $(document).ready(function(){
 	// 将会进入一个测试房间,该房间由创建游戏按钮创建
 	//--------------------------------------------------------
 	$("#load_game_online").click(function(){
-		if(offline){
-			alert("请先关闭脱机模式！")
-			return;
-		}
 		user_index=parseInt($("#set_user_index").val());
 		user_name=$("#set_user_name").val();
 		room_pswd=$("#room_pswd").val();
+		if(offline){
+			console.log("将以离线模式加载游戏，不会保存游戏数据")
+			load_game_offline();
+			return;
+		}
 		//本地局域网1
 		//ws = new WebSocket("ws://172.24.10.250:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
 		//本地局域网2
-		//ws = new WebSocket("ws://192.168.50.50:80/ws/game_test/"+user_index+"/");
+		ws = new WebSocket("ws://192.168.50.140:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
 		//阿里云服务器
-		ws = new WebSocket("ws://119.23.218.46:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
+		//ws = new WebSocket("ws://119.23.218.46:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
 		load_ws_function_msg();
 		load_ws_function_link();
 		ws.onopen = function () {
@@ -101,6 +102,14 @@ $(document).ready(function(){
 	});
 });
 //--------------------------------------------------------
+// 以离线模式加载游戏
+// 不会生成真实websocket
+//--------------------------------------------------------
+function load_game_offline(){
+	load_ws_function_msg();
+	request_t_game_info();
+}
+//--------------------------------------------------------
 // 获取游戏数据
 //--------------------------------------------------------
 function request_t_game_info(){
@@ -114,7 +123,8 @@ function request_t_game_info(){
 		headers:{"X-CSRFToken":$.cookie("csrftoken")},
 		success:function(info){
 			map_info=info.map_info;
-			game_info=info.game_info;
+			DataManager.extractSaveContents(info.game_info);
+			//game_info=info.game_info;
 		},
 	});
 	//初始化准备状态
@@ -132,6 +142,19 @@ function request_t_game_info(){
 	}
 }
 //--------------------------------------------------------
+// 加载数据,确定当前状态
+//--------------------------------------------------------
+function load_game(){
+	//这里以后会修改?
+	user_id=game_info.player_list[user_index][0];
+	//是不是自己的回合
+
+	//初始化强盗位置
+	if(game_info.occupying==0){
+		game_info.occupying=map_info.basic_roober;
+	}
+}
+//--------------------------------------------------------
 // UI初始化
 //--------------------------------------------------------
 function init_t_ui(){
@@ -143,36 +166,60 @@ function init_t_ui(){
 		$("#debug_show_ids").hide();
 		$("#debug_show_selectors").hide();
 	}
-	UI_new_turn();
+	hide_special_actions();
+	clear_selectors();
 	update_static_Graphic();
-	//截至以上,是一个正常的游戏中的状态
+	//截至以上,是一个空白的的游戏中的状态
 
 	//初始化recive_list
-	game_temp.recive_list=[].concat(game_info.online_list);
+	//$gameSystem.recive_list=[].concat(game_info.online_list);
 	//检测当前游戏状态
-	switch(game_info.game_process){
+	switch($gameSystem.game_process){
 		//尚未开始
 		case 0:
 			//等待所有玩家加入完毕
 			break;
 		//投掷骰子
 		case 1:
+			UI_start_dice();
+			if($gameSystem.self_player().first_dice[0]!=0){
+				var nums = $gameSystem.self_player().first_dice;
+				var num_sum = nums[0] + nums[1];
+				his_window.push("正在确定行动顺序,你已投骰,共计 "+num_sum,"important");
+				UI_set_dices(nums[0],nums[1]);
+			}
+			else{
+				his_window.push("所有玩家准备就绪,开始确定行动顺序,请投骰子：","important");
+			}
 			break;
 		//前期坐城
 		case 2:
 			create_step_list();
-			if(game_info.step_list[game_info.step_index]==user_index || offline){
-				//开始前期坐城设置
-				//还是状态机法好啊
-				start_set_home(0);
+			//在自己的回合,进行判断
+			if($gameSystem.is_own_turn()){
+				var own_cities = $gameSystem.active_player().own_cities
+				UI_start_set_home($gameSystem.active_player().home_step,own_cities[own_cities.length-1]);
 			}
 			break;
 		//正常游戏
 		case 3:
 			create_step_list();
-			//debug下掉线不会切换玩家,因此要额外判断
-			if(game_info.dice_num[0]!=0){
-				UI_set_dices(game_info.dice_num[0],game_info.dice_num[1]);	
+			UI_begin_turn();
+			//是否已经投骰?
+			if($gameSystem.dice_num[0]!=0){
+				UI_set_dices($gameSystem.dice_num[0],$gameSystem.dice_num[1]);
+				//查看投出7的进行状态
+				if($gameSystem.dice_7_step==0);
+				else{
+					if($gameSystem.dice_7_step==1 && $gameSystem.is_own_turn()){
+						start_drop_select();
+					}
+					else if($gameSystem.dice_7_step==2 && $gameSystem.is_own_turn()){
+						start_robber_set();
+					}
+					break;
+				}
+				//由于非正交的层级设计,如果不是自己回合该函数没有任何作用= =
 				UI_start_build();		
 			}
 			break;		
@@ -226,8 +273,10 @@ function t_player_ready(player_index,player_name){
 		if(all_ready){
 			$youziku.submit("playername_fst_update");
 			his_window.push("所有玩家准备就绪,开始确定行动顺序,请投骰子：","important");
+			//初始化recive_list
+			$gameSystem.recive_list=[].concat(game_info.online_list);
 			game_info.game_process=1;
-			UI_new_turn();
+			UI_start_dice();
 		}
 	}	
 }
@@ -235,10 +284,11 @@ function t_player_ready(player_index,player_name){
 // 更新游戏数据(debug模块专用)
 //--------------------------------------------------------
 function upload_game_info(){
+	var game_save = DataManager.makeSaveContents();
 	$.ajax({ 
 		type : "post", 
 		url : "/ajax/t_update_game_info/", 
-		data : {"room_pswd":room_pswd,game_info:JSON.stringify(game_info)}, 
+		data : {"room_pswd":room_pswd,game_info:JSON.stringify(game_save)}, 
 		async : false, 
 		headers:{"X-CSRFToken":$.cookie("csrftoken")},
 		error : function(){ 

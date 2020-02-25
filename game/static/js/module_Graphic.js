@@ -13,6 +13,8 @@ function update_static_Graphic(){
 		attrs.filter("src_state").text(""+all_src_num(player));
 		attrs.filter("vp_state").text(""+vp_num(player_index));
 		attrs.filter("dev_state").text(""+all_dev_num(player))
+		attrs.filter("city0_state").text(""+player.city_num(0))
+		attrs.filter("city1_state").text(""+player.city_num(1))
 		if(game_info.longest_road==player_index){
 			attrs.filter("longest_road").addClass("active");
 		}

@@ -32,8 +32,8 @@ timer={
 	"start":function(){
         $("timer").children().addClass("active").show();
         $("timer").children().addClass("active").addClass("play");
-        if(game_info.step_list[game_info.step_index]==user_index){
-        	this.timer_id=setTimeout(timer.finished,60000);
+        if($gameSystem.is_own_turn()){
+        	this.timer_id=setTimeout(timer.finished,$gameSystem.time_per_turn*1000);
         }        
 	},
 	"stop":function(){
@@ -281,10 +281,10 @@ $(document).ready(function(){
 		clear_selectors();	
 		switch(game_temp.action_now){
 			case "action_set_robber_for_7":
-				start_robber_set();
+				UI_start_robber_set();
 				break;
 			case "action_use_dev_soldier":
-				start_robber_set();
+				UI_start_robber_set();
 				break;
 			case "action_use_dev_road_making":
 				//再激活道路选择器
@@ -873,7 +873,7 @@ $(document).ready(function(){
 		game_temp.action_now="action_use_dev_soldier";
 		his_window.push("由你设置强盗:");
 		//启动强盗选择
-		start_robber_set();
+		UI_start_robber_set();
 		//激活自己
 		$(this).addClass("active");
 	});
@@ -1208,6 +1208,7 @@ function request_game_info(){
 }
 //--------------------------------------------------------
 // 加载数据,确定当前状态
+// 已弃用，参见model_Debug代码
 //--------------------------------------------------------
 function load_game(){
 	//这里以后会修改?
@@ -1221,10 +1222,13 @@ function load_game(){
 		game_info.trades[trade_id]=new Transaction(game_info.trades[trade_id]);
 	}
 	//初始化强盗位置
-	game_info.occupying=map_info.basic_roober;
+	if(occupying==0){
+		game_info.occupying=map_info.basic_roober;
+	}
 }
 //--------------------------------------------------------
 // UI初始化
+// 已弃用,详见module_Debug.js
 //--------------------------------------------------------
 function init_ui(){
 	$("dice").show();
@@ -1252,11 +1256,11 @@ function init_ui(){
 			break;
 		//前期坐城
 		case 2:
-			if(game_info.step_list[game_info.step_index]==user_index || offline){
+			/*if(game_info.active_player_index()==user_index || offline){
 				//开始前期坐城设置
 				//还是状态机法好啊
 				start_set_home(0);
-			}
+			}*/
 			break;
 			
 	}
@@ -1329,7 +1333,7 @@ function UI_use_dev_update(){
 			continue;
 		}
 		else if(game_temp.dev_used){
-			$("#action_use_dev_"+devs[i]).attr("tip","本回合已使用发展卡").addClass("part_disabled");
+			$("#action_use_dev_"+devs[i]).attr("tip","本回合已使用该发展卡").addClass("part_disabled");
 		}
 		else if(self_player[devs[i]+"_num"]<=self_player[devs[i]+"_get_before"]){
 			$("#action_use_dev_"+devs[i]).attr("tip","本回合获得的发展卡不能使用").addClass("part_disabled");
@@ -1339,7 +1343,6 @@ function UI_use_dev_update(){
 	//安置按钮组位置
 	$("actions1").css("top",$("#action_develop").position().top-count*25);
 	return count+1;
-
 }
 //--------------------------------------------------------
 // 展开特殊选项
@@ -1371,13 +1374,14 @@ function hide_special_actions(){
 	$("special_actions").children().hide();
 }
 //--------------------------------------------------------
-// 新的回合
+// 设置所有UI至回合开始的状态
 //--------------------------------------------------------
-function UI_new_turn(force=false){
-	//将UI重置到回合开始的状态
+function UI_begin_turn(force=false){
+	//将UI重置到回合开始的状态(仅限游戏进度3:正常游戏时)
 	//清除selectors
 	clear_selectors();
 	hide_special_actions();
+	/*
 	//当处于前期坐城状态,必定为要求建设新定居点
 	if(game_info.game_process==2 && user_index==game_info.step_list[game_info.step_index]){
 		if(game_temp.home_step%2==0){
@@ -1387,27 +1391,39 @@ function UI_new_turn(force=false){
 			start_set_home(game_temp.home_step+1);
 		}
 		
-	}
+	}*/
 	if(game_info.game_process!=2 || force){
 		//清空所有状态类
 		$("dice").removeClass();
 		$("actions0").children().children().removeClass("disabled active part_disabled");
-		//隐藏除投骰子以外的按钮,如果本回合不是你行动,则隐藏所有按钮
+		//隐藏除投骰子以外的按钮,如果本回合不是本人行动,则隐藏所有按钮
 		//此处应有拉长历史消息窗口的动作
-		if(game_info.step_list[game_info.step_index]==user_index || offline || game_info.game_process==1)
+		if(game_info.step_list[game_info.step_index]==user_index || offline)
 		{
-			$("actions0").show();
-			$("actions0").children().not(".fst_action").hide();
-			$("actions1").children().not("actions2").hide();
-			$("actions2").children().hide();
-			$("special_actions").children().hide();
+			UI_start_dice();	
 		}
 		else{
-			$("actions0").hide();
+			UI_hide_basic_menu();		
 		}
 		//刷新回合数
 		$("#rounds").text(('00'+game_info.play_turns).slice(-2));
 	}	
+}
+//--------------------------------------------------------
+// 隐藏所有基础菜单
+//--------------------------------------------------------
+function UI_hide_basic_menu(){
+	$("actions0").hide();
+}
+//--------------------------------------------------------
+// 打开投骰界面(同时隐藏其他选项)
+//--------------------------------------------------------
+function UI_start_dice(){
+	$("actions0").show();
+	$("actions0").children().not(".fst_action").hide();
+	$("actions1").children().not("actions2").hide();
+	$("actions2").children().hide();
+	$("special_actions").children().hide();
 }
 //--------------------------------------------------------
 // 设置骰子
@@ -1430,14 +1446,16 @@ function UI_start_build(){
 		}
 	}
 	//启动计时器
-	timer.reset();
-	timer.start();
+	if($gameSystem.time_per_turn!=0){
+		timer.reset();
+		timer.start();
+	}	
 }
 //--------------------------------------------------------
 // 开始选择前期坐城点
 // step:0 第一座定居点,1 第一条路,2 第二座定居点,3 第二条路
 //--------------------------------------------------------
-function start_set_home(step,point_id=0){
+function UI_start_set_home(step,point_id=0){
 	game_temp.action_now="fst_set_home";
 	game_temp.home_step=step;
 	switch(step%2){
@@ -1513,7 +1531,7 @@ function UI_start_drop_select(){
 //--------------------------------------------------------
 // 启动设置强盗
 //--------------------------------------------------------
-function start_robber_set(){
+function UI_start_robber_set(){
 	//准备可选择的地块
 	var places=avaliable_places();
 	for(var i in places){

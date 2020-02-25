@@ -1,14 +1,14 @@
 //用于处理websocket发送过来的消息
 //模拟websocket
 ws={};
-if(offline){
-	ws.send=function(msg){
-	$.get("/ajax/t_virtual_websocket/",msg,function(evt){
-		//模拟接收到消息触发函数
-		ws.onmessage(evt);},"json");
-	}
-}
 function load_ws_function_msg(){
+	if(offline){
+		ws.send=function(msg){
+		$.get("/ajax/t_virtual_websocket/",msg,function(evt){
+			//模拟接收到消息触发函数
+			ws.onmessage(evt);},"json");
+		}
+	}
 	//只属于ws的封装函数
 	ws.sendmsg=function(typ,mes){
 		//打开等待窗口
@@ -161,7 +161,8 @@ function handle_msg(msg){
 
 	};
 	//然后由房主更新game_info
-	if(game_info.player_list[user_index][0]==game_info.owner){
+	//离线模式不更新
+	if(!offline && game_info.player_list[user_index][0]==game_info.owner){
 		upload_game_info();
 	}
 	//暂不设计
@@ -183,6 +184,7 @@ function set_dice(num1,num2){
 		num2=3;
 	}
 	var can_start_build=true;
+	$gameSystem.dice_7_step=0;
 	//刷新game_info
 	game_info.dice_num[0]=num1;
 	game_info.dice_num[1]=num2;
@@ -194,21 +196,19 @@ function set_dice(num1,num2){
 	his_window.push("掷出点数: "+ num_sum);
 	//七点,所有玩家检查自己的资源数,大于七则触发丢弃选择,如果未大于7则丢弃一个空的丢弃列表。
 	if(num_sum==7){
-		if(all_src_num(game_info.players[user_index])>7){
-			game_temp.drop_required=parseInt(all_src_num(game_info.players[user_index])/2);
-			his_window.push("你需要丢弃 "+game_temp.drop_required+" 份资源");
-			game_temp.action_base="action_drop_srcs_for_7";
-			game_temp.action_now="action_drop_srcs_for_7";
-			can_start_build=false;
-			//打开丢弃窗口
-			UI_start_drop_select();
-			//手动关闭等待窗口
-			$("wait_window").hide();
+		//更新数据
+		$gameSystem.recive_list=[].concat($gameSystem.online_list);
+		$gameSystem.dice_7_step=1;
+		for(let player of Object.values($gamePlayers)){
+			if(player.all_src_num()>7){
+				player.drop_required = parseInt(player.all_src_num()/2);
+			}
+			else{
+				player.drop_required = 0;
+			}
 		}
-		else{
-			//如果没有大于7,发送一条空的丢弃消息,然后进入等待状态
-			ws.sendmsg("mes_action",{"starter":user_index,"val":[5,{}]});
-		}
+		//依照自己是否需要丢弃资源来打开UI
+		start_drop_select();
 		return;
 	}
 	for(var place_id in places){
@@ -245,6 +245,26 @@ function set_dice(num1,num2){
 		UI_start_build();
 	}
 	//alert("end");
+}
+//--------------------------------------------------------
+// 启动资源丢弃
+//--------------------------------------------------------
+function start_drop_select(){
+	if($gameSystem.self_player().drop_required>0){
+		game_temp.drop_required=$gameSystem.self_player().drop_required;
+		his_window.push("你需要丢弃 "+game_temp.drop_required+" 份资源");
+		game_temp.action_base="action_drop_srcs_for_7";
+		game_temp.action_now="action_drop_srcs_for_7";
+		can_start_build=false;
+		//打开丢弃窗口
+		UI_start_drop_select();
+		//手动关闭等待窗口
+		$("wait_window").hide();
+	}
+	else{
+		//如果不需要丢弃资源(或已经丢弃过),发送一条空的丢弃消息,然后进入等待状态
+		ws.sendmsg("mes_action",{"starter":user_index,"val":[5,{}]});
+	}
 }
 //--------------------------------------------------------
 // 建造道路
@@ -514,7 +534,9 @@ function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false
 	$("#action_use_dev_soldier").removeClass("active");
 	$("#cancel_robbing").hide();
 	$("#to_before_action").hide();
+	//如果是因为丢出七,额外打开建设界面,并设置步骤
 	if(!cost){
+		$gameSystem.dice_7_step=0;
 		UI_start_build();
 	}	
 	if(cost){
@@ -562,21 +584,23 @@ function drop_srcs(drop_list,dropper_index){
 		dropper[order[src_id]+"_num"]-=drop_list[src_id];
 		his_window.push(game_info.player_list[dropper_index][1]+" 丢弃了 "+order_ch[src_id]+" x "+drop_list[src_id]);
 	}
+	//更新该玩家的数据
+	$gamePlayers[dropper_index].drop_required=0;
 	//如果是自己所为,进行回调关闭窗口
 	if(dropper_index==user_index){
 		//回调,关闭丢弃资源窗口
 		$("drop_window").hide();
 	}
 	//完成丢弃后,检查recive_list,释放操作权或保持等待。
-	if(msg_recive(dropper_index)==true){
+	if($gameSystem.msg_recive(dropper_index)==true){
+		//更新数据
+		$gameSystem.dice_7_step=2;
+		for(let player of Object.values($gamePlayers)){
+			player.drop_required=-1;
+		}
 		$("wait_window").hide();
 		//由掷出者设置强盗
-		if(game_info.step_list[game_info.step_index]==user_index){
-			his_window.push("由你设置强盗:");
-			//当前行动记为action_set_robber_for_7
-			//设置最初行动
-	    	game_temp.action_base="action_set_robber_for_7";
-			game_temp.action_now="action_set_robber_for_7";
+		if($gameSystem.is_own_turn()){
 			start_robber_set();
 		}
 		else{
@@ -587,6 +611,17 @@ function drop_srcs(drop_list,dropper_index){
 		his_window.push("等待其他玩家选择丢弃资源...");
 		$("wait_window").show();
 	}
+}
+//--------------------------------------------------------
+// 准备设置强盗
+//--------------------------------------------------------
+function start_robber_set(){
+	his_window.push("由你设置强盗:");
+	//当前行动记为action_set_robber_for_7
+	//设置最初行动
+	game_temp.action_base="action_set_robber_for_7";
+	game_temp.action_now="action_set_robber_for_7";
+	UI_start_robber_set();
 }
 //--------------------------------------------------------
 // 丰收
@@ -672,7 +707,7 @@ function new_turn()
 		game_info.play_turns++;
 	}
 	//重置recive_list
-	game_temp.recive_list=[].concat(game_info.online_list);
+	$gameSystem.recive_list=[].concat(game_info.online_list);
 	//清空所有玩家的发展卡get_before限制(尽管对于某位玩家来说只需要清除自己的)
 	for(player_index in game_info.players){
 		var player=game_info.players[player_index];	
@@ -696,13 +731,15 @@ function new_turn()
 	his_window.push("第 "+game_info.play_turns+" 回合,轮到 "+game_info.player_list[game_info.step_list[game_info.step_index]][1]+" 行动");
 	//emmm好像没什么要做的了= =||
 	//UI更新
-	UI_new_turn();
+	UI_begin_turn();
 }
 //--------------------------------------------------------
 // 初始坐城
 //--------------------------------------------------------
 function set_home(step,val,setter_index){
 	var setter=game_info.players[setter_index];
+	//更新坐城状态
+	setter.home_step=step+1;
 	switch(step%2){
 		//建立定居点
 		case 0:
@@ -721,7 +758,7 @@ function set_home(step,val,setter_index){
 			his_window.push("由 "+setter.name+" 建设道路");
 			if(setter_index==user_index){
 				//接着请求修建道路
-				start_set_home(step+1,val);
+				UI_start_set_home(setter.home_step,val);
 			}	
 			break;
 		//修建道路
@@ -742,6 +779,10 @@ function set_home(step,val,setter_index){
 			}
 			//结束回合,移交行动权
 			new_turn();
+			//如果接下来是自己的回合,且没有进入下一个游戏阶段,请求修建定居点
+			if($gameSystem.is_own_turn() && game_info.game_process!=3){		
+				UI_start_set_home($gameSystem.active_player().home_step);
+			}
 			break;
 	}
 
@@ -752,18 +793,23 @@ function set_home(step,val,setter_index){
 //--------------------------------------------------------
 function fst_dice(num1,num2,dicer_index){
 	var player=game_info.players[dicer_index];
+	//更新数据
+	player.first_dice[0] = num1;
+	player.first_dice[1] = num2;
 	if(user_index==dicer_index){
 		//显示骰子数
 		UI_set_dices(num1,num2);
 	}	
 	var num_sum=num1+num2;
 	//添加消息
-	his_window.push(player.name+" 掷出点数: "+num1+","+num2+" ,共计 "+num_sum,"important");
-	//更新骰子计数
-	game_temp.fst_dices[dicer_index]=num_sum;
-	dices=game_temp.fst_dices;
+	his_window.push(player.name+" 掷出点数: "+num1+","+num2+" ,共计 "+num_sum,"important");	
 	var player_ranks=[];
-	if(msg_recive(dicer_index)){
+	if($gameSystem.msg_recive(dicer_index)){
+		//整合骰子数据
+		var dices=[0];
+		for(let index in $gamePlayers){
+			dices[index]=$gamePlayers[index].first_dice[0]+$gamePlayers[index].first_dice[1];
+		}
 		//对所有玩家投出的值进行排序:选择排序
 		var count=0;
 		while(Object.keys(dices).length>1){
@@ -786,22 +832,21 @@ function fst_dice(num1,num2,dicer_index){
 		game_info.step_index=-1;
 		game_info.game_process=2;
 		var text="";
-		for(let player_index of game_info.step_list){
-			text+=(" "+game_info.players[player_index].name+"->");
+		for(let i in $gameSystem.step_list){
+			text += $gamePlayers[$gameSystem.step_list[i]].name
+			if(i!=$gameSystem.step_list.length-1){
+				text+="->";
+			}
 		}
-		text.substring(-2,2);
 		his_window.push("行动顺序为:"+text,"important");
 		his_window.push("----开始安放前期定居点----");
 		create_step_list();
 		new_turn();
+		//如果是自己的回合,开始设置第一个定居点
+		if($gameSystem.is_own_turn()){
+			UI_start_set_home(0);
+		}
 	}
-}
-//--------------------------------------------------------
-// 同步操作完成人数
-//--------------------------------------------------------
-function msg_recive(player_index){
-	game_temp.recive_list.splice(game_temp.recive_list.indexOf(player_index),1);
-	return game_temp.recive_list.length==0 || offline;
 }
 
 //--------------------------------------------------------

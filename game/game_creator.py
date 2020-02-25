@@ -2,26 +2,34 @@ import json
 
 def new_Player(index):
 	player={}
+	# 基本参数
 	player["index"]=index
 	player["src_secret"]=True
+	player["own_cities"]=[]
 	player["brick_num"]=0
 	player["wool_num"]=0
 	player["wood_num"]=0
 	player["grain_num"]=0
 	player["ore_num"]=0
 	player["soldier_num"]=0
-	player["soldier_used"]=0
 	player["score_unshown"]=[]
 	player["score_shown"]=[]
 	player["plenty_num"]=0
 	player["monopoly_num"]=0
 	player["road_making_num"]=0
+	# 状态参数
+	player["first_dice"]=[0,0]
+	player["home_step"]=0
+	player["drop_required"]=0
+	player["dev_used"]=False
+	player["no_build_dev_used"]=0
 	player["soldier_get_before"]=0
 	player["plenty_get_before"]=0
 	player["monopoly_get_before"]=0
 	player["road_making_get_before"]=0
+	# 其他参数
+	player["soldier_used"]=0
 	player["road_longest"]=[]
-	player["own_cities"]=[]
 	return player
 
 def new_Cards():
@@ -49,63 +57,53 @@ def new_Trade(starter,accepter,id):
 	trade["accepter_list"]={}
 	return trade
 
+def new_System():
+	system = {}
+	system["step_index"]=0
+	system["game_process"]=0
+	system["time_per_turn"]=0
+	system["occupying"]=0
+	system["longest_road"]=0
+	system["max_minitory"]=0
+	system["play_turns"]=0
+	system["dice_num"]=[0,0]
+	system["owner"]=1
+	system["active_trades"]=[]
+	system["step_list"]=[]
+	system["online_list"]=[]
+	system["player_list"]={}
+	system["user_list"]={}
+	system["recive_list"]=[]
+	return system
+
 def init_game_info(player_size):
 	#初始化
 	game_info={}
+	system=new_System()
 	players={}
 	cities={}
 	roads={}
-	cards=new_Cards()
+	bank=new_Cards()
 	trades={}
-	step_index=0
-	game_process=0
-	occupying=0
-	longest_road=0
-	max_minitory=0
-	play_turns=0
-	dice_num=[0,0]
-	owner=1
-	active_trades=[]
-	step_list=[]
-	online_list=[]
-	player_list={}
-	user_list={}
 
 	#生成玩家
 	for i in range(1,player_size+1):
 		players[str(i)]=new_Player(i)
-		online_list.append(i)
-		player_list[str(i)]=[i,""]
-		user_list[str(i)]=i
+		system["online_list"].append(i)
+		system["player_list"][str(i)]=[i,""]
+		system["user_list"][str(i)]=i
 	#生成交易
 	for st in range(1,player_size+1):
 		for ac in range(0,player_size+1):
 			num=st*(player_size+1)+ac
 			trades[num]=new_Trade(st,ac,num)
-	game_info["step_index"]=step_index
-	game_info["game_process"]=game_process
-	game_info["occupying"]=occupying
 
-	game_info["longest_road"]=longest_road
-	game_info["max_minitory"]=max_minitory
-
-	game_info["play_turns"]=play_turns
-	game_info["dice_num"]=dice_num
-	game_info["game_process"]=game_process
-	
-	game_info["owner"]=owner
-	game_info["step_list"]=step_list
-	game_info["online_list"]=online_list		
-	game_info["player_list"]=player_list
-	game_info["user_list"]=user_list
-	game_info["players"]=players
-
+	game_info["system"]=system
 	game_info["players"]=players
 	game_info["cities"]=cities
 	game_info["roads"]=roads
-	game_info["cards"]=cards
+	game_info["bank"]=bank
 	game_info["trades"]=trades	
-	game_info["active_trades"]=active_trades
 
 	return game_info
 
