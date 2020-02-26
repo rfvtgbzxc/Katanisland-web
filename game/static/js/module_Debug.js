@@ -63,16 +63,16 @@ $(document).ready(function(){
 		if($(this).attr("on")=="off")
 		{
 			$(this).attr("on","on");
-			$("plc_selector").addClass("active selector_avaliable").show();
-			$("edge_selector").addClass("active selector_avaliable").show();
-			$("pt_selector").addClass("active selector_avaliable").show();
+			$("plc_selector").addClass("active selector_available").show();
+			$("edge_selector").addClass("active selector_available").show();
+			$("pt_selector").addClass("active selector_available").show();
 		}
 		else
 		{
 			$(this).attr("on","off");
-			$("plc_selector").removeClass("active selector_avaliable").hide();
-			$("edge_selector").removeClass("active selector_avaliable").hide();
-			$("pt_selector").removeClass("active selector_avaliable").hide();
+			$("plc_selector").removeClass("active selector_available").hide();
+			$("edge_selector").removeClass("active selector_available").hide();
+			$("pt_selector").removeClass("active selector_available").hide();
 		}		
 	});
 	//--------------------------------------------------------
@@ -209,7 +209,10 @@ function init_t_ui(){
 			if($gameSystem.dice_num[0]!=0){
 				UI_set_dices($gameSystem.dice_num[0],$gameSystem.dice_num[1]);
 				//查看投出7的进行状态
-				if($gameSystem.dice_7_step==0);
+				if($gameSystem.dice_7_step==0){
+					//由于非正交的层级设计,如果不是自己回合该函数没有任何作用= =
+					UI_start_build();
+				}
 				else{
 					if($gameSystem.dice_7_step==1 && $gameSystem.is_own_turn()){
 						start_drop_select();
@@ -218,9 +221,16 @@ function init_t_ui(){
 						start_robber_set();
 					}
 					break;
-				}
-				//由于非正交的层级设计,如果不是自己回合该函数没有任何作用= =
-				UI_start_build();		
+				}			
+				//检查交易并显示
+				for(let trade_id of $gameSystem.active_trades){
+					let trade = $gameTrades[trade_id];
+					if(trade.accepter==user_index){
+						his_window.push($gamePlayers[trade.starter].name+" 想要与你交易","important");
+						show_special_actions("trade",trade.starter);
+						break;
+					}
+				}		
 			}
 			break;		
 	}

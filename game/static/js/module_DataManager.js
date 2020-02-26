@@ -24,6 +24,7 @@ DataManager.load_old_data = function() {
 	game_info.cities           = $gameCities;
 	game_info.roads            = $gameRoads;
 	game_info.trades           = $gameTrades;
+	game_info.cards            = $gameBank;
 }
 //--------------------------------------------------------
 // 将部分不仅限于数据结构的全局变量实例化
@@ -37,6 +38,8 @@ DataManager.applyObject = function() {
 	for(var trade_id in $gameTrades){
 		$gameTrades[trade_id] = new Transaction($gameTrades[trade_id]);
 	}
+	//实例化银行
+	$gameBank = new Game_Bank($gameBank);
 	//实例化系统
 	$gameSystem = new Game_System($gameSystem);
 }

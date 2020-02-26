@@ -75,8 +75,8 @@ class Transaction{
 // 启动交易窗口
 //--------------------------------------------------------
 function start_trade_window(target="bank",target_val=0){
-	var init_give_items_avaliable=[];
-	var init_wonder_items_avaliable=[];
+	var init_give_items_available=[];
+	var init_wonder_items_available=[];
 	var self_player=game_info.players[user_index];
 	var starter_cards=self_player;
 	var accepter_cards=game_info.cards;
@@ -104,8 +104,8 @@ function start_trade_window(target="bank",target_val=0){
 			trade_ratio=4;
 			action_text="发起交易";
 			head_text="与银行交易 4:1";
-			init_wonder_items_avaliable.push(1,2,3,4,5);
-			init_give_items_avaliable.push(1,2,3,4,5);
+			init_wonder_items_available.push(1,2,3,4,5);
+			init_give_items_available.push(1,2,3,4,5);
 			break;
 		//港口,实际交易目标还是银行
 		case "harbour":
@@ -114,15 +114,15 @@ function start_trade_window(target="bank",target_val=0){
 			action_text="发起交易";
 			if(target_val=="6"){
 				trade_ratio=3;
-				init_give_items_avaliable.push(1,2,3,4,5);
+				init_give_items_available.push(1,2,3,4,5);
 				head_text="与"+order_ch[target_val]+"港交易 3:1";
 			}
 			else{
 				trade_ratio=2;
-				init_give_items_avaliable.push(parseInt(target_val));
+				init_give_items_available.push(parseInt(target_val));
 				head_text="与"+order_ch[target_val]+"港交易 2:1";
 			}
-			init_wonder_items_avaliable.push(1,2,3,4,5);
+			init_wonder_items_available.push(1,2,3,4,5);
 			break;
 		//玩家,交易的各个选项都不受限制,且出于资源保密,会设置不显示资源数
 		case "player":
@@ -143,8 +143,8 @@ function start_trade_window(target="bank",target_val=0){
 			}				
 			action_text="发起交易";
 			trade_ratio=1;
-			init_give_items_avaliable.push(1,2,3,4,5);
-			init_wonder_items_avaliable.push(1,2,3,4,5);
+			init_give_items_available.push(1,2,3,4,5);
+			init_wonder_items_available.push(1,2,3,4,5);
 			if(target_val=="0"){
 				head_text=game_info.players[target_val].name+" 的公开交易"
 			}
@@ -154,7 +154,7 @@ function start_trade_window(target="bank",target_val=0){
 			break;
 	}
 	//设置已选择资源
-	var trade=game_temp.trade_now_id==0?game_temp.bank_trade:trades[game_temp.trade_now_id];
+	var trade=trades[game_temp.trade_now_id];
 	//如果并非正在进行的交易,对交易内容进行初始化(对于银行的交易一定生效)	
 	if(game_info.active_trades.indexOf(game_temp.trade_now_id)==-1){		
 		trade.clear();
@@ -194,13 +194,13 @@ function start_trade_window(target="bank",target_val=0){
 		item.own_num=accepter_selected.hasOwnProperty(src_id)?accepter_selected[src_id]:0;
 		item.jqdom_init();
 	}
-	items=game_UI_list.trade_items._give.avaliable;
+	items=game_UI_list.trade_items._give.available;
 	for(var i=0;i<items.length;i++){
 		var UI_id=items[i];
 		var item=game_UI[UI_id];
 		//如果目标玩家选择保密自己的资源数,则应用secret属性
 		item.secret=(game_temp.trade_target=="player" && person=="他")?secret:false;
-		if(init_give_items_avaliable.indexOf(src_reflection[item.item_type])==-1){
+		if(init_give_items_available.indexOf(src_reflection[item.item_type])==-1){
 			var src_num=0;
 		}
 		else{
@@ -213,14 +213,14 @@ function start_trade_window(target="bank",target_val=0){
 		item.own_num-=item.rlt_item.own_num;
 		item.jqdom_update();
 	}
-	items=game_UI_list.trade_items._get.avaliable;
+	items=game_UI_list.trade_items._get.available;
 	for(var i=0;i<items.length;i++){
 		var UI_id=items[i];
 		var item=game_UI[UI_id];
 		item.ratio_num=1;
 		//如果目标玩家选择保密自己的资源数,则应用secret属性
 		item.secret=(game_temp.trade_target=="player" && person=="你")?secret:false;
-		if(init_wonder_items_avaliable.indexOf(src_reflection[item.item_type])==-1){
+		if(init_wonder_items_available.indexOf(src_reflection[item.item_type])==-1){
 			var src_num=0;
 		}
 		else{

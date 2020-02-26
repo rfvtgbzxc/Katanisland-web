@@ -91,7 +91,7 @@ function dp_search_road(path_now,player_index,from_pt=null){
 //--------------------------------------------------------
 // 获取玩家可设置强盗的地块
 //--------------------------------------------------------
-function avaliable_places(){
+function available_places(){
 	//只需要删除有强盗的地块即可
 	var places=[];
 	for(var place_id in map_info.places){
@@ -105,7 +105,7 @@ function avaliable_places(){
 // 获取玩家可修路的边
 // temp_edge:额外考虑temp_edge
 //--------------------------------------------------------
-function avaliable_edges(player_index,temp_edge=[]){
+function available_edges(player_index,temp_edge=[]){
 	var roads=union(all_roads(player_index),temp_edge);
 	var available_edges_from_road={};
 	var available_edges_all=[];
@@ -145,28 +145,28 @@ function avaliable_edges(player_index,temp_edge=[]){
 //--------------------------------------------------------
 // 获取玩家可定居的点
 //--------------------------------------------------------
-function avaliable_points(player_index){
+function available_points(player_index){
 	var roads=all_roads(player_index);
-	var avaliable_points_all=[];
+	var available_points_all=[];
 	//获取自己所有道路的端点
 	for(var i in roads){
-		avaliable_points_all=union(avaliable_points_all,edge_round_points(roads[i]));	
+		available_points_all=union(available_points_all,edge_round_points(roads[i]));	
 	}
-	//alert(avaliable_points_all);
+	//alert(available_points_all);
 	//alert(pt_round_points(38))
 	//删除自己或周围有其他城市的点
 	var i=0;
-	while(i<avaliable_points_all.length){
-		//his_window.push(JSON.stringify(avaliable_points_all));
+	while(i<available_points_all.length){
+		//his_window.push(JSON.stringify(available_points_all));
 		var can_settle=true;
-		if(game_info.cities.hasOwnProperty(avaliable_points_all[i])){
-			avaliable_points_all.splice(i,1);
+		if(game_info.cities.hasOwnProperty(available_points_all[i])){
+			available_points_all.splice(i,1);
 			continue;
 		}
-		var near_pts=pt_round_points(avaliable_points_all[i]);	
+		var near_pts=pt_round_points(available_points_all[i]);	
 		for(var j in near_pts){
 			if(game_info.cities.hasOwnProperty(near_pts[j])){
-				avaliable_points_all.splice(i,1);
+				available_points_all.splice(i,1);
 				can_settle=false;
 				break;
 			}
@@ -176,25 +176,25 @@ function avaliable_points(player_index){
 		}
 		//alert("2");				
 	}
-	return avaliable_points_all;
+	return available_points_all;
 }
 //--------------------------------------------------------
 // 获取玩家可定居的点(开局时)
 //--------------------------------------------------------
-function avaliable_points_st(player_index){
-	var avaliable_points_all=Object.values(map_info.points);
+function available_points_st(player_index){
+	var available_points_all=Object.values(map_info.points);
 	//删除自己或周围有其他城市的点
 	var i=0;
-	while(i<avaliable_points_all.length){
+	while(i<available_points_all.length){
 		var can_settle=true;
-		if(game_info.cities.hasOwnProperty(avaliable_points_all[i])){
-			avaliable_points_all.splice(i,1);
+		if(game_info.cities.hasOwnProperty(available_points_all[i])){
+			available_points_all.splice(i,1);
 			continue;
 		}
-		var near_pts=pt_round_points(avaliable_points_all[i]);	
+		var near_pts=pt_round_points(available_points_all[i]);	
 		for(var j in near_pts){
 			if(game_info.cities.hasOwnProperty(near_pts[j])){
-				avaliable_points_all.splice(i,1);
+				available_points_all.splice(i,1);
 				can_settle=false;
 				break;
 			}
@@ -203,7 +203,7 @@ function avaliable_points_st(player_index){
 			i++;
 		}			
 	}
-	return avaliable_points_all;
+	return available_points_all;
 }
 //--------------------------------------------------------
 // 获取玩家所有城市

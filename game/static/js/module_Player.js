@@ -13,11 +13,15 @@ class Game_Player{
 	//--------------------------------------------------------
 	// 获取资源数
 	// 可以使用资源id或资源名来获取,且可以使用操作符进行数量修改
+	// show:使用自动消息来提示
 	//--------------------------------------------------------
-	src(src_name,op="null",op_num="null"){
+	src(src_name,op="null",op_num="null",show=true){
+		var src_id = null;
 		if(/^[0-9]+$/.test(src_name)){
+			src_id = src_name;
 			src_name=order[src_name];
 		}
+		else{src_id = src_reflection[src_name];}
 		if(typeof(op)=="number"){
 			op_num=op;
 			op="=";
@@ -25,19 +29,26 @@ class Game_Player{
 		if(op_num=="null"){
 			return this[src_name+"_num"];
 		}
-		switch(op){
-			case "null":
-				this[src_name+"_num"]=op_num;
-				break;
-			case "=":
-				this[src_name+"_num"]=op_num;
-				break;
-			case "+=":
-				this[src_name+"_num"]+=op_num;
-				break;
-			case "-=":
-				this[src_name+"_num"]-=op_num;
-				break;
+		var src_change = 0;	
+		switch(op){		
+		case "null":
+			src_change = op_num - this[src_name+"_num"];
+			if(show){his_window.player_get_item(this,src_id,src_change);}
+			this[src_name+"_num"]=op_num;
+			break;
+		case "=":
+			src_change = op_num - this[src_name+"_num"];
+			if(show){his_window.player_get_item(this,src_id,src_change);}
+			this[src_name+"_num"]=op_num;
+			break;
+		case "+=":
+			this[src_name+"_num"]+=op_num;
+			if(show){his_window.player_get_item(this,src_id,op_num);}
+			break;
+		case "-=":
+			this[src_name+"_num"]-=op_num;
+			if(show){his_window.player_get_item(this,src_id,op_num);}
+			break;
 		}
 		return this[src_name+"_num"];
 	}

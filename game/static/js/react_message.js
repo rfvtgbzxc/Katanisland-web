@@ -107,23 +107,30 @@ function handle_msg(msg){
 				    break;
 				//发展
 				case 3:
-					game_temp.dev_used=true;
 					switch(val[1]){
 						//士兵卡
 						case 1:
+							game_temp.dev_used=true;
 							set_robber_info(val[2],msg.message.starter,val[3],val[5],true);
 							break;
 						//丰收卡
 						case 2:
+							game_temp.dev_used=true;
 							dev_plenty(val[2],msg.message.starter);
 							break;
 						//垄断卡
 						case 3:
+							game_temp.dev_used=true;
 							dev_monopoly(val[2],msg.message.starter);
 							break;
 						//修路卡
 						case 4:
+							game_temp.dev_used=true;
 							dev_road_making(val[2],val[3],msg.message.starter);
+							break;
+						//展示分数卡
+						case 5:
+							show_score_card(val[2],msg.message.starter);
 							break;
 					}
 					break;
@@ -460,9 +467,7 @@ function msg_refuse_trade(trade_id,refuser_index){
 	var trade=game_info.trades[trade_id];
 	//公开交易在各自玩家的状态中显示不同
 	trade.trade_state="refused";
-	if(refuser_index==user_index){	
-		game_info.active_trades.splice(game_info.active_trades.indexOf(trade.id),1);
-	}	
+	game_info.active_trades.splice(game_info.active_trades.indexOf(trade.id),1);
 	window_finish_trade(trade,refuser_index);
 }
 //--------------------------------------------------------
@@ -589,14 +594,14 @@ function drop_srcs(drop_list,dropper_index){
 	//如果是自己所为,进行回调关闭窗口
 	if(dropper_index==user_index){
 		//回调,关闭丢弃资源窗口
-		$("drop_window").hide();
+		$("simple_item_select_window").hide();
 	}
 	//完成丢弃后,检查recive_list,释放操作权或保持等待。
 	if($gameSystem.msg_recive(dropper_index)==true){
 		//更新数据
 		$gameSystem.dice_7_step=2;
 		for(let player of Object.values($gamePlayers)){
-			player.drop_required=-1;
+			player.drop_required=0;
 		}
 		$("wait_window").hide();
 		//由掷出者设置强盗
@@ -626,13 +631,15 @@ function start_robber_set(){
 //--------------------------------------------------------
 // 丰收
 //--------------------------------------------------------
-function dev_plenty(src_id,player_index){
-	var player=game_info.players[player_index];
-	player.dev("plenty","-=",1);
-	player.src(src_id,"+=",2);
+function dev_plenty(src_list,player_index){
+	var player=$gamePlayers[player_index];
 	his_window.push(player.name+" 使用了 "+"丰收卡");
-	his_window.push(player.name+" 获得了2份 "+order_ch[src_id]);
+	for(let src_id in src_list){
+		player.src(src_id,"+=",src_list[src_id]);
+	}
+	player.dev("plenty","-=",1);
 	//UI回调,设置菜单级数为1
+	close_simple_item_select_window();
 	init_menu_lv(1,$("#action_use_dev_plenty"));
 	UI_use_dev_update();
 }
@@ -649,9 +656,9 @@ function dev_monopoly(src_id,starter_index){
 			continue;
 		}
 		var player=game_info.players[player_index];	
-		starter.src(src_id,"+=",player.src(src_id));
+		starter.src(src_id,"+=",player.src(src_id),false);
 		his_window.push(player.name+" 交出了 "+player.src(src_id)+" 份 "+order_ch[src_id]);
-		player.src(src_id,0);
+		player.src(src_id,0,false);
 	}	
 	//垄断卡使用后,本回合无法再进行建设
 	game_temp.no_build_dev_used=true;
@@ -670,6 +677,17 @@ function dev_road_making(road_id1,road_id2,builder_index){
 	build_road(road_id2,builder_index,false);
 	//UI回调,设置菜单级数为1
 	init_menu_lv(1,$("#action_use_dev_road_making"));
+	UI_use_dev_update();
+}
+//--------------------------------------------------------
+// 展示分数卡
+//--------------------------------------------------------
+function show_score_card(card_name,player_index){
+	var player=$gamePlayers[player_index];
+	player.show_score_cards(card_name);
+	his_window.push(player.name+" 展示了分数卡 "+card_name);
+	//UI回调,设置菜单级数为1
+	init_menu_lv(1,$("#action_show_score_cards"));
 	UI_use_dev_update();
 }
 //--------------------------------------------------------
@@ -751,7 +769,6 @@ function set_home(step,val,setter_index){
 				for(i in places){
 					var place=map_info.places[places[i]];
 					if(place==null){continue;}
-					his_window.push(setter.name+" 获得 "+order_ch[place.create_type]+" x 1")
 					setter.src(place.create_type,"+=",1);
 				}				
 			}

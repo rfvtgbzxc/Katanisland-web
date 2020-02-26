@@ -26,6 +26,12 @@ function update_static_Graphic(){
 		}
 		else{
 			attrs.filter("max_minitory").removeClass("active");
+		}
+		if(player.score_shown.length>0){
+			attrs.filter("score_card").addClass("active");
+		}
+		else{
+			attrs.filter("score_card").removeClass("active");
 		}	
 	});
 	//刷新选项中的发展卡数量
@@ -52,13 +58,13 @@ function update_static_Graphic(){
 function clear_selectors(){
 	//alert("?");
 	//清除块选择器
-	$("plc_selector").attr("tip","").removeClass("active selector_avaliable selector_selected selector_disabled selector_displaying").hide();
+	$("plc_selector").attr("tip","").removeClass("active selector_available selector_selected selector_disabled selector_displaying").hide();
 	//清除边选择器
-	$("edge_selector").attr("tip","").removeClass("active selector_avaliable selector_selected selector_disabled selector_displaying").hide();
+	$("edge_selector").attr("tip","").removeClass("active selector_available selector_selected selector_disabled selector_displaying").hide();
 	//清除边选择器
-	$("pt_selector").attr("tip","").removeClass("active selector_avaliable selector_selected selector_disabled selector_displaying").hide();
+	$("pt_selector").attr("tip","").removeClass("active selector_available selector_selected selector_disabled selector_displaying").hide();
 	//清除玩家选择器
-	$("player").removeClass("active player_select_avaliable player_select_selected");
+	$("player").removeClass("active player_select_available player_select_selected");
 }
 //--------------------------------------------------------
 // 取消选择器
@@ -361,16 +367,20 @@ function load_UI(){
 	//加载交易/舍弃栏资源图标
 	for(var i=1;i<1+src_size;i++){
 		$("srcs_selected").append("<src_item num='0' class='"+order[i]+"'></src_item>");
-		$("srcs_avaliable").append("<src_item num='0' class='"+order[i]+"'></src_item>");
+		$("srcs_available").append("<src_item num='0' class='"+order[i]+"'></src_item>");
 	}
 	//加载动态菜单
 	//加载港口
 	for(var i=1;i<7;i++){
 		$("actions2").append("<button trade_target='harbour' target_val='"+i+"' type='button' class='action_prepare_trade list-group-item'>"+order_ch[i]+"港</button>");
 	}
-	//加载垄断资源
+	//加载垄断/丰收资源
 	for(var i=1;i<6;i++){
 		$("actions2").append("<button src_id='"+i+"' type='button' class='src_selector list-group-item'>"+order_ch[i]+"</button>");
+	}
+	//加载分数卡(在展示分数栏)
+	for(let card_name of score_cards){
+		$("actions2").append("<button src_id='"+i+"' type='button' class='score_card_selector list-group-item'>"+card_name+"</button>");
 	}
 	//加载交易玩家
 	$("actions2").append("<button trade_target='player' target_val='0' type='button' class='action_prepare_trade list-group-item'>公开交易</button>");
@@ -381,7 +391,6 @@ function load_UI(){
 	}
 	//加载资源栏对象
 	create_trade_items();
-	game_temp.bank_trade=new Transaction(0,0,0);
 	//加载文字
 	$youziku.submit("playername_update");
 }
@@ -500,7 +509,9 @@ function create_step_list(){
 	});	
 
 }
-
+//--------------------------------------------------------
+// 添加交易/丢弃单元
+//--------------------------------------------------------
 
 function create_trade_items(){
 	for(var src_id=1;src_id<6;src_id++){
@@ -508,7 +519,7 @@ function create_trade_items(){
 		var src_num=0;
 
 		var menu1=["give","get"];
-		var menu2=["selected","avaliable"];
+		var menu2=["selected","available"];
 
 		for(var v1 in menu1){
 			for(var v2 in menu2){
@@ -519,9 +530,9 @@ function create_trade_items(){
 					var item=a_selected_item;
 				}
 				else{
-					var a_avaliable_item_item=new Avaliable_Trade_item(jqitem,a_selected_item,src_name,menu1[v1]);
-					a_selected_item.rlt_item=a_avaliable_item_item;
-					var item=a_avaliable_item_item;
+					var a_available_item_item=new Available_Trade_item(jqitem,a_selected_item,src_name,menu1[v1]);
+					a_selected_item.rlt_item=a_available_item_item;
+					var item=a_available_item_item;
 				}				
 				jqitem.attr("id",game_UI.UI_count);
 				game_UI[game_UI.UI_count]=item;

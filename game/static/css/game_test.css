@@ -3,13 +3,13 @@
 	position: absolute;
 }
 /*选择器通用*/
-.selector_avaliable
+.selector_available
 {
 	background-color: currentColor;
 	opacity:0.7;
     color: green;
 }
-.selector_avaliable:hover
+.selector_available:hover
 {
 	background-color: currentColor;
 	opacity:1;
@@ -376,11 +376,11 @@ player.self
 	height:205px;
 	font-size:20px;
 }
-player.player_select_avaliable
+player.player_select_available
 {
 	border-left: 20px solid rgba(0,128,0,0.7);
 }
-player.player_select_avaliable:hover
+player.player_select_available:hover
 {
 	border-color: rgba(0,128,0,1);
 }
@@ -683,10 +683,14 @@ step_list
 	bottom:calc(0% + 80px);
 	z-index:4000;
 }
+/*-----------------------------
+提示窗口
+-----------------------------*/
 info_window{
 	position: absolute;
 	z-index:5000;
 	background: white;
+	max-width: 300px;
 	font-size:10px;
 	-webkit-user-select:none;
 
@@ -695,6 +699,14 @@ info_window{
      -ms-user-select:none;
 
      user-select:none;
+}
+info_window help_text{
+	display: block;
+	color: black;
+}
+info_window alert_text{
+	display: block;
+	color: red;
 }
 confirm_window
 {
@@ -773,7 +785,7 @@ window_back{
 
      user-select:none;
 }
-drop_window
+simple_item_select_window
 {
 	display:none;
 	position: absolute;
@@ -854,7 +866,7 @@ srcs_selected
 	border-top-right-radius: 5px;
 	border: 2px solid rgba(0,0,0,0.7);
 }
-srcs_avaliable
+srcs_available
 {
 	width: 100%;
 	position: absolute;
@@ -888,7 +900,7 @@ src_confirm_actions{
 	align-items: center;
 	flex-direction: row;
 }
-#action_drop_items.disabled{
+#action_confirm_selected_items.disabled{
 	-webkit-filter: grayscale(100%);
     -moz-filter: grayscale(100%);
     -ms-filter: grayscale(100%);

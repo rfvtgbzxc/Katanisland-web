@@ -22,7 +22,7 @@ def new_Player(index):
 	player["home_step"]=0
 	player["drop_required"]=0
 	player["dev_used"]=False
-	player["no_build_dev_used"]=0
+	player["no_build_dev_used"]=False
 	player["soldier_get_before"]=0
 	player["plenty_get_before"]=0
 	player["monopoly_get_before"]=0
@@ -41,7 +41,8 @@ def new_Cards():
 	cards["ore_num"]=19
 
 	cards["soldier_num"]=14
-	cards["score_cards"]=["The Temple of Artemis","Oxford University","Panama Canal","the Forbidden City","Bishop of Saint Vasili"]
+	#cards["score_cards"]=["The Temple of Artemis","Oxford University","Panama Canal","the Forbidden City","Bishop of Saint Vasili"]
+	cards["score_cards"]=["阿尔忒弥斯神庙","牛津大学","巴拿马运河","紫禁城","圣瓦西里大教堂"]
 	cards["plenty_num"]=2
 	cards["monopoly_num"]=2
 	cards["road_making_num"]=2
@@ -93,6 +94,7 @@ def init_game_info(player_size):
 		system["player_list"][str(i)]=[i,""]
 		system["user_list"][str(i)]=i
 	#生成交易
+	trades[0]=new_Trade(0,0,0)
 	for st in range(1,player_size+1):
 		for ac in range(0,player_size+1):
 			num=st*(player_size+1)+ac
@@ -107,5 +109,5 @@ def init_game_info(player_size):
 
 	return game_info
 
-#print(init_game_info(4))
+#print(init_game_info(2))
 

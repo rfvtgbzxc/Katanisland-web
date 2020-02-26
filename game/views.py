@@ -139,11 +139,11 @@ def gotoHome(request):
 	info['welcome']='欢迎您，'
 	#查询所有可用的房间
 	#受限于刷新时间，此时玩家可能还在房间内，因此主动去除玩家所在的房间
-	rooms_avaliable=Room.objects.filter(game_state=0).exclude(member_num=0)
+	rooms_available=Room.objects.filter(game_state=0).exclude(member_num=0)
 	if(user.in_room.member_num==1):
-		rooms_avaliable=rooms_avaliable.exclude(room_ID=user.in_room.room_ID)
+		rooms_available=rooms_available.exclude(room_ID=user.in_room.room_ID)
 	info['rooms']=[]
-	for room in rooms_avaliable:
+	for room in rooms_available:
 		if room.out_room_ID==1:
 			continue
 		info['rooms'].append({
