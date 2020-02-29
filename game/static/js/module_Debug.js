@@ -1,7 +1,25 @@
 //用于处理DebugUI的模块
 ready_list={};
 $(document).ready(function(){
+	//--------------------------------------------------------
+	// 初始化
+	//--------------------------------------------------------
 
+	//--------------------------------------------------------
+	// 切换加入模式
+	//--------------------------------------------------------
+	$("#type_create_room").change(function(){
+		if($(this).val()=="on"){
+			$("#cmd_join_room").hide();
+			$("#cmd_create_room").show();
+		}
+	});
+	$("#type_join_room").change(function(){
+		if($(this).val()=="on"){
+			$("#cmd_join_room").show();
+			$("#cmd_create_room").hide();
+		}
+	});
 	//--------------------------------------------------------
 	// 加载游戏
 	//--------------------------------------------------------
@@ -28,6 +46,8 @@ $(document).ready(function(){
 		ws = new WebSocket("ws://192.168.50.140:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
 		//阿里云服务器
 		//ws = new WebSocket("ws://119.23.218.46:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
+		//腾讯云服务器
+		//ws = new WebSocket("ws://122.51.21.190:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
 		load_ws_function_msg();
 		load_ws_function_link();
 		ws.onopen = function () {
@@ -43,12 +63,19 @@ $(document).ready(function(){
 		//获取房间人数
 		var player_size=parseInt($("#room_size").val());
 		var room_pswd=$("#room_pswd").val();
+		var room_time_per_turn=parseInt($("#room_time_per_turn").val());
+		var map_template=$("#map_template").val();
 		//发起请求
 		$.ajax({
 	        async:false,
 	        url:"/ajax/t_create_room/",
 	        type:"get",
-	        data:"&room_size=" + player_size+"&room_pswd="+room_pswd,
+	        data:{
+	        	room_pswd:room_pswd,
+	        	room_size:player_size,
+	        	time_per_turn:room_time_per_turn,
+	        	map_template:map_template
+	        },
 	        headers:{"X-CSRFToken":$.cookie("csrftoken")},
 	        success:function(info){
 	        	alert(info);
@@ -136,6 +163,7 @@ function request_t_game_info(){
 	//在此处添加页面构造完成以后的代码
 	load_game();
 	init_t_ui();
+	$("#basic_cmd").hide();
 	if(!offline){
 		//一切就绪后,发送ready消息
 		ws.sendmsg("mes_member",{change:"ready",value:[user_index,user_name]});
@@ -153,6 +181,9 @@ function load_game(){
 	if(game_info.occupying==0){
 		game_info.occupying=map_info.basic_roober;
 	}
+
+	//更新计时器
+	timer.reset();
 }
 //--------------------------------------------------------
 // UI初始化
@@ -214,7 +245,7 @@ function init_t_ui(){
 					UI_start_build();
 				}
 				else{
-					if($gameSystem.dice_7_step==1 && $gameSystem.is_own_turn()){
+					if($gameSystem.dice_7_step==1 && $gameSystem.self_player().drop_required!=0){
 						start_drop_select();
 					}
 					else if($gameSystem.dice_7_step==2 && $gameSystem.is_own_turn()){

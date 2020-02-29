@@ -13,7 +13,7 @@ import time,random
 
 
 def init(request):
-    return redirect('/login/')
+    return redirect('/gametest/')
 
 #进入房间页面，该部分兼具对用户重连时的各种情况的判断
 def gotoRoom(request):
@@ -247,7 +247,7 @@ def gotoMapTest(request):
 
 def t_createMap(request):
 	#按照基础设置生成一张随机地图
-	map_setting=gm_temp.map_setting()
+	map_setting=gm_temp.map_setting("fruitful")
 	map_info=gm_map.createmap(json.dumps(map_setting))
 	return HttpResponse(json.dumps(map_info))
 
@@ -255,14 +255,16 @@ def t_createRoom(request):
 	#获取房间大小
 	room_size=int(request.GET.get("room_size"))
 	room_pswd=request.GET.get("room_pswd")
+	room_time_per_turn=int(request.GET.get("time_per_turn"))
+	room_map_template=request.GET.get("map_template")
 	if(Room.objects.filter(password=room_pswd)):
 		return HttpResponse("密码重复！")
 	#test_room=Room.objects.get(out_room_ID=1)
 	#生成对应数据并保存在测试房间
 	maxid=Room.objects.all().aggregate(Max('out_room_ID'))
-	map_setting=gm_temp.map_setting()
+	map_setting=gm_temp.map_setting(room_map_template)
 	map_info=gm_map.createmap(json.dumps(map_setting))
-	base_game_info=gm_game.init_game_info(room_size)
+	base_game_info=gm_game.init_game_info(room_size,room_time_per_turn)
 	new_room=Room(
 		out_room_ID=maxid["out_room_ID__max"]+1,
 		room_owner=1,

@@ -3,8 +3,8 @@ import random
 def base_info():
 	return copy.deepcopy(t_base_info)
 
-def map_setting():
-	c_map_setting=copy.deepcopy(t_map_setting)
+def map_setting(type):
+	c_map_setting=copy.deepcopy(t_map_setting[type])
 	c_map_setting["rand_seed"]=random.randint(0,1000000)
 	#c_map_setting["rand_seed"]=num
 	return c_map_setting
@@ -25,35 +25,133 @@ t_base_info={
 }
 
 t_map_setting={
-	"ysize":6,
-	"xsize":7,
-	"place_set":[7,8,9,13,14,15,16,18,19,20,21,22,25,26,27,28,31,32,33],
-	"place_distribution":{"desert": 1,
-		"brick": 4,
-	    "wood": 4,
-	    "wool": 4,
-	    "grain": 3,
-	    "ore": 3
+	#默认
+	"default":{
+		"ysize":6,
+		"xsize":7,
+		"place_set":[7,8,9,13,14,15,16,18,19,20,21,22,25,26,27,28,31,32,33],
+		"place_distribution":{"desert": 1,
+			"brick": 4,
+		    "wood": 4,
+		    "wool": 4,
+		    "grain": 3,
+		    "ore": 3
+		},
+		"harbor_set":{"13":"up",
+			"25":"up",
+			"7":"lu",
+			"31":"ru",
+			"8":"ld",
+			"32":"rd",
+			"16":"ld",
+			"28":"rd",
+			"22":"dn",
+		},
+		"harbor_distrubution":{"any_type": 4,
+			"brick": 1,
+		    "wood": 1,
+		    "wool": 1,
+		    "grain": 1,
+		    "ore": 1
+		},
+		"number_distrubution":[2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12]
 	},
-	"harbor_set":{"13":"up",
-		"25":"up",
-		"7":"lu",
-		"31":"ru",
-		"8":"ld",
-		"32":"rd",
-		"16":"ld",
-		"28":"rd",
-		"22":"dn",
+	#富饶
+	"fruitful":{
+		"ysize":6,
+		"xsize":7,
+		"place_set":[7,8,9,13,14,15,16,18,19,20,21,22,25,26,27,28,31,32,33],
+		"place_distribution":{"desert": 1,
+		    "brick": 2,
+		    "wood": 5,
+		    "wool": 5,
+		    "grain": 4,
+		    "ore": 2
+		},
+		"harbor_set":{"13":"up",
+			"25":"up",
+			"7":"lu",
+			"31":"ru",
+			"8":"ld",
+			"32":"rd",
+			"16":"ld",
+			"28":"rd",
+			"22":"dn",
+		},
+		"harbor_distrubution":{"any_type": 2,
+			"brick": 1,
+		    "wood": 2,
+		    "wool": 2,
+		    "grain": 1,
+		    "ore": 1
+		},
+		"number_distrubution":[2,3,4,4,5,5,5,6,6,8,8,9,9,9,10,10,11,12]
 	},
-	"harbor_distrubution":{"any_type": 4,
-		"brick": 1,
-	    "wood": 1,
-	    "wool": 1,
-	    "grain": 1,
-	    "ore": 1
+	#山脉
+	"mountains":{
+		"ysize":6,
+		"xsize":7,
+		"place_set":[7,8,9,13,14,15,16,18,19,20,21,22,25,26,27,28,31,32,33],
+		"place_distribution":{"desert": 1,
+			"brick": 5,
+		    "wood": 3,
+		    "wool": 3,
+		    "grain": 3,
+		    "ore": 4
+		},
+		"harbor_set":{"13":"up",
+			"25":"up",
+			"7":"lu",
+			"31":"ru",
+			"8":"ld",
+			"32":"rd",
+			"16":"ld",
+			"28":"rd",
+			"22":"dn",
+		},
+		"harbor_distrubution":{"any_type": 2,
+			"brick": 2,
+		    "wood": 1,
+		    "wool": 1,
+		    "grain": 1,
+		    "ore": 2
+		},
+		"number_distrubution":[2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12]
 	},
-	"number_distrubution":[2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12]
+	"poor":{
+		"ysize":6,
+		"xsize":7,
+		"place_set":[7,8,9,13,14,15,16,18,19,20,21,22,25,26,27,28,31,32,33],
+		"place_distribution":{"desert": 3,
+			"brick": 4,
+		    "wood": 3,
+		    "wool": 3,
+		    "grain": 3,
+		    "ore": 3
+		},
+		"harbor_set":{
+			"18":"up",
+			"13":"lu",
+			"7":"ld",
+			"9":"lu",
+			"16":"ld",
+			"22":"dn",
+			"28":"rd",
+			"33":"ru",
+			"31":"rd",
+			"25":"ru",	
+		},
+		"harbor_distrubution":{"any_type": 0,
+			"brick": 2,
+		    "wood": 2,
+		    "wool": 2,
+		    "grain": 2,
+		    "ore": 2
+		},
+		"number_distrubution":[2,3,3,4,4,5,5,6,8,9,9,10,10,11,11,12]
+	}
 }
+
 
 test_game_info={
 	"1":{

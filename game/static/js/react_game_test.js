@@ -11,6 +11,21 @@ info_window={
 	},
 	"set_addition":function(text){
 		$("info_window alert_text").text(text);
+	},
+	"clear":function(){
+		$("info_window").children().empty();
+	},
+	"empty":function(){
+		this.clear();
+	},
+	"push":function(text,type="help"){
+		if(type=="help"){
+			type="help_text";
+		}
+		else{
+			type="alert_text";
+		}
+		$("info_window "+type).append("<div>"+text+"</div>");
 	}
 }
 //历史消息
@@ -37,6 +52,11 @@ confirm_window={
 timer={
 	"reset":function(){
 		//$("timer").children().removeClass("active").removeClass("play");
+		//重设timer的时长
+		var time_text = ($gameSystem.time_per_turn / 2) + "s";
+		$("timer.right content").attr("style","transition-duration:"+time_text);
+		$("timer.left content").attr("style","transition-duration:"+time_text+";"
+			+ "transition-delay:"+time_text+";");
 	},
 	"start":function(){
         $("timer").children().addClass("active").show();
@@ -376,8 +396,8 @@ $(document).ready(function(){
 		    	var place=map_info.places[place_id];
 				$("#plc_info").text("地块id："+place_id+"产出数字："+place.create_num+"产出类型："+order[place.create_type]);
 				if($(this).attr("tip")!=""){
-					$("info_window").empty();
-					$("info_window").append("<div>"+$(this).attr("tip")+"</div>");
+					info_window.empty();
+					info_window.push($(this).attr("tip"));
 					$("info_window").show();
 				}
 		    }
@@ -437,8 +457,7 @@ $(document).ready(function(){
 	    	if(debug){
 	    		$("#plc_info").text("边id："+$(this).attr("id"));
 				if($(this).attr("tip")!=""){
-					$("info_window").empty();
-					$("info_window").append("<div>"+$(this).attr("tip")+"</div>");
+					info_window.set($(this).attr("tip"));
 					$("info_window").show();
 				}	
 	    	}
@@ -491,8 +510,7 @@ $(document).ready(function(){
 	    	if(debug){
 		    	$("#plc_info").text("点id："+$(this).attr("id"));	
 				if($(this).attr("tip")!=""){
-					$("info_window").empty();
-					$("info_window").append("<div>"+$(this).attr("tip")+"</div>");
+					info_window.set($(this).attr("tip"));
 					$("info_window").show();
 				}
 		    }
@@ -695,7 +713,7 @@ $(document).ready(function(){
 		//激活下一级窗口：四项建设
 		for(let action of next_action){
 			$(action).show();
-			if(game_temp.no_build_dev_used){
+			if($gameSystem.self_player().no_build_dev_used){
 				$(action).attr("tip","本回合使用过垄断等使用后禁止建设的发展卡").addClass("part_disabled");
 			}
 		}
@@ -1084,17 +1102,13 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	$("#players").on("mouseenter","vp_state",
 	    function(event){
-			$("info_window").css({
-				"left":event.pageX + 10,
-				"top":event.pageY - 20
-			});
 			//设置内容
-			$("info_window").empty();
+			info_window.empty();
 			var info=vp_info(game_info.players[$(this).attr("id")],$(this).attr("id"));
 			for(var i in info){
 				if(info[i]!=0)
 				{
-					$("info_window").append("<div>"+vp_info_text[i]+info[i]+"</div>");
+					info_window.push(vp_info_text[i]+info[i]);
 				}	
 			}
 			$("info_window").fadeIn("fast");
@@ -1110,19 +1124,15 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	$("#players").on("mouseenter","longest_road",
 	    function(event){
-	    	$("info_window").css({
-				"left":event.pageX + 10,
-				"top":event.pageY - 20
-			});
 			//设置内容
-			$("info_window").empty();
+			info_window.empty();
 			var player_index=$(this).attr("id");
 			var roads=game_info.players[player_index].road_longest;
 			if(game_info.longest_road==player_index){
-				$("info_window").append("<div>已建成最长道路:"+roads.length+"</div>");
+				info_window.push("已建成最长道路:"+roads.length);
 			}
 			else{
-				$("info_window").append("<div>目前的最长道路:"+roads.length+"</div>");
+				info_window.push("目前的最长道路:"+roads.length);
 			}
 			//显示对应的道路
 			$("edge_selector").filter(function(){
@@ -1149,18 +1159,14 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	$("#players").on("mouseenter","max_minitory",
 	    function(event){
-	    	$("info_window").css({
-				"left":event.pageX + 10,
-				"top":event.pageY - 20
-			});
 			//设置内容
-			$("info_window").empty();
+			info_window.empty();
 			var player_index=$(this).attr("id");
 			if(game_info.max_minitory==player_index){
-				$("info_window").append("<div>已拥有最大军队:"+game_info.players[player_index].soldier_used+"</div>");
+				info_window.push("已拥有最大军队:"+game_info.players[player_index].soldier_used);
 			}
 			else{
-				$("info_window").append("<div>目前的军队:"+game_info.players[player_index].soldier_used+"</div>");
+				info_window.push("目前的军队:"+game_info.players[player_index].soldier_used);
 			}
 			$("info_window").fadeIn("fast");
 	    }
@@ -1175,22 +1181,18 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	$("#players").on("mouseenter","score_card",
 	    function(event){
-	    	$("info_window").css({
-				"left":event.pageX + 10,
-				"top":event.pageY - 20
-			});
 			//设置内容
-			$("info_window").empty();
+			info_window.empty();
 			var player_index=$(this).attr("id");
 			var score_shown=game_info.players[player_index].score_shown;
 			if(score_shown.length==0){
-				$("info_window").append("<div>尚未拥有奇观</div>");
+				info_window.push("尚未拥有奇观");
 			}
 			else{
-				$("info_window").append("<div>已建成的奇观:</div>");
+				info_window.push("已建成的奇观:");
 				for(var i in score_shown)
 				{
-					$("info_window").append("<div>"+score_shown[i]+"</div>");
+					info_window.push(score_shown[i]);
 				}
 			}
 			$("info_window").fadeIn("fast");
@@ -1441,7 +1443,7 @@ function UI_use_dev_update(){
 			$("#action_use_dev_"+devs[i]).hide();
 			continue;
 		}
-		else if(game_temp.dev_used){
+		else if(self_player.dev_used){
 			$("#action_use_dev_"+devs[i]).attr("tip","本回合已使用发展卡").addClass("part_disabled");
 		}
 		else if(self_player[devs[i]+"_num"]<=self_player[devs[i]+"_get_before"]){
@@ -1564,7 +1566,7 @@ function UI_start_build(){
 	}
 	//启动计时器
 	if($gameSystem.time_per_turn!=0){
-		timer.reset();
+		//timer.reset();
 		timer.start();
 	}	
 }
@@ -1639,6 +1641,8 @@ function UI_start_plenty_select(){
 	//显示资源丢弃窗口
 	$("simple_item_select_window").show();
 	$("#action_confirm_selected_items").addClass("disabled");
+	//显示关闭按钮
+	$("simple_item_select_window #close").show();
 	//没有打开过交易窗口则先生成UI
 	if(game_UI.hasOwnProperty("plenty_items_created")==false){
 		create_simple_items("plenty");
@@ -1680,6 +1684,8 @@ function UI_start_drop_select(){
 	//显示资源丢弃窗口
 	$("simple_item_select_window").show();
 	$("#action_confirm_selected_items").addClass("disabled");
+	//隐藏关闭按钮
+	$("simple_item_select_window #close").hide();
 	var self_player=game_info.players[user_index];
 	//没有打开过交易窗口则先生成UI
 	if(game_UI.hasOwnProperty("drop_items_created")==false){

@@ -202,13 +202,15 @@ def createmap(var):
 	while(np==False):
 		np=True
 		#如果沙漠上有数字，放到没有数字的地方
-		for place in places.values():
-			if(place["create_type"]==0 and ["create_num"]!=0):
-				for ex_place in places.values():
-					if(ex_place["create_num"]==0 and ex_place["create_type"]!=0):
-						ex_place["create_num"]=place["create_num"]
-						place["create_num"]=0
-						break
+		#如果没有设置沙漠地块,跳过这一步
+		if(place_distribution["desert"]!=0):
+			for place in places.values():
+				if(place["create_type"]==0 and ["create_num"]!=0):
+					for ex_place in places.values():
+						if(ex_place["create_num"]==0 and ex_place["create_type"]!=0):
+							ex_place["create_num"]=place["create_num"]
+							place["create_num"]=0
+							break
 
 		for place_id in places:
 			place=places[place_id]

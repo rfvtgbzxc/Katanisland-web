@@ -58,11 +58,11 @@ def new_Trade(starter,accepter,id):
 	trade["accepter_list"]={}
 	return trade
 
-def new_System():
+def new_System(time_per_turn):
 	system = {}
 	system["step_index"]=0
 	system["game_process"]=0
-	system["time_per_turn"]=0
+	system["time_per_turn"]=time_per_turn
 	system["occupying"]=0
 	system["longest_road"]=0
 	system["max_minitory"]=0
@@ -77,10 +77,10 @@ def new_System():
 	system["recive_list"]=[]
 	return system
 
-def init_game_info(player_size):
+def init_game_info(player_size,time_per_turn):
 	#初始化
 	game_info={}
-	system=new_System()
+	system=new_System(time_per_turn)
 	players={}
 	cities={}
 	roads={}

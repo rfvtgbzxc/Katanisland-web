@@ -110,22 +110,18 @@ function handle_msg(msg){
 					switch(val[1]){
 						//士兵卡
 						case 1:
-							game_temp.dev_used=true;
 							set_robber_info(val[2],msg.message.starter,val[3],val[5],true);
 							break;
 						//丰收卡
 						case 2:
-							game_temp.dev_used=true;
 							dev_plenty(val[2],msg.message.starter);
 							break;
 						//垄断卡
 						case 3:
-							game_temp.dev_used=true;
 							dev_monopoly(val[2],msg.message.starter);
 							break;
 						//修路卡
 						case 4:
-							game_temp.dev_used=true;
 							dev_road_making(val[2],val[3],msg.message.starter);
 							break;
 						//展示分数卡
@@ -547,6 +543,7 @@ function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false
 	if(cost){
 		game_info.players[robber_index].soldier_num--;
 		game_info.players[robber_index].soldier_used++;
+		$gamePlayers[robber_index].dev_used=true;
 		//UI回调,设置菜单级数为1
 		init_menu_lv(1,$("#action_use_dev_soldier"));
 		UI_use_dev_update();
@@ -633,6 +630,7 @@ function start_robber_set(){
 //--------------------------------------------------------
 function dev_plenty(src_list,player_index){
 	var player=$gamePlayers[player_index];
+	player.dev_used=true;
 	his_window.push(player.name+" 使用了 "+"丰收卡");
 	for(let src_id in src_list){
 		player.src(src_id,"+=",src_list[src_id]);
@@ -648,6 +646,9 @@ function dev_plenty(src_list,player_index){
 //--------------------------------------------------------
 function dev_monopoly(src_id,starter_index){
 	var starter=game_info.players[starter_index];
+	starter.dev_used=true;
+	//垄断卡使用后,本回合无法再进行建设
+	starter.no_build_dev_used=true;
 	his_window.push(starter.name+" 使用了 "+"垄断卡");
 	starter.dev("monopoly","-=",1);
 	for(var player_index in game_info.players){
@@ -660,8 +661,6 @@ function dev_monopoly(src_id,starter_index){
 		his_window.push(player.name+" 交出了 "+player.src(src_id)+" 份 "+order_ch[src_id]);
 		player.src(src_id,0,false);
 	}	
-	//垄断卡使用后,本回合无法再进行建设
-	game_temp.no_build_dev_used=true;
 	//UI回调,设置菜单级数为1
 	init_menu_lv(1,$("#action_use_dev_monopoly"));
 	UI_use_dev_update();
@@ -671,6 +670,7 @@ function dev_monopoly(src_id,starter_index){
 //--------------------------------------------------------
 function dev_road_making(road_id1,road_id2,builder_index){
 	var builder=game_info.players[builder_index];
+	builder.dev_used=true;
 	builder.dev("road_making","-=",1);
 	his_window.push(builder.name+" 使用了 "+"道路建设卡");
 	build_road(road_id1,builder_index,false);
@@ -727,17 +727,16 @@ function new_turn()
 	//重置recive_list
 	$gameSystem.recive_list=[].concat(game_info.online_list);
 	//清空所有玩家的发展卡get_before限制(尽管对于某位玩家来说只需要清除自己的)
-	for(player_index in game_info.players){
-		var player=game_info.players[player_index];	
+	for(player_index in $gamePlayers){
+		var player=$gamePlayers[player_index];	
 		for(var i=0;i<4;i++){
 			player[devs[i]+"_get_before"]=0;
+			player.dev_used=false;
+			player.no_build_dev_used=false;
 		}
 	}	
 	//清空所有交易
 	game_info.active_trades.length=0;
-	//清空已使用发展卡的标记
-	game_temp.dev_used=false;
-	game_temp.no_build_dev_used=false;
 	//offline模式下,核心角色移交
 	if(offline){
 		user_index=game_info.step_list[game_info.step_index];
