@@ -150,6 +150,10 @@ function handle_msg(msg){
 				case 9:
 					fst_dice(val[2],val[3],msg.message.starter);
 					break;
+				//聊天
+				case 19:
+					new_talk_message(val[1],msg.message.starter);
+					break;
 			}
 			break;
 		case "mes_member":
@@ -864,7 +868,16 @@ function fst_dice(num1,num2,dicer_index){
 		}
 	}
 }
-
+//--------------------------------------------------------
+// 新的聊天消息
+//--------------------------------------------------------
+function new_talk_message(text,player_index){
+	his_window.push($gamePlayers[player_index].name+"："+text,"important");
+	//清空发送者的输入内容
+	if(user_index==player_index){
+		$("#talk_msg_input_window").val("");
+	}
+}
 //--------------------------------------------------------
 // 检查胜利条件
 //--------------------------------------------------------

@@ -51,7 +51,12 @@ confirm_window={
 //计时器
 timer={
 	"reset":function(){
-		//$("timer").children().removeClass("active").removeClass("play");
+		if($gameSystem.time_per_turn==0){
+			$("timer-container").hide();
+		}
+		else{
+			$("timer-container").show();
+		}
 		//重设timer的时长
 		var time_text = ($gameSystem.time_per_turn / 2) + "s";
 		$("timer.right content").attr("style","transition-duration:"+time_text);
@@ -1219,6 +1224,24 @@ $(document).ready(function(){
 			$("info_window").hide();
 	    }
 	);
+	//--------------------------------------------------------
+	// 提交信息输入
+	//--------------------------------------------------------
+	$("#talk_msg_input_window").keydown(function(e){
+		send_talk_msg(e);
+	});
+	$("#talk_msg_input_window_send").click(function(){
+		send_talk_msg({keyCode:13});
+	});
+	function send_talk_msg(e){
+		if(e.keyCode==13){
+			var text=$("#talk_msg_input_window").val();
+			if(text!=""){
+				ws.sendmsg("mes_action",{"starter":user_index,"val":[19,text]});
+			}
+		}
+	}
+		
 	//--------------------------------------------------------
 	// UI：拖动
 	//--------------------------------------------------------

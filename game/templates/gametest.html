@@ -165,11 +165,15 @@
 	  		<his_text>
 	  		</his_text>
   		</his_text_window>
+  		<his_input_window>
+  			<input id="talk_msg_input_window" AUTOCOMPLETE="OFF" type="text" placeholder="按回车快速发送" οnkeydοwn="his_window_send_msg()">
+			<button id="talk_msg_input_window_send">发送</button>
+  		</his_input_window>
   	</his_window>
 	<!--顺序列表-->
 	<step_list>
 		<!--计时器-->
-		<timer-container>
+		<timer-container style="display: none;">
 	        <timer class="left"><content></content></timer>
 	        <timer class="right"><content></content></timer>
 	    </timer-container>  
