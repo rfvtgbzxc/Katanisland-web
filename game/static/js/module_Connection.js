@@ -1,5 +1,23 @@
 //用于处理游戏的连接、重连等。
 //--------------------------------------------------------
+// 初始化websocket
+//--------------------------------------------------------
+function init_webscoket(success){
+	//本地局域网1
+	//ws = new WebSocket("ws://172.24.10.250:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
+	//本地局域网2
+	ws = new WebSocket(websocket_url+"/"+room_pswd+"/"+user_index+"/");
+	//阿里云服务器
+	//ws = new WebSocket("ws://119.23.218.46:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
+	//腾讯云服务器
+	//ws = new WebSocket("ws://122.51.21.190:80/ws/game_test/"+room_pswd+"/"+user_index+"/");
+	load_ws_function_msg();
+	load_ws_function_link();
+	ws.onopen = function () {
+		success();
+    };	
+}
+//--------------------------------------------------------
 // 处理连接信息
 //--------------------------------------------------------
 function member_handle_msg(message){
@@ -11,6 +29,10 @@ function member_handle_msg(message){
 		//玩家就绪
 		case "ready":
 			player_ready(message.value[0]);
+			break;
+		//观众加入
+		case "audience_join":
+			audience_join(message.value[0]);
 			break;
 	}
 }
@@ -47,5 +69,14 @@ function load_ws_function_link(){
 	ws.onclose=function(){
 		his_window.push("与服务器连接断开","important");
 		alert("与服务器连接断开!");
+	}
+}
+//--------------------------------------------------------
+// 观众加入
+//--------------------------------------------------------
+function audience_join(audience_name){
+	//发出提示
+	if(!$("#hide_audience_mes input").is(":checked")){
+		his_window.push(audience_name+" 加入观战","important");
 	}
 }

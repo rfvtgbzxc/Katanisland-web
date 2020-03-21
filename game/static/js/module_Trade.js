@@ -241,8 +241,8 @@ function start_trade_window(target="bank",target_val=0){
 		$("#action_trade_items").text("取消交易");
 	}
 	can_trade?$("#action_trade_items").removeClass("disabled"):$("#action_trade_items").addClass("disabled");	
-	$("trade_window").children().filter("window_head").children().filter("head_text").text(head_text);
-	$("trade_window").children().filter("src_select_window").children().filter("head_text").children().filter("person").text(person);
+	$("trade_window window_head head_text").text(head_text);
+	$("trade_window person").text(person);
 	$("#action_trade_items").text(action_text);
 	$("trade_state").text(trade_state);
 	$("trade_window").show();

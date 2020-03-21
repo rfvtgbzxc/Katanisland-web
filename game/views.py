@@ -5,7 +5,7 @@ from django.db.models import F,Max
 from . import game_templates as gm_temp
 from . import map_creator as gm_map
 from . import game_creator as gm_game
-import json
+import json,copy
 #from dwebsocket.decorators import accept_websocket
 import time,random
 
@@ -250,7 +250,29 @@ def t_createMap(request):
 	map_setting=gm_temp.map_setting("fruitful")
 	map_info=gm_map.createmap(json.dumps(map_setting))
 	return HttpResponse(json.dumps(map_info))
-
+#---------------------------------------------------
+# 获取房间基本数据
+#---------------------------------------------------
+def getRoomInfo(request):
+	room_pswd=request.GET.get("room_pswd")
+	info={"member_max":0}
+	room=Room.objects.filter(password=room_pswd)
+	if(room.exists()):
+		room=room[0]
+		if(room.game_state==3):
+			info["state"]="over"
+		else:
+			info["state"]="exist"
+			info["member_max"]=room.member_max
+		return HttpResponse(json.dumps(info))
+	else:	
+		info["state"]="none"
+		res=HttpResponse(json.dumps(info))
+		res.set_cookie('test',"someword")
+		return res
+#---------------------------------------------------
+# 创建房间
+#---------------------------------------------------
 def t_createRoom(request):
 	#获取房间大小
 	room_size=int(request.GET.get("room_size"))
@@ -259,12 +281,14 @@ def t_createRoom(request):
 	room_map_template=request.GET.get("map_template")
 	if(Room.objects.filter(password=room_pswd)):
 		return HttpResponse("密码重复！")
+	if(room_pswd==""):
+		return HttpResponse("密码不能为空！")
 	#test_room=Room.objects.get(out_room_ID=1)
 	#生成对应数据并保存在测试房间
 	maxid=Room.objects.all().aggregate(Max('out_room_ID'))
 	map_setting=gm_temp.map_setting(room_map_template)
 	map_info=gm_map.createmap(json.dumps(map_setting))
-	base_game_info=gm_game.init_game_info(room_size,room_time_per_turn)
+	base_game_info=gm_game.init_game_info(room_size,room_time_per_turn,map_info)
 	new_room=Room(
 		out_room_ID=maxid["out_room_ID__max"]+1,
 		room_owner=1,
@@ -280,7 +304,9 @@ def t_createRoom(request):
 	#test_room.save()
 	return HttpResponse("创建成功!")
 
-
+#---------------------------------------------------
+# 返回游戏数据
+#---------------------------------------------------
 def t_load_game(request):
 	#读取保存的数据
 	#game_info=gm_temp.game_info(2)
@@ -291,19 +317,39 @@ def t_load_game(request):
 		return HttpResponse("找不到房间!")
 	room=room[0]
 	info={
-		"map_info":json.loads(room.map_info),
-		"game_info":json.loads(room.game_info)
+		"map_info":room.map_info
 	}
+	# 已经结束的游戏,返回准备好的初始状态,以及游戏事件队列
+	if(room.game_state==3):
+		info["game_info"]=room.initial_game_info
+		info["event_list"]= "[%s]" % (room.event_list[:-1])
+	else:
+		info["game_info"]=room.game_info
 	return HttpResponse(json.dumps(info))
-
+#---------------------------------------------------
+# 更新游戏数据
+#---------------------------------------------------
 def t_update_game_info(request):
-	#更新测试房间数据库
 	room_pswd=request.POST.get("room_pswd")
 	room=Room.objects.filter(password=room_pswd)
 	if(room.exists()==False):
 		return HttpResponse("找不到房间!")
 	room=room[0]
+	room.event_list=room.event_list+request.POST.get("event")+","
 	room.game_info=request.POST.get("game_info")
+	room.save()
+	return HttpResponse("更新成功!")
+
+#---------------------------------------------------
+# 更新基本游戏数据
+#---------------------------------------------------	
+def t_update_initial_game_info(request):
+	room_pswd=request.POST.get("room_pswd")
+	room=Room.objects.filter(password=room_pswd)
+	if(room.exists()==False):
+		return HttpResponse("找不到房间!")
+	room=room[0]
+	room.initial_game_info=request.POST.get("game_info")
 	room.save()
 	return HttpResponse("更新成功!")
 
@@ -337,3 +383,15 @@ def t_virtual_websocket(request):
 
 def gotoGameTest(request):
 	return render(request,'gametest.html')
+
+def gotoGameRelease(request):
+	return render(request,'gamerelease.html')
+
+def gotoWebsocketTest(request):
+	return render(request,'websockettest.html')
+
+def websocketTest_delay(request):
+	data = {"latest_message_index":10}
+	#模拟延迟
+	time.sleep(3)
+	return HttpResponse(json.dumps(data))

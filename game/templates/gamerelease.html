@@ -1,48 +1,35 @@
 <!DOCTYPE html>
+<!--发行版本,有特定加速-->
 <html>
 <head>
 	<title>地图测试</title>
 	{% load static %}
 	{% csrf_token %}
-	<link rel="stylesheet" type="text/css" href="{%static 'css/game_test.css'%}">
+	<link rel="stylesheet" type="text/css" href="http://cdn.newcenturyfans.cn/css/game_test.css">
 	<script type="text/javascript" src="http://cdn.repository.webfont.com/wwwroot/js/wf/youziku.api.min.js"></script>
 	<script type="text/javascript">
 	   //动态字库api
 	   $webfont.load("head_text,pre-load-text,wait_info,button,player,#rounds", "e316d772ba7d483780f759e6b4364146", "hdjxyt");
 	   $webfont.draw();
 	</script>
-	<script type="text/javascript" src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+	<script type="text/javascript" src="http://cdn.newcenturyfans.cn/js/jquery-3.4.1.min.js"></script>
+	<script type="text/javascript" src="http://cdn.newcenturyfans.cn/js/jquery.cookie.js"></script>
+	<link href="http://cdn.newcenturyfans.cn/css/bootstrap.min.css" rel="stylesheet">
 
-    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-    
-	<script src="{% static 'js/react_game_test.js' %}"></script>
-	<script src="{% static 'js/react_message.js' %}"></script>
-	<script src="{% static 'js/module_ConstVars.js' %}"></script>
-	<script src="{% static 'js/module_System.js' %}"></script>
-	<script src="{% static 'js/module_Bank.js' %}"></script>
-	<script src="{% static 'js/module_Player.js' %}"></script>	
-	<script src="{% static 'js/module_Trade.js' %}"></script>
-	<script src="{% static 'js/module_Graphic.js' %}"></script>
-	<script src="{% static 'js/module_Map.js' %}"></script>
-	<script src="{% static 'js/module_Debug.js' %}"></script>
-	<script src="{% static 'js/module_Connection.js' %}"></script>
-	<script src="{% static 'js/module_DataManager.js' %}"></script>
-	<script src="{% static 'js/module_GameEvent.js' %}"></script>
+	<script src="http://cdn.newcenturyfans.cn/js/total_packed.js"></script>
 	<meta http-equiv="Pragma" content="no-cache">
 	<meta http-equiv="Cache-Control" content="no-cache">
 	<meta http-equiv="Expires" content="0">	 
-	<meta name="viewport" content="user-scalable=false">
 </head>
 <body style="background: none;">
 	<!--<span id="load_game" style="cursor:pointer;display: inline;z-index:100;">(离线)生成随机地图</span>-->
 	<!--初始界面-->
 	<span id="basic_cmd" style="position:absolute; left:20%"> 
 		<div>准备游戏</div>
-		<label><input id="type_create_room" name="set_basic_type" type="radio" value="create">创建房间</label>
-		<label><input id="type_join_room" name="set_basic_type" type="radio" value="join" checked>加入房间</label>
+		<label><input id="type_create_room" name="set_basic_type" type="radio">创建房间</label>
+		<label><input id="type_join_room" name="set_basic_type" type="radio" checked>加入房间</label>
 		<br>
-		房间密码：<input id="room_pswd" type="text" style="width:150px" placeholder="由英文和数字构成"><span id="room_checking_state"></span>
+		房间密码：<input id="room_pswd" type="text" style="width:150px" placeholder="由英文和数字构成">
 		<span id="cmd_create_room" style="display:none;">
 			<br>
 			游戏人数：<input id="room_size" type="text" style="width:100px" placeholder="2~6的数字">
@@ -58,15 +45,11 @@
 			<br>
 			<span id="create_game_online" style="cursor:pointer;display: inline;z-index:100;">创建房间</span>
 		</span>
-		<span id="cmd_join_room" style="display: none;">
+		<span id="cmd_join_room">
 			<br>
-			选择角色：<!--<input id="set_user_index" type="number" min="0" style="width:220px" placeholder="最大为游戏人数,0为观众">-->
-			<span id="set_user_index">
-				<label><input id="type_create_room" name="user_index" type="radio" value="0">0</label>
-			</span>
+			玩家序号：<input id="set_user_index" type="number" min="0" style="width:220px" placeholder="最大为游戏人数,0为观众">
 			<br>
-			玩家昵称：<input id="set_user_name" type="text" style="width:120px" placeholder="可使用中文">
-			<label><input type="checkbox" name="remember_user_name">记住昵称</label>
+			玩家昵称：<input id="set_user_name" type="text" style="width:120px" placeholder="可使用中文">	
 			<br>
 			<span id="load_game_online" style="cursor:pointer;display: inline;z-index:100;">加入房间</span>
 		</span>
@@ -138,7 +121,7 @@
 		<div class="list-group">
 		<button type="button" id="action_contribute" class="list-group-item" help="消耗你的资源来进行建设或其他行为,每个选项右侧是需要消耗的资源量。">建设</button>
 		<button type="button" id="action_trade" class="list-group-item" help="与银行、港口或是玩家交易,交易界面会提示资源的换取比例。">交易</button>
-		<button type="button" id="action_develop" class="list-group-item" help="使用发展卡来改变你的局势,一回合只能使用一张发展卡。">发展</button>
+		<button type="button" id="action_develop" class="list-group-item" help="使用发展卡来改变你的局势。">发展</button>
 	  	</div>
 	  	<br>
 	  	<div class="list-group">
@@ -147,9 +130,9 @@
 	  	<!--1级菜单-->
 	  	<actions1 class="list-group">
 	  		<button type="button" id="action_build_road" class="list-group-item" help="建设一条道路,必须沿着你的道路、定居点或城市修建。">建设道路<cost class="brick">1</cost><cost class="wood">1</cost></button>
-	  		<button type="button" id="action_build_city0" class="list-group-item" help="建设一个新的定居点,需要有你的道路相连,且附近没有任何人的定居点。骰子的总值与该定居点附近地块上的数字相同时,可以收获该地块类型产出的资源一份。">建立定居点<cost class="brick">1</cost><cost class="wood">1</cost><cost class="wool">1</cost><cost class="grain">1</cost></button>
+	  		<button type="button" id="action_build_city0" class="list-group-item" help="建设一个新的定居点,需要有你的道路相连,且附近没有定居点,骰子的总值与附近地块上的数字相同时,可以收获该地块类型产出的资源一份。">建立定居点<cost class="brick">1</cost><cost class="wood">1</cost><cost class="wool">1</cost><cost class="grain">1</cost></button>
 	  		<button type="button" id="action_build_city1" class="list-group-item" help="将定居点升级为城市,每次收获资源时,城市可以获得双倍的资源。">建设新城市<cost class="grain">2</cost><cost class="ore">3</cost></button>
-	  		<button type="button" id="action_buy_dev_card" class="list-group-item" help="抽一张发展卡,之后可以使用发展卡来帮助你赢得胜利。抽到的发展卡不能立刻使用(除分数卡)。">抽取发展卡<cost class="wool">1</cost><cost class="grain">1</cost><cost class="ore">1</cost></button>
+	  		<button type="button" id="action_buy_dev_card" class="list-group-item" help="抽一张发展卡,之后可以使用发展卡来帮助你赢得胜利。">抽取发展卡<cost class="wool">1</cost><cost class="grain">1</cost><cost class="ore">1</cost></button>
 
 	  		<button trade_target="bank" type="button" id="action_trade_with_bank" class="action_prepare_trade list-group-item" help="银行可以给你任何想要的资源,但你需要4份相同资源才能换取一份想要的资源。">与银行交易</button>
 	  		<button type="button" id="action_trade_with_harbours" class="list-group-item" help="当自己的城市坐落于港口,可以以更优惠的价格换取资源。">与港口交易</button>
@@ -193,7 +176,7 @@
 	<!--回合数-->
 	<rounds><img class="rounds" src="/media/img/rounds.png"/><div id="rounds"></div></rounds>
 	<!--玩家状态栏，附加文字不可选中，图片不可拖动功能-->
-	<div id="players" ondragstart="return false;" onselectstart="return false;" unselectable="on" style="-moz-user-select:none;display:none;">
+	<div id="players" ondragstart="return false;" onselectstart="return false;" unselectable="on" style="-moz-user-select:none;">
 	</div>
 	<!--信息窗口-->
 	<info_window style="display: none;"><help_text></help_text><alert_text></alert_text></info_window>
@@ -248,16 +231,6 @@
 			</src_confirm_window>
 		</window_content>
 	</trade_window>
-	<!--回放控制器-->
-	<replay_controller style="display: none;">
-		<auto_play_speed>
-			<set_speed fq="1">1x</set_speed>
-			<set_speed fq="2">2x</set_speed>
-			<set_speed fq="3">3x</set_speed>
-		</auto_play_speed>
-		<action_play class="pause"></action_play>
-		<action_step_next></action_step_next>
-	</replay_controller>
 	<!--部分文字预加载-->
 	<pre-load-text style="z-index:-1;display: none;">可收获 需要舍弃的资源 他 你 发起交易 关闭窗口 拒绝 接受 放弃</pre-load-text>
 </body>

@@ -1,8 +1,6 @@
-//初始化全局数据
-//debug模式
-debug=false;
-//脱机模式
-offline=false;
+//--------------------------------------------------------
+// 交互元素基本响应
+//--------------------------------------------------------
 //提示窗口
 info_window={
 	"set":function(text){
@@ -81,127 +79,6 @@ timer={
 		ws.sendmsg("mes_action",{"val":[6]});
 	},
 }
-//游戏数据
-map_info={};
-game_info={};
-places={};
-edge_size=67;
-xsize=0;
-ysize=0;
-last_step_index=0;
-src_size=5;
-//临时数据
-game_temp={
-	home_step:0,
-	"action_now":"",
-	"set_option":"",
-	"recive_list":[],
-	dev_used:false,
-	no_build_dev_used:false,
-	fst_dices:{"0":0},
-};
-game_UI={
-	"UI_count":0,
-};
-game_UI_list={
-	drop_items:{
-		selected:[],
-		available:[]
-	},
-	trade_items:{
-		_give:{
-			selected:[],
-			available:[]
-		},
-		_get:{
-			selected:[],
-			available:[]
-		}		
-	},
-};
-//个人标记（测试版本默认为第一位玩家）
-user_id=1;
-user_index=1;
-//数据映射
-load_process={
-	"map":false,
-	"game":false,
-};
-devs=["soldier","plenty","monopoly","road_making"];
-order={
-		0:"desert",
-		1:"brick",
-		2:"wood",
-		3:"wool",
-		4:"grain",
-		5:"ore",
-		6:"any_type"
-};
-order_ch={
-		0:"沙漠",
-		1:"砖块",
-		2:"木材",
-		3:"羊毛",
-		4:"粮食",
-		5:"铁矿",
-		6:"任意"
-};
-src_reflection={
-	"desert":0,
-	"brick":1,
-	"wood":2,
-	"wool":3,
-	"grain":4,
-	"ore":5,
-};
-color_reflection={
-	1:"light-blue",
-	2:"dark-green",
-	3:"light-orange",
-	4:"light-red",
-	5:"light-purple",
-	6:"light-green",
-};
-color_reflection_hex={
-	"light-blue":"#029ed9",
-	"dark-green":"#006602",
-	"light-orange":"#ff9b38",
-	"light-red":"#ff3738",
-	"light-purple":"#a3159a",
-	"light-green":"#81ff38"
-};
-dir_reflection={
-	"up":0,
-	"ru":1,
-	"rd":2,
-	"dn":3,
-	"ld":4,
-	"lu":5
-};
-unknown_cards={
-	"brick_num":99,
-	"wood_num":99,
-	"wool_num":99,
-	"grain_num":99,
-	"ore_num":99,
-};
-score_cards=[
-"阿尔忒弥斯神庙",
-"牛津大学",
-"巴拿马运河",
-"紫禁城",
-"圣瓦西里大教堂",
-];
-vp_info_text=[
-"拥有的城市：",
-"拥有的定居点：",
-"最长道路：",
-"最大军队：",
-"拥有的奇观："
-];
-//--------------------------------------------------------
-// 交互元素基本响应
-//--------------------------------------------------------
 $(document).ready(function(){
 	//ws.sendmsg("user","test");
 	//隐藏UI
@@ -211,10 +88,14 @@ $(document).ready(function(){
 		return $(this).attr("action_lv")==1;
 	}).filter("#1").hide();
 	$("dice").hide();
-	$("confirm_window").hide();
+	//$("confirm_window").hide();
 	$("source_list").hide();
 	$("special_actions").children().hide();
-	
+	//载入一些初始参数
+	$(".flex_window").each(function(){
+		this.flex_min_width = $(this).attr("flex_min_width");
+		this.flex_min_height = $(this).attr("flex_min_height");
+	});
 	//--------------------------------------------------------
 	// UI：确认窗口
 	//--------------------------------------------------------
@@ -249,7 +130,7 @@ $(document).ready(function(){
 				break;
 			case "action_buy_dev_card":
 				if(game_temp.bank_dev_cards==0){
-					his_window.push("发展卡已经被抽完了,需要等待其他玩家使用。");
+					his_window.push("发展卡已经被抽完了。");
 					break;
 				}
 				ws.sendmsg("mes_action",{"starter":user_index,"val":[1,4,0,game_temp.bank_dev_cards]});
@@ -299,16 +180,7 @@ $(document).ready(function(){
 		game_temp.set_option="";
 	});
 	$("#cancel_action").click(function(){
-		//关闭窗口
-		$("confirm_window").hide();
-		if(game_temp.action_now=="action_use_dev_road_making"){
-			$("edge_selector").filter("#"+game_temp.selected_edge[1]).removeClass("selector_selected");
-			game_temp.selected_edge.splice(1,1);
-		}
-		else{
-			cancel_selectors();
-		}	
-		UI_cancel_menu_active();
+		close_confirm_window();
 	});
 	//--------------------------------------------------------
 	// UI：不掠夺
@@ -361,21 +233,22 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	// UI：菜单提示
 	//--------------------------------------------------------
-	$("actions0").on("mouseenter","button",
-		function(){
-			if(!!$(this).attr("help")){
-				info_window.set($(this).attr("help"));
-				$("info_window").show();
-			}
-			if(!!$(this).attr("tip") && $(this).hasClass("part_disabled")){
-				info_window.set_addition($(this).attr("tip"));
-				$("info_window").show();
-			}		
-	});
+	$("actions0").on("mouseenter","button",show_help_text_menu);
+	$("actions0").on("touchstart","button",show_help_text_menu);
 	$("actions0").on("mouseleave","button",
 		function(){
 			$("info_window").hide();
 	});
+	function show_help_text_menu(){
+		if(!!$(this).attr("help")){
+			info_window.set($(this).attr("help"));
+			$("info_window").show();
+		}
+		if(!!$(this).attr("tip") && $(this).hasClass("part_disabled")){
+			info_window.set_addition($(this).attr("tip"));
+			$("info_window").show();
+		}
+	}	
 	//--------------------------------------------------------
 	// UI：地图提示
 	//--------------------------------------------------------
@@ -623,6 +496,9 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	// UI：关闭窗口
 	//--------------------------------------------------------
+	$("confirm_window").on("click","#close",function(){
+		close_confirm_window();
+	})
 	$("simple_item_select_window").on("click","#close",function(){
 		close_simple_item_select_window();
 	});
@@ -1211,13 +1087,24 @@ $(document).ready(function(){
 	//--------------------------------------------------------
 	// UI：信息窗口
 	//--------------------------------------------------------
-	$("body").mousemove(function(event){
-		if($("info_window").css("display")=="none"){return};
+	$("body").mousemove(update_help_window,event);
+	$("body").on("touchmove",touch_update_help_window,event);
+	$("body").on("touchend",function(){
+		$("info_window").hide();
+	});
+	function touch_update_help_window(event){
+		update_help_window(event.originalEvent.touches[0],50);
+	}
+	function update_help_window(event,dx=10){
+		dx=dx;
+		event=event;
+		if($("info_window").css("display")=="none"){return;};
 		$("info_window").css({
-			"left":event.pageX + 10,
+			"left":event.pageX + dx,
 			"top":event.pageY - 20
 		});
-	});
+	}
+
 	//范围外消除
 	$("body").click(
 	    function(){
@@ -1241,7 +1128,6 @@ $(document).ready(function(){
 			}
 		}
 	}
-		
 	//--------------------------------------------------------
 	// UI：拖动
 	//--------------------------------------------------------
@@ -1249,9 +1135,10 @@ $(document).ready(function(){
 		if (!!this.move) {
 			var posix = !document.move_target ? {'x': 0, 'y': 0} : document.move_target.posix,
 				callback = document.call_down || function() {
+					var a = e.scrollY;
 					$(this.move_target).css({
-						'top': e.pageY - posix.y,
-						'left': e.pageX - posix.x
+						'top':  e.clientY - posix.y,//e.pageY, //- e.clientY ,
+						'left':  e.clientX - posix.x//e.pageX //- e.clientX 
 					});
 				};
  
@@ -1281,17 +1168,44 @@ $(document).ready(function(){
 	            'h': fBox.height(), 
 	            'top':fBox.offset().top,
 	            'x': e.pageX, 
-	            'y': e.pageY
+	            'y': e.pageY,
+	            "min_width": fBox.get(0).flex_min_width,
+	            "min_height": fBox.get(0).flex_min_height
 	        };
-	    
-	    $.extend(document, {'move': true, 'call_down': function(e) {
-	    	fBox.css({
-	    		'top': Math.min(posix.top + posix.h - 380,e.pageY-posix.y+posix.top),
-	            'width': Math.max(150, e.pageX - posix.x + posix.w),
-	            'height': Math.max(380, -e.pageY + posix.y + posix.h)
-	        });
-	    }});
+		    $.extend(document, {'move': true, 'call_down': function(e) {
+		    	fBox.css({
+		    		'top': Math.min(posix.top + posix.h - posix.min_height,e.pageY-posix.y+posix.top),
+		            'width': Math.max(posix.min_width, e.pageX - posix.x + posix.w),
+		            'height': Math.max(posix.min_height, -e.pageY + posix.y + posix.h)
+		        });
+		    }});
 	    return false;
+	});
+	//--------------------------------------------------------
+	// UI:回放控制器
+	//--------------------------------------------------------
+	$("replay_controller action_play").click(function(){
+		var controller=document.getElementsByTagName("replay_controller")[0];
+		if($(this).hasClass("play")){
+			controller.timer_id=setInterval(function(){GameEvent.replay_next_event()}, 3000 / controller.timer_f);
+			$(this).removeClass("play").addClass("pause");
+		}
+		else{
+			clearInterval(controller.timer_id);
+			$(this).removeClass("pause").addClass("play");		
+		}
+	});
+	$("replay_controller action_step_next").click(function(){
+		GameEvent.replay_next_event();
+	});
+	$("auto_play_speed set_speed").click(function(){
+		var controller=document.getElementsByTagName("replay_controller")[0];
+		$("auto_play_speed set_speed").removeClass("active");
+		$(this).addClass("active");
+		controller.timer_f=parseInt($(this).attr("fq"));
+		clearInterval(controller.timer_id);
+		controller.timer_id=setInterval(function(){GameEvent.replay_next_event()}, 3000 / controller.timer_f);
+		$("replay_controller action_play").removeClass("play").addClass("pause");
 	});
 });
 //--------------------------------------------------------
@@ -1523,17 +1437,6 @@ function UI_begin_turn(force=false){
 	//清除selectors
 	clear_selectors();
 	hide_special_actions();
-	/*
-	//当处于前期坐城状态,必定为要求建设新定居点
-	if(game_info.game_process==2 && user_index==game_info.step_list[game_info.step_index]){
-		if(game_temp.home_step%2==0){
-			start_set_home(game_temp.home_step);
-		}
-		else{
-			start_set_home(game_temp.home_step+1);
-		}
-		
-	}*/
 	if(game_info.game_process!=2 || force){
 		//清空所有状态类
 		$("dice").removeClass();
@@ -1548,7 +1451,7 @@ function UI_begin_turn(force=false){
 			UI_hide_basic_menu();		
 		}
 		//刷新回合数
-		$("#rounds").text(('00'+game_info.play_turns).slice(-2));
+		set_rounds();
 	}	
 }
 //--------------------------------------------------------
@@ -1581,7 +1484,7 @@ function UI_set_dices(...dices){
 // 开始正常行动
 //--------------------------------------------------------
 function UI_start_build(){
-	if(game_info.step_list[game_info.step_index]==user_index){
+	if($gameSystem.is_own_turn()){
 		//启用其他0级选项
 		if(game_info.game_process!=1){
 			$("actions0").children().not(".fst_action").show();
@@ -1773,6 +1676,32 @@ function UI_cancel_menu_active(){
 function close_simple_item_select_window(){
 	$("simple_item_select_window").hide();
 	UI_cancel_menu_active();
+}
+//--------------------------------------------------------
+// 关闭确认窗口
+//--------------------------------------------------------
+function close_confirm_window(){
+	//关闭窗口
+	$("confirm_window").hide();
+	if(game_temp.action_now=="action_use_dev_road_making"){
+		$("edge_selector").filter("#"+game_temp.selected_edge[1]).removeClass("selector_selected");
+		game_temp.selected_edge.splice(1,1);
+	}
+	else{
+		cancel_selectors();
+	}	
+	UI_cancel_menu_active();
+
+}
+//--------------------------------------------------------
+// 打开回放控制器
+//--------------------------------------------------------
+function UI_show_replay_controller(){
+	var controller=document.getElementsByTagName("replay_controller")[0];
+	$("replay_controller").show();
+	$("auto_play_speed set_speed").eq(1).addClass("active");
+	controller.timer_f=2;
+	controller.timer_id=setInterval(function(){GameEvent.replay_next_event()}, 3000 / controller.timer_f);
 }
 //--------------------------------------------------------
 // game_info对象函数

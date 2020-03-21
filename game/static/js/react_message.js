@@ -41,120 +41,7 @@ function handle_msg(msg){
 	//alert(msg.message.val);
 	switch(msg.type){
 		case "mes_action":
-			var val=msg.message.val;
-			switch(val[0]){
-				//骰子,一定是获取点数
-				case 0:
-					set_dice(val[2],val[3]);
-					break;
-				//建造
-				case 1:
-					switch(val[1]){
-						//建造道路
-						case 1:
-							build_road(val[2],msg.message.starter);
-							break;
-						//建立定居点
-						case 2:
-							build_city0(val[2],msg.message.starter);
-							break;
-						//建设新城市
-						case 3:
-							build_city1(val[2],msg.message.starter);
-							break;
-						//抽取发展卡
-						case 4 :
-							extract_dev_card(val[3],msg.message.starter);
-					}
-					break;
-				//交易
-				case 2:
-					switch(val[1]){
-					    //与银行交易
-					 	case 1:
-					 		trade_with_bank(val[2],val[3],msg.message.starter);
-					 		break;
-				 		//与港口交易,本质还是与银行交易
-				 		case 2:
-				 			trade_with_bank(val[2],val[3],msg.message.starter);
-				 			break;
-				 		//与玩家交易(请求)
-				 		case 3:
-				 			give_trade_with_player(val[2])
-				 			break;
-				 		//响应玩家交易
-				 		case 4:
-				 			switch(val[2]){
-				 				//尝试接受交易
-				 				case 1:
-				 					response_trade_with_player(val[3],msg.message.starter);
-				 					break;
-				 				//拒绝交易
-				 				case 2:
-				 					msg_refuse_trade(val[3],msg.message.starter);
-				 					break;
-				 				//取消交易
-				 				case 3:
-				 					msg_cancel_trade(val[3]);
-				 					break;
-				 			}
-				 			break;
-				 		//执行交易
-				 		case 5:
-				 			trade_with_player(val[2],val[3]);
-				 			break;		
-					}
-				    break;
-				//发展
-				case 3:
-					switch(val[1]){
-						//士兵卡
-						case 1:
-							set_robber_info(val[2],msg.message.starter,val[3],val[5],true);
-							break;
-						//丰收卡
-						case 2:
-							dev_plenty(val[2],msg.message.starter);
-							break;
-						//垄断卡
-						case 3:
-							dev_monopoly(val[2],msg.message.starter);
-							break;
-						//修路卡
-						case 4:
-							dev_road_making(val[2],val[3],msg.message.starter);
-							break;
-						//展示分数卡
-						case 5:
-							show_score_card(val[2],msg.message.starter);
-							break;
-					}
-					break;
-				//设置强盗(因7)
-				case 4:
-				    set_robber_info(val[1],msg.message.starter,val[2],val[4]);
-					break;
-				//丢弃卡片(因7)
-				case 5:
-					drop_srcs(val[1],msg.message.starter);
-					break;
-				//结束回合
-				case 6:
-					new_turn();
-					break;
-				//初始坐城内容
-				case 8:
-					set_home(val[1],val[2],msg.message.starter);
-					break;
-				//初始投骰
-				case 9:
-					fst_dice(val[2],val[3],msg.message.starter);
-					break;
-				//聊天
-				case 19:
-					new_talk_message(val[1],msg.message.starter);
-					break;
-			}
+			GameEvent.execute_event(msg.message);
 			break;
 		case "mes_member":
 			member_handle_msg(msg.message);
@@ -169,8 +56,9 @@ function handle_msg(msg){
 	};
 	//然后由房主更新game_info
 	//离线模式不更新
-	if(!offline && game_info.player_list[user_index][0]==game_info.owner){
-		upload_game_info();
+	//只上传mes_action的行为
+	if(!offline && $gameSystem.is_room_owner() && msg.type=="mes_action"){
+		upload_game_info(msg);
 	}
 	//暂不设计
 	//再然后检查胜利条件
@@ -288,6 +176,7 @@ function build_road(edge_id,player_index,cost=true){
 	}
 	//安置道路(更新game_info)
 	game_info.roads[edge_id]=new Road(player_index);
+	player.own_roads.push(edge_id);
 	his_window.push(game_info.player_list[player_index][1]+" 建造了一条道路");
 	//此处可以添加动画
 	//安置道路(更新画面)
@@ -345,7 +234,7 @@ function build_city1(point_id,player_index){
 // 抽取发展卡
 //--------------------------------------------------------
 function extract_dev_card(randomint,player_index){
-	//设置强盗的UI回调函数,只需要清除active
+	//设置抽取发展卡的UI回调函数,只需要清除active
 	$("#action_buy_dev_card").removeClass("active");
 	var cards=game_info.cards;
 	var player=game_info.players[player_index];
@@ -688,7 +577,7 @@ function dev_road_making(road_id1,road_id2,builder_index){
 //--------------------------------------------------------
 function show_score_card(card_name,player_index){
 	var player=$gamePlayers[player_index];
-	player.show_score_cards(card_name);
+	player.show_score_cards([card_name]);
 	his_window.push(player.name+" 展示了分数卡 "+card_name);
 	//UI回调,设置菜单级数为1
 	init_menu_lv(1,$("#action_show_score_cards"));

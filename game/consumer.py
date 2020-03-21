@@ -2,7 +2,7 @@ from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 from .models import User,Room
 from django.db.models import F
-import json,random
+import json,random,time
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -224,6 +224,7 @@ class RoomReady(WebsocketConsumer):
         #message = text_data_json['message']
         #print("test==================="+text_data)
         #self.send(text_data="hello")
+
 #游戏测试用websocket
 #目前实现：接受连接,传递用户间发出的消息。
 class Game_Test(WebsocketConsumer):
@@ -295,7 +296,49 @@ class Game_Test(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_id,msg
         )
-        #text_data_json = json.loads(text_data)
-        #message = text_data_json['message']
-        #print("test==================="+text_data)
-        #self.send(text_data="hello")
+
+#网络架构测试用websocket
+class Websocket_Test(WebsocketConsumer):
+    #准备连接时的操作,延迟对话测试
+
+    def connect(self):
+        print("linking...");
+        self.user_name = self.scope['url_route']['kwargs']['user_name']
+        #加入对话组
+        async_to_sync(self.channel_layer.group_add)(
+            self.user_name,
+            self.channel_name
+        )
+        print("success!")
+        self.accept()
+        time.sleep(1)
+        #self.sendframe(10,"frame")
+        #self.sendframe(11,"frame")
+        self.sendframe(15,"frame")
+
+    def sendframe(self,frame_index,data):
+        content = {"index":frame_index,"data":data}
+        self.send(json.dumps(content))
+
+    #连接中断后的行为
+    def disconnect(self, close_code):
+        #移出对话组
+        async_to_sync(self.channel_layer.group_discard)(
+            self.user_name,
+            self.channel_name
+        )
+
+    #处理对话组发来的消息
+    def mes_action(self, event):
+        #转发给客户端
+        self.send(text_data=json.dumps(event))
+
+    def mes_member(self, event):
+        #转发给客户端
+        self.send(text_data=json.dumps(event))
+
+    #处理从客户端发来的消息
+    def receive(self, text_data):
+        async_to_sync(self.channel_layer.group_send)(
+            self.user_name,json.loads(text_data)
+        )

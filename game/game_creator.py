@@ -6,6 +6,7 @@ def new_Player(index):
 	player["index"]=index
 	player["src_secret"]=True
 	player["own_cities"]=[]
+	player["own_roads"]=[]
 	player["brick_num"]=0
 	player["wool_num"]=0
 	player["wood_num"]=0
@@ -77,7 +78,7 @@ def new_System(time_per_turn):
 	system["recive_list"]=[]
 	return system
 
-def init_game_info(player_size,time_per_turn):
+def init_game_info(player_size,time_per_turn,map_info):
 	#初始化
 	game_info={}
 	system=new_System(time_per_turn)
@@ -106,6 +107,9 @@ def init_game_info(player_size,time_per_turn):
 	game_info["roads"]=roads
 	game_info["bank"]=bank
 	game_info["trades"]=trades	
+
+	#初始化强盗位置
+	game_info["system"]["occupying"]=map_info["basic_roober"]
 
 	return game_info
 

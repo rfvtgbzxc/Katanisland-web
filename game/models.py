@@ -8,7 +8,9 @@ class Room(models.Model):
 	password=models.CharField(max_length=20,default="",null=True)#房间密码
 	game_state=models.IntegerField(null=True,default=0) #游戏状态
 	map_size=models.IntegerField(null=True,default=0) #地图大小
+	initial_game_info=models.CharField(max_length=100000,default="") #初始游戏数据
 	game_info=models.CharField(max_length=100000) #游戏数据
+	event_list=models.CharField(max_length=1000000,default="") #游戏信息记录
 	map_setting=models.CharField(max_length=10000,default="geneal") #地图基础设置
 	map_info=models.CharField(max_length=10000,default="geneal") #地图数据
 	member_num=models.IntegerField(null=True,default=0) #加入玩家数

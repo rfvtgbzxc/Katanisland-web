@@ -92,11 +92,10 @@ class Game_Player{
 	//--------------------------------------------------------
 	vp_update(truth=false){
 		var info=[0,0,0,0,0];
-		var own_cities=this.own_cities;
 		var all_cities=$gameCities;
-		for(i in own_cities){
+		for(let city_id of this.own_cities){
 			//仅适用于原版
-			info[1-all_cities[own_cities[i]].level]+=(all_cities[own_cities[i]].level+1);
+			info[1-$gameCities[city_id].level]+=($gameCities[city_id].level+1);
 		}
 		if(this.index==$gameSystem.longest_road){
 			info[2]+=2;
@@ -128,7 +127,7 @@ class Game_Player{
 		else{
 			this.score_shown=this.score_shown.concat(target);
 			for(let one of target){
-				this.score_unshown.splice(this.score_unshown.indexOf(one),1);
+				this.score_unshown.splice(this.score_unshown.indexOf(one));
 			}		
 		}
 	}

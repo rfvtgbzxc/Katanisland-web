@@ -1,9 +1,17 @@
 //根据game_info处理画面的刷新，此部分只能对已经存在的DOM元素进行操作,且不对动画进行处理。
 function update_static_Graphic(){
-	var self_player=game_info.players[user_index];
-	//加载玩家自己所有资源的数字
-	for(var i=1;i<6;i++){
-		$(".src_"+order[i]).children().filter("truely_own").text(""+self_player[order[i]+"_num"]);
+	if(!$gameSystem.is_audience()){
+		var self_player=game_info.players[user_index];
+		//加载玩家自己所有资源的数字
+		for(var i=1;i<6;i++){
+			$(".src_"+order[i]).children().filter("truely_own").text(""+self_player[order[i]+"_num"]);
+		}
+		//刷新选项中的发展卡数量
+		$("#action_use_dev_soldier").children().filter(".dev_num").text(""+self_player.soldier_num);
+		$("#action_use_dev_plenty").children().filter(".dev_num").text(""+self_player.plenty_num);
+		$("#action_use_dev_monopoly").children().filter(".dev_num").text(""+self_player.monopoly_num);
+		$("#action_use_dev_road_making").children().filter(".dev_num").text(""+self_player.road_making_num);
+		$("#action_show_score_cards").children().filter(".dev_num").text(""+self_player.score_unshown.length);
 	}
 	//刷新全玩家状态卡
 	$("player").each(function(){
@@ -34,12 +42,6 @@ function update_static_Graphic(){
 			attrs.filter("score_card").removeClass("active");
 		}	
 	});
-	//刷新选项中的发展卡数量
-	$("#action_use_dev_soldier").children().filter(".dev_num").text(""+self_player.soldier_num);
-	$("#action_use_dev_plenty").children().filter(".dev_num").text(""+self_player.plenty_num);
-	$("#action_use_dev_monopoly").children().filter(".dev_num").text(""+self_player.monopoly_num);
-	$("#action_use_dev_road_making").children().filter(".dev_num").text(""+self_player.road_making_num);
-	$("#action_show_score_cards").children().filter(".dev_num").text(""+self_player.score_unshown.length);
 	//城市形象更新
 	$(".city").each(function(){
 		var city=game_info.cities[$(this).attr("id")];
@@ -117,7 +119,6 @@ function turn_rounds(){
 			$(this).animate({"left":"-=65px","top":"0","height":"60px","width":"60px"},function(){
 				last_step_index++;
 				if(last_step_index==game_info.step_list.length){last_step_index=0;}
-				//alert(last_step_index);
 				if(last_step_index!=game_info.step_index){turn_rounds();}
 			});
 		}
@@ -165,15 +166,15 @@ function load_map(){
 		var x=Math.round(xi*edge_size*1.5);
 		var y=Math.round(yi*edge_size*1.732+(xi%2)*0.5*1.732*edge_size);
 		var dx=0,dy=0;
-		$("#places").append("<img class='plc' id='"+place_id+"' src='/media/img/hexagon.png'/>");
+		$("#places").append("<img class='plc' id='"+place_id+"' src='"+cdn_url+"/media/img/hexagon.png'/>");
 		plc=$(".plc").filter("#"+place_id);
 		//放置图块选择器
 		plc.after("<plc_selector id='"+place_id+"'></plc_selector>");
 		//放置背景图
-		plc.after("<img class='backpic' id='"+place_id+"' src='/media/img/"+order[place.create_type]+".png'/>");
+		plc.after("<img class='backpic' id='"+place_id+"' src='"+cdn_url+"/media/img/"+order[place.create_type]+".png'/>");
 		//放置数字图
 		if(place.create_num!=0){
-			plc.after("<img class='numpic' id='"+place_id+"' src='/media/img/num_"+place.create_num+".png'/>");
+			plc.after("<img class='numpic' id='"+place_id+"' src='"+cdn_url+"/media/img/num_"+place.create_num+".png'/>");
 		}
 		//调整位置
 		plc.css({"left":x+"px","top":y+"px","z-index":"500"});
@@ -213,12 +214,9 @@ function load_map(){
 		if(roads.hasOwnProperty(edge_id))
 		{
 			add_road(edge_id);
-			//road=roads[edge_id];
-			//$("#roads").append("<img class='road' id='"+edge_id+"' src='/media/img/road_dir"+edge_id%3+"_"+color_reflection[road.owner]+".png'/>");
 		}
 		//调整位置
 		$("edge_selector").filter("#"+edge_id).css({"left":(x+dx)+"px","top":(y+dy)+"px","z-index":"3000"})
-		//$(".road").filter("#"+edge_id).css({"left":x+"px","top":y+"px","z-index":"600"})
 	}
 	//放置点选择器与城市
 	for(var pt_index in points)
@@ -248,13 +246,9 @@ function load_map(){
 		if(cities.hasOwnProperty(point_id))
 		{
 			add_city(point_id);
-			//city=cities[point_id];
-			//$("#cities").append("<img class='city' id='"+point_id+"' src='/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png'/>");
 		}
-		//alert(x+dx);
 		//调整位置
 		$("pt_selector").filter("#"+point_id).css({"left":(x+dx)+"px","top":(y+dy)+"px","z-index":"3000"})
-		//$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"800"})
 	}
 	//放置海港层
 	for(var i=0;i<harbors.length;i++)
@@ -268,7 +262,7 @@ function load_map(){
 		var y=Math.round(yi*edge_size*1.732+(xi%2)*0.5*1.732*edge_size);
 		var dx=0,dy=0;
 		//放置海港
-		$("#harbors").append("<img class='harbor' id='"+i+"' src='/media/img/harbor_"+harbor.direct+".png'/>");
+		$("#harbors").append("<img class='harbor' id='"+i+"' src='"+cdn_url+"/media/img/harbor_"+harbor.direct+".png'/>");
 		hbr=$(".harbor").filter("#"+i);
 		var num;
 		if(harbor.ex_type!=6){
@@ -278,9 +272,9 @@ function load_map(){
 			num=3;
 		}
 		//放置数字
-		hbr.after("<img class='hb_num' id='"+i+"' src='/media/img/harbor_num"+num+"_"+harbor.direct+".png'/>");
+		hbr.after("<img class='hb_num' id='"+i+"' src='"+cdn_url+"/media/img/harbor_num"+num+"_"+harbor.direct+".png'/>");
 		//放置图标
-		hbr.after("<img class='hb_icon' id='"+i+"' src='/media/img/harbor_icon_"+harbor.ex_type+".png'/>");
+		hbr.after("<img class='hb_icon' id='"+i+"' src='"+cdn_url+"/media/img/harbor_icon_"+harbor.ex_type+".png'/>");
 		switch(harbor.direct){
 			case "up":
 				dx=182;
@@ -323,19 +317,17 @@ function load_UI(){
 	var player_list=game_info.player_list;
 	var players=game_info.players;
 	var self_player=players[user_index];
-	//加载所有资源的数字
-	for(var i=1;i<5;i++){
-		$(".src_"+order[i]).children().filter("truely_own").text(""+self_player[order[i]+"_num"]);
-	}
 	//显示回合数
-	$("#rounds").text(('00'+game_info.play_turns).slice(-2));
+	set_rounds();
 	//加载玩家状态栏
 	var dy=0;
-	dy+=205;
+	if(!$gameSystem.is_audience()){
+		dy+=205;
+	}	
 	for(var player_index in player_list){
 		$("#players").append("<player id='"+player_index+"'></player>");
 		var player_state=$("player").filter("#"+player_index);
-		player_state.append("<img class='player_back' id='"+player_index+"' src='/media/img/player_back_"+color_reflection[player_index]+".png'/>");	
+		player_state.append("<img class='player_back' id='"+player_index+"' src='"+cdn_url+"/media/img/player_back_"+color_reflection[player_index]+".png'/>");	
 		player_state.append("<playername id='"+player_index+"'>"+player_list[player_index][1]+"</playername>");
 		player_state.append("<vp_state id='"+player_index+"'>"+vp_num(player_index)+"</vp_state>");
 		player_state.append("<src_state>"+all_src_num(players[player_index])+"</src_state>")
@@ -364,6 +356,7 @@ function load_UI(){
 		if(game_info.max_minitory==player_index){$("max_minitory").filter("#"+player_index).addClass("active")};
 		if(players[player_index].score_shown!=0){$("score_card").filter("#"+player_index).addClass("active")};	
 	}
+	$("#players").css("height",dy+"px");
 	//加载交易/舍弃栏资源图标
 	for(var i=1;i<1+src_size;i++){
 		$("srcs_selected").append("<src_item num='0' class='"+order[i]+"'></src_item>");
@@ -399,7 +392,7 @@ function load_UI(){
 //--------------------------------------------------------
 function set_robber(place_id){
 	if($("robber").children().length==0){
-		$("robber").append("<img src='/media/img/robber.png' style='position:absolute;'>");
+		$("robber").append("<img src='"+cdn_url+"/media/img/robber.png' style='position:absolute;'>");
 	}
 	var xi=parseInt(place_id/ysize);
 	var yi=place_id%ysize;
@@ -438,7 +431,7 @@ function add_road(edge_id){
 			break;
 	}
 	road=roads[edge_id];
-	$("#roads").append("<img class='road' id='"+edge_id+"' src='/media/img/road_dir"+edge_id%3+"_"+color_reflection[road.owner]+".png'/>");
+	$("#roads").append("<img class='road' id='"+edge_id+"' src='"+cdn_url+"/media/img/road_dir"+edge_id%3+"_"+color_reflection[road.owner]+".png'/>");
 	$(".road").filter("#"+edge_id).css({"left":x+"px","top":y+"px","z-index":"600"});
 }
 //--------------------------------------------------------
@@ -467,12 +460,13 @@ function add_city(point_id){
 	if(city.level==1){
 		dx-=10;
 	}
-	$("#cities").append("<img class='city' id='"+point_id+"' src='/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png'/>");
+	$("#cities").append("<img class='city' id='"+point_id+"' src='"+cdn_url+"/media/img/city_lv"+city.level+"_"+color_reflection[city.owner]+".png'/>");
 	//调整位置
 	$(".city").filter("#"+point_id).css({"left":(x+dx+15)+"px","top":(y+dy+10)+"px","z-index":"999"});
 }
 
 function create_step_list(){
+	if(game_UI.hasOwnProperty("step_list_created")){return;}
 	//加载行动列表
 	//确定行动列表宽度
 	var step_list=game_info.step_list;
@@ -507,13 +501,14 @@ function create_step_list(){
 		}
 		$(this).css("color",color_reflection_hex[color_reflection[player_index]]);
 	});	
-
+	game_UI.step_list_created=true;
 }
 //--------------------------------------------------------
 // 添加交易/丢弃单元
 //--------------------------------------------------------
 
 function create_trade_items(){
+	if(game_UI.hasOwnProperty("trade_items_created")){return;}
 	for(var src_id=1;src_id<6;src_id++){
 		var src_name=order[src_id];
 		var src_num=0;
@@ -524,7 +519,7 @@ function create_trade_items(){
 		for(var v1 in menu1){
 			for(var v2 in menu2){
 				//0,0:给予栏选中 0,1：给予栏备选 1,0:索取栏选中 1,1:索取栏备选
-				var jqitem=$("trade_window").children().filter("src_select_window."+menu1[v1]).children().filter("srcs_"+menu2[v2]).children().filter("."+src_name);
+				var jqitem=$("trade_window src_select_window."+menu1[v1]+" srcs_"+menu2[v2]+" ."+src_name);
 				if(v2==0){
 					var a_selected_item=new Selected_Trade_item(jqitem,null,src_name,menu1[v1]);
 					var item=a_selected_item;
@@ -542,4 +537,17 @@ function create_trade_items(){
 		}
 	}
 	game_UI.trade_items_created=true;
+}
+
+//--------------------------------------------------------
+// 设置回合数
+//--------------------------------------------------------
+function set_rounds(){
+	if($gameSystem.play_turns<100){
+		$("#rounds").text(('00'+$gameSystem.play_turns).slice(-2));
+	}
+	else{
+		$("#rounds").text(''+$gameSystem.play_turns);
+	}
+	
 }

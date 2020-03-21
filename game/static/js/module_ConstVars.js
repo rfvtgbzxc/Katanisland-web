@@ -1,0 +1,147 @@
+//--------------------------------------------------------
+// module_ConstVars
+// 用于声明常量,注意测试版本与发布版本部分参数的不同
+//--------------------------------------------------------
+//debug模式
+debug=false;
+//脱机模式
+offline=false;
+//测试版本
+test_model=true;
+//是否使用cdn
+use_cdn=true;
+
+//服务器websocket地址
+if(test_model){
+	websocket_url = "ws://192.168.50.140:80/ws/game_test";
+}
+else{
+	websocket_url = "ws://122.51.21.190:80/ws/game_test";
+}
+//CDN加速地址
+if(use_cdn){
+	cdn_url = "http://cdn.newcenturyfans.cn";
+}
+else{
+	cdn_url = "";
+}
+requesting = false;
+
+//游戏数据
+map_info={};
+game_info={};
+places={};
+edge_size=67;
+xsize=0;
+ysize=0;
+last_step_index=0;
+src_size=5;
+//临时数据
+game_temp={
+	home_step:0,
+	"action_now":"",
+	"set_option":"",
+	"recive_list":[],
+	dev_used:false,
+	no_build_dev_used:false,
+	fst_dices:{"0":0},
+};
+game_UI={
+	"UI_count":0,
+};
+game_UI_list={
+	drop_items:{
+		selected:[],
+		available:[]
+	},
+	trade_items:{
+		_give:{
+			selected:[],
+			available:[]
+		},
+		_get:{
+			selected:[],
+			available:[]
+		}		
+	},
+};
+//个人标记（默认为第一位玩家）
+user_id=1;
+user_index=1;
+//数据映射
+load_process={
+	"map":false,
+	"game":false,
+};
+devs=["soldier","plenty","monopoly","road_making"];
+order={
+		0:"desert",
+		1:"brick",
+		2:"wood",
+		3:"wool",
+		4:"grain",
+		5:"ore",
+		6:"any_type"
+};
+order_ch={
+		0:"沙漠",
+		1:"砖块",
+		2:"木材",
+		3:"羊毛",
+		4:"粮食",
+		5:"铁矿",
+		6:"任意"
+};
+src_reflection={
+	"desert":0,
+	"brick":1,
+	"wood":2,
+	"wool":3,
+	"grain":4,
+	"ore":5,
+};
+color_reflection={
+	1:"light-blue",
+	2:"dark-green",
+	3:"light-orange",
+	4:"light-red",
+	5:"light-purple",
+	6:"light-green",
+};
+color_reflection_hex={
+	"light-blue":"#029ed9",
+	"dark-green":"#006602",
+	"light-orange":"#ff9b38",
+	"light-red":"#ff3738",
+	"light-purple":"#a3159a",
+	"light-green":"#81ff38"
+};
+dir_reflection={
+	"up":0,
+	"ru":1,
+	"rd":2,
+	"dn":3,
+	"ld":4,
+	"lu":5
+};
+unknown_cards={
+	"brick_num":99,
+	"wood_num":99,
+	"wool_num":99,
+	"grain_num":99,
+	"ore_num":99,
+};
+score_cards=[
+"阿尔忒弥斯神庙",
+"牛津大学",
+"巴拿马运河",
+"紫禁城",
+"圣瓦西里大教堂",
+];
+vp_info_text=[
+"拥有的城市：",
+"拥有的定居点：",
+"最长道路：",
+"最大军队：",
+"拥有的奇观："
+];

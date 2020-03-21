@@ -103,107 +103,75 @@ function available_places(){
 }
 //--------------------------------------------------------
 // 获取玩家可修路的边
+// 要求：玩家所有的道路附近的边+玩家所有定居点、城市附近的边
 // temp_edge:额外考虑temp_edge
 //--------------------------------------------------------
 function available_edges(player_index,temp_edge=[]){
-	var roads=union(all_roads(player_index),temp_edge);
-	var available_edges_from_road={};
-	var available_edges_all=[];
-	for(var base_road_index in roads){
-		var base_road_id=roads[base_road_index];
-		available_edges_from_road[base_road_id]=edge_round_edges_with_pt(base_road_id,"blank_edge");
-	}
-	//无视有其他玩家已坐城点的备选道路
-	for(var base_road_id in available_edges_from_road){
-		for(var available_pt in available_edges_from_road[base_road_id]){
-			if(game_info.cities.hasOwnProperty(available_pt) && game_info.cities[available_pt].owner!=user_index){
-				//delete available_edges[available_pt];
-				continue;
-			}
-			else{
-				var t_edges=available_edges_from_road[base_road_id][available_pt];
-				available_edges_all=union(available_edges_all,t_edges);
-			}
-		}			
-	}
-	//自己城市周边的三条边可以放置道路,已有道路的边无法选择
-	var cities=all_cities(player_index);
-	var available_edges_from_city=[];
-	for(var base_pt in cities){
-		available_edges_from_city=union(available_edges_from_city,pt_round_edges(cities[base_pt]));
-	}
-	available_edges_all=union(available_edges_all,available_edges_from_city);
-	//删除已有道路的边
-	for(var i in available_edges_all){
-		if(game_info.roads.hasOwnProperty(available_edges_all[i]) || temp_edge.indexOf(available_edges_all[i])!=-1){
-			delete available_edges_all[i];
-			continue;
-		}			
-	}
-	return available_edges_all;
+	return sQuery("edge",$gamePlayers[player_index].own_roads).union(temp_edge).near_points()
+	.not(function(point_id){
+		return $gameCities.hasOwnProperty(point_id);
+	}).near_edges().union(sQuery("point",$gamePlayers[player_index].own_cities).near_edges())
+	.not($gamePlayers[player_index].own_roads).get_list();
 }
 //--------------------------------------------------------
 // 获取玩家可定居的点
+// 要求：玩家所有的道路附近的点,且这些点以及附近不能有任何人的定居点、城市
 //--------------------------------------------------------
 function available_points(player_index){
-	var roads=all_roads(player_index);
-	var available_points_all=[];
-	//获取自己所有道路的端点
-	for(var i in roads){
-		available_points_all=union(available_points_all,edge_round_points(roads[i]));	
-	}
-	//alert(available_points_all);
-	//alert(pt_round_points(38))
-	//删除自己或周围有其他城市的点
-	var i=0;
-	while(i<available_points_all.length){
-		//his_window.push(JSON.stringify(available_points_all));
-		var can_settle=true;
-		if(game_info.cities.hasOwnProperty(available_points_all[i])){
-			available_points_all.splice(i,1);
-			continue;
+	return sQuery("edge",$gamePlayers[player_index].own_roads).near_points()
+	.not(function(point_id){
+		if($gameCities.hasOwnProperty(point_id)){
+			return true;
 		}
-		var near_pts=pt_round_points(available_points_all[i]);	
-		for(var j in near_pts){
-			if(game_info.cities.hasOwnProperty(near_pts[j])){
-				available_points_all.splice(i,1);
-				can_settle=false;
-				break;
+		for(let pt_id of sQuery("point",point_id).near_points().get_list()){
+			if($gameCities.hasOwnProperty(pt_id)){
+				return true;
 			}
 		}
-		if(can_settle){
-			i++;
-		}
-		//alert("2");				
-	}
-	return available_points_all;
+		return false;
+	}).get_list();
 }
 //--------------------------------------------------------
 // 获取玩家可定居的点(开局时)
+// 要求：所有点,但这些点以及附近不能有任何人的定居点、城市
 //--------------------------------------------------------
 function available_points_st(player_index){
-	var available_points_all=Object.values(map_info.points);
-	//删除自己或周围有其他城市的点
-	var i=0;
-	while(i<available_points_all.length){
-		var can_settle=true;
-		if(game_info.cities.hasOwnProperty(available_points_all[i])){
-			available_points_all.splice(i,1);
-			continue;
+	return sQuery("point",$gameSystem.all_points()).not(function(point_id){
+		if($gameCities.hasOwnProperty(point_id)){
+			return true;
 		}
-		var near_pts=pt_round_points(available_points_all[i]);	
-		for(var j in near_pts){
-			if(game_info.cities.hasOwnProperty(near_pts[j])){
-				available_points_all.splice(i,1);
-				can_settle=false;
-				break;
+		for(let pt_id of sQuery("point",point_id).near_points().get_list()){
+			if($gameCities.hasOwnProperty(pt_id)){
+				return true;
 			}
 		}
-		if(can_settle){
-			i++;
-		}			
-	}
-	return available_points_all;
+		return false;
+	}).get_list();
+}
+//--------------------------------------------------------
+// 获取骑士能够移动的地方
+// 没有实装,就爽爽sQuery
+//--------------------------------------------------------
+function available_saber_move_points(player_index,saber_id,initiative=false){
+	return sQuery("edge",$gamePlayers[player_index].own_roads).near_points()
+	.not(function(point_id){
+		return $gameCities.hasOwnProperty(point_id);
+	}).not($gameSabers[saber_id].occupying)
+	.not(function(point_id){
+			if($gameSabers.map.hasOwnProperty(point_id)){
+				if(initiative && $gameSabers[saber_id].level > $gameSabers.map[point_id].level){
+					return false;
+				}
+			}
+			return true;
+	}).get_list();
+}
+//--------------------------------------------------------
+// 获取商队能够放置的地方
+// 没有实装,就爽爽sQuery
+//--------------------------------------------------------
+function available_merchant_set_points(player){
+	return sQuery("points",player.own_cities).near_places().get_list();
 }
 //--------------------------------------------------------
 // 获取玩家所有城市
@@ -668,3 +636,183 @@ function pt_round_points(point_id){
 	}
 	return points;
 }
+//--------------------------------------------------------
+// 地图选择器集合
+// 用于为快速筛选合适的选择器提供解决方案
+//--------------------------------------------------------
+function sQuery(type,input_id_list=[]){
+	//检查输入
+	var id_list = SelectorQuery.prototype.check_input(input_id_list);
+	//去除重复
+	var vis={};
+	var new_id_list=[];
+	for(let i of id_list){
+		if(!vis.hasOwnProperty(i)){
+			new_id_list.push(i);
+			vis[i]=true;
+		}
+	}
+	//生成并返回对象
+	return new SelectorQuery(type,new_id_list);
+}
+function SelectorQuery(type,id_list){
+	this.type = type;
+	this.id_list = id_list;
+}
+//--------------------------------------------------------
+// 获取列表
+//--------------------------------------------------------
+SelectorQuery.prototype.get_list =function(){
+	return this.id_list;
+}
+//--------------------------------------------------------
+// 检查输入,并转化为Array
+// 支持输入：数字、数组、SQ对象
+//--------------------------------------------------------
+SelectorQuery.prototype.check_input = function(obj){
+	var new_list;
+	if(typeof(obj) == "number"){
+		new_list=[obj];
+	}
+	else if(obj instanceof SelectorQuery){
+		new_list=obj.get_list();
+	}
+	else{
+		new_list=obj;
+	}
+	return new_list;
+};
+//--------------------------------------------------------
+// 并入SQ
+// 支持输入：数字、数组、SQ对象
+//--------------------------------------------------------
+SelectorQuery.prototype.union = function(input_list){
+	//检查输入
+	var other_list = this.check_input(input_list);
+	this.id_list = this.id_list.concat(other_list.filter(function(v) {
+        return this.id_list.indexOf(v) === -1},this));
+	return this;
+};
+//--------------------------------------------------------
+// 条件筛选函数
+// 支持输入：数字、数组、SQ对象、函数
+//--------------------------------------------------------
+SelectorQuery.prototype.filter = function(input_request){
+	//检查输入
+	//函数的话,遍历并根据返回值进行筛选
+	if(typeof(input_request) == "function"){
+		this.id_list=this.id_list.filter(function(v){
+			return input_request(v);
+		});
+	}
+	//其他的,转换为列表后使用
+	else{
+		var other_list = this.check_input(input_request);
+		this.id_list = this.id_list.filter(function(v){
+			return other_list.indexOf(v)!=-1;
+		});
+	}
+	return this;	
+};
+//--------------------------------------------------------
+// 条件反筛函数
+// 支持输入：数字、数组、SQ对象、函数
+//--------------------------------------------------------
+SelectorQuery.prototype.not = function(input_request){
+	//检查输入
+	//函数的话,遍历并根据返回值进行筛选
+	if(typeof(input_request) == "function"){
+		this.id_list=this.id_list.filter(function(v){
+			return !input_request.call(this,v);
+		},this);
+	}
+	//其他的,转换为列表后使用
+	else{
+		var other_list = this.check_input(input_request);
+		this.id_list = this.id_list.filter(function(v){
+			return other_list.indexOf(v)==-1;
+		});
+	}
+	return this;	
+};
+//--------------------------------------------------------
+// 获取周围的地块
+//--------------------------------------------------------
+SelectorQuery.prototype.near_places = function(){
+	//不同的SQ有不同的获取方式
+	var places = [];
+	switch(this.type){
+	case "place":
+		for(let place_id of this.id_list){
+			places = union(places,plc_near_places(place_id));
+		}
+		break;
+	case "edge":
+		for(let edge_id of this.id_list){
+			places = union(places,edge_round_places(edge_id));
+		}
+		break;
+	case "point":
+		for(let point_id of this.id_list){
+			places = union(places,pt_round_places(point_id));
+		}
+		break;
+	}
+	this.type = "place";
+	this.id_list=places;
+	return this;
+};
+//--------------------------------------------------------
+// 获取周围的边
+//--------------------------------------------------------
+SelectorQuery.prototype.near_edges = function(){
+	//不同的SQ有不同的获取方式
+	var edges = [];
+	switch(this.type){
+	case "place":
+		for(let place_id of this.id_list){
+			edges = union(edges,plc_round_edges(place_id));
+		}
+		break;
+	case "edge":
+		for(let edge_id of this.id_list){
+			edges = union(edges,edge_round_edges(edge_id));
+		}
+		break;
+	case "point":
+		for(let point_id of this.id_list){
+			edges = union(edges,pt_round_edges(point_id));
+		}
+		break;
+	}
+	this.type = "edge";
+	this.id_list=edges;
+	return this;
+};
+//--------------------------------------------------------
+// 获取周围的点
+//--------------------------------------------------------
+SelectorQuery.prototype.near_points = function(){
+	//不同的SQ有不同的获取方式
+	var points = [];
+	switch(this.type){
+	case "place":
+		for(let place_id of this.id_list){
+			points = union(points,plc_round_points(place_id));
+		}
+		break;
+	case "edge":
+		for(let edge_id of this.id_list){
+			points = union(points,edge_round_points(edge_id));
+		}
+		break;
+	case "point":
+		for(let point_id of this.id_list){
+			points = union(points,pt_round_points(point_id));
+		}
+		break;
+	}
+	this.type = "point";
+	this.id_list=points;
+	return this;
+};
