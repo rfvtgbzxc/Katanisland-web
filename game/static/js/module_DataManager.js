@@ -14,6 +14,8 @@ var $gameCities = null;
 var $gameRoads = null;
 var $gameTrades = null;
 var $gameBank = null;
+
+var $dataSources = null;
 //--------------------------------------------------------
 // 初始化全局变量
 //--------------------------------------------------------
@@ -69,4 +71,10 @@ DataManager.makeSaveContents = function() {
 	contents.trades    = $gameTrades;
 	contents.bank      = $gameBank;
 	return contents;
+}
+
+//--------------------------------------------------------
+// 初始化静态数据：资源
+//--------------------------------------------------------
+DataManager.initialStaticSource = function(){
 }

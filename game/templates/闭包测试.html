@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>闭包测试</title>
+</head>
+<body>
+	<script type="text/javascript">
+		/*
+		function out_adder(i){
+			return function(){
+				return ++i;
+			};
+		}
+		function adderer(){
+			var j = 0;
+			function reducer(){
+				return function(){
+					return --j;
+				}
+			}
+			return function adder() {
+				var i = j;
+				var reduce = reducer();
+				var add = function(op=true){
+					if(op){
+						return ++j;
+						
+					}
+					return reduce();
+				};
+				var recude = reducer;
+				return add;
+			}();
+		} myadd = adderer();*/
+		/*
+	var UE={
+		utils:{}
+	};
+	initUbbUtils = function() {
+    UE.utils.html2ubb = function() {
+        var xa = 0;
+        return function(n, r) {
+            console.log(++i);
+            if ("string" == typeof n) {
+                var i = "";
+                if (r)
+                    return e(n || "");
+                var o = UE.htmlparser(e(n || ""));
+                return $.each(o.children || [], function(e, n) {
+                    i += t(n)
+                }),
+                i
+            }
+        }
+    }()
+}
+		initUbbUtils();
+		UE.utils.html2ubb("abc");
+		UE.utils.html2ubb("abc");
+		UE.utils.html2ubb("abc");
+		UE.utils.html2ubb("abc");
+		/*
+		console.log(myadd(true));
+		console.log(myadd(false));*/
+	function logger(){
+		console.log(i);
+	}
+	for(let i=[0,2,3];i[0]<10;i[0]++){
+		console.log(i[0]);
+	   setTimeout(function(){
+	   	 var j = i[0];
+	   		setTimeout(function(){
+	   			//var x = j;
+	   			console.log(i[0]);
+	   			//let k = j;
+	   		});
+	   },0)
+	}
+	/*
+	function initial_counter(){
+		var i = 0;
+		function counter(){
+			if(i<10){
+				setTimeout(
+				function(){
+					console.log(i);
+				});
+				i++;
+				counter();
+			}					
+		}
+		return counter;
+	}
+	var counter = initial_counter();
+	counter();*/
+	</script>
+	案例1里面使用了var，发生了变量提升，相当于这个i是定义在for循环外部的，所以10次循环结束后，输出10次外部的i，也就是10，如果使用块级变量声明let代替var，setTimeOut中每次都有生成一个新的函数，这个函数会拷贝要使用的变量到它的块级作用域里，也就是i，也就是说，每个函数都有一个自己的i，因此会按顺序输出1到10。假如依旧是块级作用域let，但setTimeOut不是在这里生成新函数而是引用外部的函数，则由于没有复制该块级作用域变量，会报错：i不存在。同理案例2由于按值传递，实际上没有访问外部的i，所以也会输出1到10。整个过程与闭包无关，也没有lockedIndex的概念。但是涉及到了函数生成时作用域的嵌套，也确实有宏任务队列的问题。关于作用域的嵌套，如果案例一使用了let，再在setTimeOut里再使用setTimeOut，此时内部的setTimeOut里的函数因为作用域继承，还可以访问块级作用域的变量i，但也可以访问上一层setTimeOut里函数定义的变量（如果有），此时访问的就是闭包了。
+</body>
+</html>

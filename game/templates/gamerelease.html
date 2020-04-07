@@ -2,7 +2,7 @@
 <!--发行版本,有特定加速-->
 <html>
 <head>
-	<title>地图测试</title>
+	<title>卡坦岛web版</title>
 	{% load static %}
 	{% csrf_token %}
 	<link rel="stylesheet" type="text/css" href="http://cdn.newcenturyfans.cn/css/game_test.css">
@@ -25,34 +25,49 @@
 	<!--<span id="load_game" style="cursor:pointer;display: inline;z-index:100;">(离线)生成随机地图</span>-->
 	<!--初始界面-->
 	<span id="basic_cmd" style="position:absolute; left:20%"> 
-		<div>准备游戏</div>
-		<label><input id="type_create_room" name="set_basic_type" type="radio">创建房间</label>
-		<label><input id="type_join_room" name="set_basic_type" type="radio" checked>加入房间</label>
-		<br>
-		房间密码：<input id="room_pswd" type="text" style="width:150px" placeholder="由英文和数字构成">
-		<span id="cmd_create_room" style="display:none;">
-			<br>
-			游戏人数：<input id="room_size" type="text" style="width:100px" placeholder="2~6的数字">
-			<br>
-			回合时间：<input id="room_time_per_turn" type="text" style="width:120px" value="0" placeholder="设为0不启用">
-			<br>
-			地图模版：<select id="map_template" name="map_template">
-				<option value="default">默认</option>
-				<option value="fruitful">富饶</option>
-				<option value="mountains">山脉</option>
-				<option value="poor">贫瘠</option>
-			</select>
-			<br>
-			<span id="create_game_online" style="cursor:pointer;display: inline;z-index:100;">创建房间</span>
-		</span>
-		<span id="cmd_join_room">
-			<br>
-			玩家序号：<input id="set_user_index" type="number" min="0" style="width:220px" placeholder="最大为游戏人数,0为观众">
-			<br>
-			玩家昵称：<input id="set_user_name" type="text" style="width:120px" placeholder="可使用中文">	
-			<br>
-			<span id="load_game_online" style="cursor:pointer;display: inline;z-index:100;">加入房间</span>
-		</span>
+		<div id="start_menu" class="dynamic_window">
+			<div class="window_head">
+				<span class="head_item">创建房间</span><span class="head_item">加入房间</span>
+			</div>
+			<div id="window_linker"></div>
+			<div class="window_body">
+				<div class="content_fix_page">
+					<label>
+						房间密码：<input AUTOCOMPLETE="OFF" id="room_pswd" type="text" style="width:180px" placeholder="由英文和数字构成">
+						<br><span id="room_checking_state"></span>
+					</label>
+				</div>
+				<div class="content_page">
+					<label>
+						游戏人数：<input id="room_size" type="number" min="2" max="6" style="width:180px" placeholder="2~6的数字">
+					</label>
+					<label>
+						回合时间：<input id="room_time_per_turn" type="text" style="width:180px" value="0" placeholder="设为0不启用">
+					</label>
+					<label>
+						地图模版：<select id="map_template" name="map_template">
+						<option value="default">默认</option>
+						<option value="fruitful">富饶</option>
+						<option value="mountains">山脉</option>
+						<option value="poor">贫瘠</option>
+					</select>
+					</label>	
+					<button type="button" id="create_game_online" class="list-group-item-success">创建房间</button>		
+				</div>
+				<div class="content_page">
+					<label>选择角色：
+						<span id="set_user_index">
+							<label><input id="type_create_room" name="user_index" type="radio" value="0">0</label>
+						</span>
+					</label>
+					<label>
+						玩家昵称：<input id="set_user_name" type="text" style="width:120px" placeholder="可使用中文">
+						<label><input type="checkbox" name="remember_user_name">记住昵称</label>
+					</label>
+						<button type="button" id="load_game_online" class="list-group-item-success">加入房间</button>
+				</div>
+			</div>
+		</div>
 		<span style="display:none;">随机数种：<span id="seed_id"></span><span id="debuging"> debug</span></span>
 	</span>
 	<div></div>
@@ -121,7 +136,7 @@
 		<div class="list-group">
 		<button type="button" id="action_contribute" class="list-group-item" help="消耗你的资源来进行建设或其他行为,每个选项右侧是需要消耗的资源量。">建设</button>
 		<button type="button" id="action_trade" class="list-group-item" help="与银行、港口或是玩家交易,交易界面会提示资源的换取比例。">交易</button>
-		<button type="button" id="action_develop" class="list-group-item" help="使用发展卡来改变你的局势。">发展</button>
+		<button type="button" id="action_develop" class="list-group-item" help="使用发展卡来改变你的局势,一回合只能使用一张发展卡。">发展</button>
 	  	</div>
 	  	<br>
 	  	<div class="list-group">
@@ -130,9 +145,9 @@
 	  	<!--1级菜单-->
 	  	<actions1 class="list-group">
 	  		<button type="button" id="action_build_road" class="list-group-item" help="建设一条道路,必须沿着你的道路、定居点或城市修建。">建设道路<cost class="brick">1</cost><cost class="wood">1</cost></button>
-	  		<button type="button" id="action_build_city0" class="list-group-item" help="建设一个新的定居点,需要有你的道路相连,且附近没有定居点,骰子的总值与附近地块上的数字相同时,可以收获该地块类型产出的资源一份。">建立定居点<cost class="brick">1</cost><cost class="wood">1</cost><cost class="wool">1</cost><cost class="grain">1</cost></button>
+	  		<button type="button" id="action_build_city0" class="list-group-item" help="建设一个新的定居点,需要有你的道路相连,且附近没有任何人的定居点。骰子的总值与该定居点附近地块上的数字相同时,可以收获该地块类型产出的资源一份。">建立定居点<cost class="brick">1</cost><cost class="wood">1</cost><cost class="wool">1</cost><cost class="grain">1</cost></button>
 	  		<button type="button" id="action_build_city1" class="list-group-item" help="将定居点升级为城市,每次收获资源时,城市可以获得双倍的资源。">建设新城市<cost class="grain">2</cost><cost class="ore">3</cost></button>
-	  		<button type="button" id="action_buy_dev_card" class="list-group-item" help="抽一张发展卡,之后可以使用发展卡来帮助你赢得胜利。">抽取发展卡<cost class="wool">1</cost><cost class="grain">1</cost><cost class="ore">1</cost></button>
+	  		<button type="button" id="action_buy_dev_card" class="list-group-item" help="抽一张发展卡,之后可以使用发展卡来帮助你赢得胜利。抽到的发展卡不能立刻使用(除分数卡)。">抽取发展卡<cost class="wool">1</cost><cost class="grain">1</cost><cost class="ore">1</cost></button>
 
 	  		<button trade_target="bank" type="button" id="action_trade_with_bank" class="action_prepare_trade list-group-item" help="银行可以给你任何想要的资源,但你需要4份相同资源才能换取一份想要的资源。">与银行交易</button>
 	  		<button type="button" id="action_trade_with_harbours" class="list-group-item" help="当自己的城市坐落于港口,可以以更优惠的价格换取资源。">与港口交易</button>
@@ -176,7 +191,7 @@
 	<!--回合数-->
 	<rounds><img class="rounds" src="/media/img/rounds.png"/><div id="rounds"></div></rounds>
 	<!--玩家状态栏，附加文字不可选中，图片不可拖动功能-->
-	<div id="players" ondragstart="return false;" onselectstart="return false;" unselectable="on" style="-moz-user-select:none;">
+	<div id="players" ondragstart="return false;" onselectstart="return false;" unselectable="on" style="-moz-user-select:none;display:none;">
 	</div>
 	<!--信息窗口-->
 	<info_window style="display: none;"><help_text></help_text><alert_text></alert_text></info_window>
@@ -231,6 +246,17 @@
 			</src_confirm_window>
 		</window_content>
 	</trade_window>
+	<!--回放控制器-->
+	<replay_controller style="display: none;">
+		<timer_updater class="active"></timer_updater>
+		<auto_play_speed>
+			<set_speed fq="3">1x</set_speed>
+			<set_speed fq="2">2x</set_speed>
+			<set_speed fq="1">3x</set_speed>
+		</auto_play_speed>
+		<action_play class="pause"></action_play>
+		<action_step_next></action_step_next>
+	</replay_controller>
 	<!--部分文字预加载-->
 	<pre-load-text style="z-index:-1;display: none;">可收获 需要舍弃的资源 他 你 发起交易 关闭窗口 拒绝 接受 放弃</pre-load-text>
 </body>

@@ -73,7 +73,9 @@ load_process={
 	"map":false,
 	"game":false,
 };
-devs=["soldier","plenty","monopoly","road_making"];
+dev_cards=["soldier","plenty","monopoly","road_making"];
+src_cards=["brick","wood","wool","grain","ore"];
+score_cards=["artemis","oxford","panama","forbiddencity","vasili"];
 order={
 		0:"desert",
 		1:"brick",
@@ -100,6 +102,19 @@ src_reflection={
 	"grain":4,
 	"ore":5,
 };
+dev_ch={
+	"soldier":"士兵",
+	"plenty":"丰收之年",
+	"monopoly":"垄断",
+	"road_making":"道路建设"
+};
+score_ch={
+	"artemis":"阿尔忒弥斯神庙",
+	"oxford":"牛津大学",
+	"panama":"巴拿马运河",
+	"forbiddencity":"紫禁城",
+	"vasili":"圣瓦西里大教堂"
+};
 color_reflection={
 	1:"light-blue",
 	2:"dark-green",
@@ -124,20 +139,6 @@ dir_reflection={
 	"ld":4,
 	"lu":5
 };
-unknown_cards={
-	"brick_num":99,
-	"wood_num":99,
-	"wool_num":99,
-	"grain_num":99,
-	"ore_num":99,
-};
-score_cards=[
-"阿尔忒弥斯神庙",
-"牛津大学",
-"巴拿马运河",
-"紫禁城",
-"圣瓦西里大教堂",
-];
 vp_info_text=[
 "拥有的城市：",
 "拥有的定居点：",

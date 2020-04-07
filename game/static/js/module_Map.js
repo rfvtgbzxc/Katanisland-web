@@ -111,7 +111,7 @@ function available_edges(player_index,temp_edge=[]){
 	.not(function(point_id){
 		return $gameCities.hasOwnProperty(point_id);
 	}).near_edges().union(sQuery("point",$gamePlayers[player_index].own_cities).near_edges())
-	.not($gamePlayers[player_index].own_roads).get_list();
+	.not($gameSystem.all_roads()).get_list();
 }
 //--------------------------------------------------------
 // 获取玩家可定居的点
@@ -733,6 +733,14 @@ SelectorQuery.prototype.not = function(input_request){
 			return other_list.indexOf(v)==-1;
 		});
 	}
+	return this;	
+};
+//--------------------------------------------------------
+// 直接遍历函数
+// 支持输入：函数
+//--------------------------------------------------------
+SelectorQuery.prototype.each = function(each_function){
+	this.id_list.map((id)=>each_function.bind(this)(id));
 	return this;	
 };
 //--------------------------------------------------------

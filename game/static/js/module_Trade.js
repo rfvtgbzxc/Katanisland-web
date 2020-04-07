@@ -133,11 +133,11 @@ function start_trade_window(target="bank",target_val=0){
 				//没有则认为是在向target发起交易
 				game_temp.trade_now_id=user_index*(Object.keys(game_info.players).length+1)+target_val;
 				starter_cards=game_info.players[user_index];
-				accepter_cards=secret?unknown_cards:game_info.players[target_val];
+				accepter_cards=secret?null:game_info.players[target_val];
 			}
 			else{
 				game_temp.trade_now_id=recive_trade_id;
-				starter_cards=secret?unknown_cards:game_info.players[target_val];
+				starter_cards=secret?null:game_info.players[target_val];
 				accepter_cards=game_info.players[user_index];
 				person="他";
 			}				
@@ -204,7 +204,7 @@ function start_trade_window(target="bank",target_val=0){
 			var src_num=0;
 		}
 		else{
-			var src_num=starter_cards[item.item_type+"_num"];
+			var src_num=(!!starter_cards) ? starter_cards.src(item.item_type) : 99;
 		}
 		item.ratio_num=trade_ratio;
 		item.own_num=src_num;
@@ -224,7 +224,7 @@ function start_trade_window(target="bank",target_val=0){
 			var src_num=0;
 		}
 		else{
-			var src_num=accepter_cards[item.item_type+"_num"];
+			var src_num=(!!accepter_cards) ? accepter_cards.src(item.item_type) : 99;
 		}
 		item.own_num=src_num;
 		item.jqdom_init();

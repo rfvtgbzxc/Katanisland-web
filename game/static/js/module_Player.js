@@ -8,7 +8,6 @@ class Game_Player{
 			this[attr]=static_player[attr];
 		}
 		this.name=$gameSystem.player_list[this.index][1];
-		this.vp_update();
 	}
 	//--------------------------------------------------------
 	// 获取资源数
@@ -53,12 +52,6 @@ class Game_Player{
 		return this[src_name+"_num"];
 	}
 	//--------------------------------------------------------
-	// 获取总资源数
-	//--------------------------------------------------------
-	all_src_num(){
-		return this.src("brick")+this.src("wood")+this.src("wool")+this.src("grain")+this.src("ore");
-	}
-	//--------------------------------------------------------
 	// 获取发展卡数
 	// 可以使用发展卡名称来获取,且可以使用操作符进行数量修改
 	//--------------------------------------------------------
@@ -87,10 +80,123 @@ class Game_Player{
 		return this[dev_name+"_num"];
 	}
 	//--------------------------------------------------------
-	// 更新胜利点数
+	// 获取未展示分数卡数
+	// 可以使用名称来获取,且可以使用操作符进行数量修改
+	//--------------------------------------------------------
+	score_unshown(card_tag,op="null",op_num="null"){
+		if(typeof(op)=="number"){
+			op_num=op;
+			op="=";
+		}
+		if(op_num=="null"){
+			return this.own_score_unshown[card_tag];
+		}
+		switch(op){
+			case "=":
+				this.own_score_unshown[card_tag]=op_num;
+				break;
+			case "+=":
+				this.own_score_unshown[card_tag]+=op_num;
+				break;
+			case "-=":
+				this.own_score_unshown[card_tag]-=op_num;
+				break;
+		}
+		return this.score_unshown[card_tag];
+	}
+	//--------------------------------------------------------
+	// 获取已展示分数卡数
+	// 可以使用名称来获取,且可以使用操作符进行数量修改
+	//--------------------------------------------------------
+	score_shown(card_tag,op="null",op_num="null"){
+		if(typeof(op)=="number"){
+			op_num=op;
+			op="=";
+		}
+		if(op_num=="null"){
+			return this.own_score_shown[card_tag];
+		}
+		switch(op){
+			case "=":
+				this.own_score_shown[card_tag]=op_num;
+				break;
+			case "+=":
+				this.own_score_shown[card_tag]+=op_num;
+				break;
+			case "-=":
+				this.own_score_shown[card_tag]-=op_num;
+				break;
+		}
+		return this.own_score_shown[card_tag];
+	}
+	//--------------------------------------------------------
+	// 获取总资源数
+	//--------------------------------------------------------
+	all_src_num(){
+		let count = 0;
+		for(let name of src_cards){
+			count+=this.src(name);
+		}
+		return count;
+	}
+	//--------------------------------------------------------
+	// 获取总发展卡数(包括未展示的分数卡)
+	//--------------------------------------------------------
+	all_dev_num(){
+		let count = 0;
+		for(let name of dev_cards){
+			count+=this.dev(name);
+		}
+		count+=this.all_score_num("unshown");
+		return count;
+	}
+	//--------------------------------------------------------
+	// 获取总分数卡数
+	// type:all 隐藏和展示的 ,unshown 隐藏的, shown 展示的
+	//--------------------------------------------------------
+	all_score_num(type="all"){
+		let count = 0;
+		if(type=="all" || type=="unshown"){
+			for(let card of score_cards){
+				count+=this.score_unshown(card);
+			}
+		}
+		if(type=="all" || type=="shown"){
+			for(let card of score_cards){
+				count+=this.score_shown(card);
+			}
+		}
+		return count;
+	}
+	//--------------------------------------------------------
+	// 获取拥有的港口(交易能力)
+	//--------------------------------------------------------
+	all_harbours(){
+		var harbours=[];
+		for(let city of this.cities()){
+			if(city.ex_type.length!=0){
+				harbours=union(harbours,city.ex_type);
+			}
+		}
+		return harbours;
+	}
+	//--------------------------------------------------------
+	// 获取胜利点数
 	// truth：包括隐藏的分数卡
 	//--------------------------------------------------------
-	vp_update(truth=false){
+	vp(truth=false){
+		var info=this.vp_info(truth);
+		var vp_sum=0;
+		for(var i in info){
+			vp_sum+=info[i];
+		}
+		return vp_sum;
+	}
+	//--------------------------------------------------------
+	// 获取胜利点数信息
+	// truth：包括隐藏的分数卡
+	//--------------------------------------------------------
+	vp_info(truth=false){
 		var info=[0,0,0,0,0];
 		var all_cities=$gameCities;
 		for(let city_id of this.own_cities){
@@ -104,52 +210,41 @@ class Game_Player{
 			info[3]+=2;
 		}
 		if(truth){
-			info[4]+=(this.score_shown.length+this.score_unshown.length);
+			info[4]+=this.all_score_num("all");
 		}
 		else{
-			info[4]+=this.score_shown.length;
+			info[4]+=this.all_score_num("shown");
 		}
-		var vp_sum=0;
-		for(var i in info){
-			vp_sum+=info[i];
-		}
-		this.vp=vp_sum;	
-		return this.vp;
+		return info;
 	}
 	//--------------------------------------------------------
 	// 展示分数卡
 	//--------------------------------------------------------
 	show_score_cards(target="all"){
 		if(target=="all"){
-			this.score_shown=this.score_shown.concat(this.score_unshown);
-			this.score_unshown.length=0;
+			for(let card of score_cards){
+				this.score_shown(card,"+=",this.score_unshown(card));
+				this.score_unshown(card,"=",0);
+			}
 		}
 		else{
-			this.score_shown=this.score_shown.concat(target);
-			for(let one of target){
-				this.score_unshown.splice(this.score_unshown.indexOf(one));
-			}		
+			for(let card of target){
+				this.score_shown(card,"+=",this.score_unshown(card));
+				this.score_unshown(card,"=",0);
+			}	
 		}
 	}
 	//--------------------------------------------------------
-	// 获取城市数
-	// lv:城市的等级 type:返回数量或数组
+	// 获取城市
+	// lv:城市的等级
 	//--------------------------------------------------------
-	city_num(lv="all",type="count"){
+	cities(lv="all"){
 		var cities=[];
 		for(let city_id of this.own_cities){
 			if(lv=="all" || $gameCities[city_id].level==lv){
-				cities.push(city_id);
+				cities.push($gameCities[city_id]);
 			}
 		}
-		if(type=="count"){
-			return cities.length;
-		}
-		if(type=="all"){
-			return cities;
-		}
+		return cities;
 	}
-	//--------------------------------------------------------
-	// 检查资源的丢弃,如果没有丢出7不要
-	//--------------------------------------------------------
 }

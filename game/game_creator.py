@@ -1,4 +1,13 @@
 import json
+def new_ScoreCards(bank=False):
+	scoreCards={}
+	cards=["artemis","oxford","panama","forbiddencity","vasili"]
+	for card in cards:
+		if(bank):
+			scoreCards[card]=1
+		else:
+			scoreCards[card]=0
+	return scoreCards
 
 def new_Player(index):
 	player={}
@@ -13,8 +22,8 @@ def new_Player(index):
 	player["grain_num"]=0
 	player["ore_num"]=0
 	player["soldier_num"]=0
-	player["score_unshown"]=[]
-	player["score_shown"]=[]
+	player["own_score_unshown"]=new_ScoreCards()
+	player["own_score_shown"]=new_ScoreCards()
 	player["plenty_num"]=0
 	player["monopoly_num"]=0
 	player["road_making_num"]=0
@@ -43,7 +52,8 @@ def new_Cards():
 
 	cards["soldier_num"]=14
 	#cards["score_cards"]=["The Temple of Artemis","Oxford University","Panama Canal","the Forbidden City","Bishop of Saint Vasili"]
-	cards["score_cards"]=["阿尔忒弥斯神庙","牛津大学","巴拿马运河","紫禁城","圣瓦西里大教堂"]
+	#cards["score_cards"]=["阿尔忒弥斯神庙","牛津大学","巴拿马运河","紫禁城","圣瓦西里大教堂"]
+	cards["own_score_cards"]=new_ScoreCards(True)
 	cards["plenty_num"]=2
 	cards["monopoly_num"]=2
 	cards["road_making_num"]=2

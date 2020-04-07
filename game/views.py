@@ -254,8 +254,9 @@ def t_createMap(request):
 # 获取房间基本数据
 #---------------------------------------------------
 def getRoomInfo(request):
-	room_pswd=request.GET.get("room_pswd")
+	room_pswd=request.GET.get("room_pswd","")
 	info={"member_max":0}
+	time.sleep(0.3)
 	room=Room.objects.filter(password=room_pswd)
 	if(room.exists()):
 		room=room[0]
@@ -268,7 +269,7 @@ def getRoomInfo(request):
 	else:	
 		info["state"]="none"
 		res=HttpResponse(json.dumps(info))
-		res.set_cookie('test',"someword")
+		#res.set_cookie('test',"someword")
 		return res
 #---------------------------------------------------
 # 创建房间
@@ -337,6 +338,8 @@ def t_update_game_info(request):
 	room=room[0]
 	room.event_list=room.event_list+request.POST.get("event")+","
 	room.game_info=request.POST.get("game_info")
+	if(request.POST.get("game_over")=="1"):
+		room.game_state=3
 	room.save()
 	return HttpResponse("更新成功!")
 
@@ -352,7 +355,11 @@ def t_update_initial_game_info(request):
 	room.initial_game_info=request.POST.get("game_info")
 	room.save()
 	return HttpResponse("更新成功!")
-
+#---------------------------------------------------
+# 游戏结束
+#---------------------------------------------------
+def game_over_update():
+	return True
 def t_virtual_websocket(request):
 	evt=json.loads(request.GET.get("data"))
 	#只有随机数请求会被特殊化响应

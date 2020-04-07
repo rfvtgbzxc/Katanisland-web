@@ -8,22 +8,27 @@ function GameEvent() {
 }
 GameEvent.initial_replay_event_queue = function(event_queue){
 	this.replay_queue = event_queue;
-	this.replay_statu_index = 0;
-	this.replay_status_queue = [JSON.stringify(DataManager.makeSaveContents())];
+	//this.replay_statu_index = 0;
+	//this.replay_status_queue = [JSON.stringify(DataManager.makeSaveContents())];
 }
 GameEvent.replay_next_event = function(){
 	//执行事件
-	this.execute_event(this.replay_queue[this.replay_statu_index])
-	this.replay_statu_index++;
-	this.replay_status_queue.push(JSON.stringify(DataManager.makeSaveContents()));
+	if(this.replay_queue.length==0){
+		return false;
+	}
+	this.execute_event(this.replay_queue.shift());
+	return true;
+	//this.replay_statu_index++;
+	//this.replay_status_queue.push(JSON.stringify(DataManager.makeSaveContents()));
 }
+/*
 GameEvent.replay_prev_event = function(){
 	//执行事件
 	this.replay_statu_index--;
 	DataManager.extractSaveContents(JSON.parse(this.replay_status_queue[this.replay_statu_index]));
 	//什么效率,不存在的
 	this.replay_status_queue.pop();
-}
+}*/
 GameEvent.execute_event = function(event){
 	var val=event.val;
 	switch(val[0]){
@@ -94,7 +99,7 @@ GameEvent.execute_event = function(event){
 		switch(val[1]){
 		//士兵卡
 		case 1:
-			set_robber_info(val[2],event.starter,val[3],val[5],true);
+			dev_soldier(val[2],event.starter,val[3],val[5]);
 			break;
 		//丰收卡
 		case 2:
@@ -116,7 +121,7 @@ GameEvent.execute_event = function(event){
 		break;
 	//设置强盗(因7)
 	case 4:
-	    set_robber_info(val[1],event.starter,val[2],val[4]);
+	    set_robber_for_dice7(val[1],event.starter,val[2],val[4]);
 		break;
 	//丢弃卡片(因7)
 	case 5:
@@ -139,4 +144,106 @@ GameEvent.execute_event = function(event){
 		new_talk_message(val[1],event.starter);
 		break;
 	}
+	//然后检查胜利条件
+	update_vp_infos();
+	//然后由房主更新game_info
+	//离线模式不更新
+	if(!offline && $gameSystem.is_room_owner()){
+		//游戏结束则发送包含结束的消息
+		if($gameSystem.game_process==4){
+			upload_game_info(event,true);
+		}
+		else{
+			upload_game_info(event);
+		}	
+	}
+	//最后更新画面，先设计为全局更新，以后如果画面刷新量过大考虑重构
+	if($gameSystem.is_own_turn()){
+		UI_basic_action_udpate();
+	}
+	update_static_Graphic();
+}
+
+//--------------------------------------------------------
+// 建造道路
+// builder_index:修建者index ,edge_id:道路的id
+//--------------------------------------------------------
+GameEvent.build_road = function(builder_index,edge_id){
+	$gameRoads[edge_id]=new Road(builder_index);
+	$gamePlayers[builder_index].own_roads.push(edge_id);
+	his_window.push($gamePlayers[builder_index].name+" 建造了一条道路");
+	//更新画面
+	add_road(edge_id);
+}
+//--------------------------------------------------------
+// 移除道路
+// edge_id:道路的id
+//--------------------------------------------------------
+GameEvent.remove_road = function(edge_id){
+	//暂不考虑移除不存在的道路引发的道路缩短问题
+	$gamePlayers[$gameRoads[edge_id].owner].own_roads.splice($gamePlayers[$gameRoads[edge_id].owner].own_roads.indexOf(edge_id),1);
+	delete $gameRoads[edge_id];
+	//更新画面
+	remove_road(edge_id);
+}
+//--------------------------------------------------------
+// 建造最低级城市(定居点)
+// builder_index:修建者index ,point_id:城市的id
+//--------------------------------------------------------
+GameEvent.build_city = function(builder_index,point_id){
+	//检查该点附近是否有港口,添加交易能力
+	var ex_type=new Set();
+	sQuery("point",point_id).near_places().filter((place_id)=>map_info.harbors.hasOwnProperty(place_id)).each((place_id)=>{
+		for(let direction in map_info.harbors[place_id]){
+			let about_points = edge_round_points(plc_round_edges(place_id,dir_reflection[direction]));
+			if(about_points.indexOf(point_id)==-1){continue;}
+			ex_type.add(map_info.harbors[place_id][direction].ex_type);
+		}
+	});
+	game_info.cities[point_id]=new City(builder_index,Array.from(ex_type));
+	game_info.players[builder_index].own_cities.push(point_id);
+	his_window.push($gamePlayers[builder_index].name+" 建立了一个新定居点");
+	//更新画面
+	add_city(point_id);
+}
+//--------------------------------------------------------
+// 设置城市等级
+// point_id:城市id ,level:目标等级
+//--------------------------------------------------------
+GameEvent.set_city_level = function(point_id,level){
+	var ori_city = $gameCities[point_id];
+	if(ori_city.level<level){
+		//城市升级		
+		his_window.push($gamePlayers[ori_city.owner].name+" 的一个定居点升级为城市");
+	}
+	else if(ori_city.level>level){
+		//城市降级
+		his_window.push($gamePlayers[ori_city.owner].name+" 的一座城市降级为定居点");
+	}
+	//刷新地图上的对应元素
+	ori_city.level = level;
+	remove_city(point_id);
+	add_city(point_id);	
+}
+//--------------------------------------------------------
+// 移动强盗
+// place_id:目的地id
+//--------------------------------------------------------
+GameEvent.set_robber = function(place_id){
+	var place = map_info.places[place_id];
+	$gameSystem.occupying=place_id;
+	his_window.push("强盗被放置在数字为 "+place.create_num+" 的 "+order_ch[place.create_type]+" 地块上");
+	//画面更新
+	set_robber(game_info.occupying);
+}
+//--------------------------------------------------------
+// 游戏结束
+//--------------------------------------------------------
+GameEvent.game_over = function(winner){
+	$gameSystem.game_process=4;
+	for(let player_index in $gamePlayers){
+		$gamePlayers[player_index].show_score_cards();
+	}
+	his_window.push(winner.name+"成为了卡坦岛的新领主！","important");
+	UI_game_over();
 }

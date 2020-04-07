@@ -1,0 +1,2 @@
+cd C:\Users\Vince\Katanisland-web\game\static\js
+uglifyjs module_Bank.js module_Connection.js module_ConstVars.js module_DataManager.js module_Debug.js module_GameEvent.js module_Graphic.js module_Map.js module_Player.js module_System.js module_Trade.js react_game_test.js react_message.js -c -o total_packed.js

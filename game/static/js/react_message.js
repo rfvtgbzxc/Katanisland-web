@@ -1,40 +1,5 @@
 //用于处理websocket发送过来的消息
-//模拟websocket
-ws={};
-function load_ws_function_msg(){
-	if(offline){
-		ws.send=function(msg){
-		$.get("/ajax/t_virtual_websocket/",msg,function(evt){
-			//模拟接收到消息触发函数
-			ws.onmessage(evt);},"json");
-		}
-	}
-	//只属于ws的封装函数
-	ws.sendmsg=function(typ,mes){
-		//打开等待窗口
-		$("wait_window").show();
-		var evt={"type":typ,"message":mes};
-		if(offline){
-			this.send("data="+JSON.stringify(evt));
-		}
-		else{
-			this.send(JSON.stringify(evt));
-		}
-	}
-	//只属于ws的解读函数
-	ws.onmessage=function(evt){
-		//evt是js对象，然而evt.data不是(尽管格式是json)
-		var data;
-		if(typeof(evt.data)=="object"){
-			data=evt.data
-		}
-		else
-		{
-			data=JSON.parse(evt.data)
-		}	
-		handle_msg(data);
-	};
-}
+ 
 //不管,肯定不是多此一举
 //解读信息
 function handle_msg(msg){
@@ -54,17 +19,10 @@ function handle_msg(msg){
 	catch(err){
 
 	};
-	//然后由房主更新game_info
-	//离线模式不更新
-	//只上传mes_action的行为
-	if(!offline && $gameSystem.is_room_owner() && msg.type=="mes_action"){
-		upload_game_info(msg);
-	}
-	//暂不设计
-	//再然后检查胜利条件
-	update_vp_infos();
-	//最后更新画面，先设计为全局更新，以后如果画面刷新量过大考虑重构
-	update_static_Graphic();
+	//最后关闭等待窗口
+	if((game_temp.action_now!="action_drop_srcs_for_7") || offline){
+		$("wait_window").hide();
+	}	
 }
 
 //--------------------------------------------------------
@@ -102,44 +60,23 @@ function set_dice(num1,num2){
 				player.drop_required = 0;
 			}
 		}
-		//依照自己是否需要丢弃资源来打开UI
-		start_drop_select();
+		//丢弃资源
+		if(!$gameSystem.is_audience()){start_drop_select();}
 		return;
 	}
-	for(var place_id in places){
-		var place=places[place_id];
-		if(place.create_num==num_sum){
-			if(game_info.occupying==place_id){
-				his_window.push("地块被占据,无法产出");
-				continue;
-			}
-			//alert(order[place.create_type]+" "+place.create_num);
-			var points=plc_round_points(place_id);
-			//alert(points);
-			for(var pt_index in points){
-				var pt_id=points[pt_index];
-				//alert(pt_id);
-				if(game_info.cities.hasOwnProperty(pt_id)){
-					var city=game_info.cities[pt_id];
-					var player=game_info.players[city.owner];
-					var add_num;
-					if(city.level==0){
-						add_num=1;
-					}
-					else{
-						add_num=2;
-					}
-					player[order[place.create_type]+"_num"]+=add_num;
-					//添加消息	
-					his_window.push(game_info.player_list[city.owner][1]+"获得 "+order_ch[place.create_type]+" x "+add_num);
-				}
-			}
+	//收获资源,自己造的轮子真香
+	sQuery("place",$gameSystem.all_palces()).filter((place_id)=>map_info.places[place_id].create_num==num_sum).each((place_id)=>{
+		if($gameSystem.occupying==place_id){
+			his_window.push("地块被占据,无法产出");
+			return;
 		}
-	}
+		sQuery("place",place_id).near_points().filter((point_id)=>$gameCities.hasOwnProperty(point_id)).each((point_id)=>{
+			$gamePlayers[$gameCities[point_id].owner].src(map_info.places[place_id].create_type,"+=",$gameCities[point_id].level+1);
+		});
+	});
 	if(can_start_build){
 		UI_start_build();
 	}
-	//alert("end");
 }
 //--------------------------------------------------------
 // 启动资源丢弃
@@ -157,78 +94,54 @@ function start_drop_select(){
 		$("wait_window").hide();
 	}
 	else{
-		//如果不需要丢弃资源(或已经丢弃过),发送一条空的丢弃消息,然后进入等待状态
+		//如果已发送过该消息则不再发送
+		if($gameSystem.recive_list.indexOf($gameSystem.self_player().index)==-1){return;}
+		//如果不需要丢弃资源,发送一条空的丢弃消息,然后进入等待状态
 		ws.sendmsg("mes_action",{"starter":user_index,"val":[5,{}]});
 	}
 }
 //--------------------------------------------------------
 // 建造道路
 //--------------------------------------------------------
-function build_road(edge_id,player_index,cost=true){
+function build_road(edge_id,player_index){
 	//建造道路的UI回调函数,只需要清除selectors和active
 	clear_selectors();
 	$("#action_build_road").removeClass("active");
-	var player=game_info.players[player_index];
+	var player=$gamePlayers[player_index];
 	//扣除资源
-	if(cost){
-		player.brick_num--;
-		player.wood_num--;
-	}
-	//安置道路(更新game_info)
-	game_info.roads[edge_id]=new Road(player_index);
-	player.own_roads.push(edge_id);
-	his_window.push(game_info.player_list[player_index][1]+" 建造了一条道路");
-	//此处可以添加动画
-	//安置道路(更新画面)
-	add_road(edge_id);
-}
+	player.src("brick","-=",1);
+	player.src("wood","-=",1);
+	GameEvent.build_road(player_index,edge_id);
+} 
 //--------------------------------------------------------
 // 建立定居点
 //--------------------------------------------------------
-function build_city0(point_id,player_index,cost=true){
+function build_city0(point_id,player_index){
 	//建造定居点的UI回调函数,只需要清除selectors和active
 	clear_selectors();
 	$("#action_build_city0").removeClass("active");
 
 	var player=game_info.players[player_index];
 	//扣除资源
-	if(cost){
-		player.brick_num--;
-		player.wood_num--;
-		player.wool_num--;
-		player.grain_num--;
-	}
-	//建立新定居点(更新game_info)
-	var ex_type=0;
-	//检查该点附近是否有港口
-	for(var harbor_index in map_info.harbors){
-		var harbor=map_info.harbors[harbor_index];
-		var about_points=edge_round_points(plc_round_edges(harbor.place_id,dir_reflection[harbor.direct]));
-		if(about_points.indexOf(point_id)==-1){continue;}
-		//添加交易能力
-		ex_type=harbor.ex_type;
-	}
-	game_info.cities[point_id]=new City(player_index,ex_type);
-	game_info.players[player_index].own_cities.push(point_id);
-	his_window.push(game_info.player_list[player_index][1]+" 建立了一个新定居点");
-	//此处可以添加动画
-	//建立新定居点(更新画面)
-	add_city(point_id);
+	player.src("brick","-=",1);
+	player.src("wood","-=",1);
+	player.src("wool","-=",1);
+	player.src("grain","-=",1);
+	GameEvent.build_city(player_index,point_id);
 }
 //--------------------------------------------------------
 // 建设新城市
 //--------------------------------------------------------
 function build_city1(point_id,player_index){
-	//建造城市的UI回调函数,只需要清除selectors和active
-	clear_selectors();
-	$("#action_build_city1").removeClass("active");
 	var player=game_info.players[player_index];
 	//扣除资源
-	player.grain_num-=2;
-	player.ore_num-=3;
+	player.src("grain","-=",2);
+	player.src("ore","-=",3);
 	//升级城市(更新game_info)
-	game_info.cities[point_id].level=1;
-	his_window.push(game_info.player_list[player_index][1]+" 建成了一座新城市");
+	GameEvent.set_city_level(point_id,1);
+
+	//建造城市的UI回调函数,只需要清除selectors和active
+	init_menu_lv(1,$("#action_build_city1"));
 }
 //--------------------------------------------------------
 // 抽取发展卡
@@ -239,11 +152,31 @@ function extract_dev_card(randomint,player_index){
 	var cards=game_info.cards;
 	var player=game_info.players[player_index];
 	//扣除资源
-	player.grain_num-=1;
+	/*player.grain_num-=1;
 	player.wool_num-=1;
-	player.ore_num-=1;
+	player.ore_num-=1;*/
 	his_window.push(game_info.player_list[player_index][1]+" 抽取了一张发展卡");
 	//根据随机数判断发展卡的类型
+	var count=randomint;
+	for(let dev of dev_cards){
+		if(count<$gameBank.dev(dev)){
+			$gamePlayers[player_index].dev(dev,"+=",1);
+			$gameBank.dev(dev,"-=",1);
+			his_window.push(`(你获得了发展卡:${dev_ch[dev]})`);
+			return;
+		}
+		count-=$gameBank.dev(dev);
+	}
+	for(let score of score_cards){
+		if(count<$gameBank.score(score)){
+			$gamePlayers[player_index].score_unshown(score,"+=",1);
+			$gameBank.score(score,"-=",1);
+			his_window.push(`(你获得了分数卡:${score_ch[score]})`);
+			return;
+		}
+		count-=$gameBank.score(score);
+	}
+	/*
 	if(randomint<cards.soldier_num){
 		if(user_index==player_index){
 			his_window.push("(你获得了士兵卡)");
@@ -296,7 +229,7 @@ function extract_dev_card(randomint,player_index){
 		player.score_unshown.push(cards.score_cards[randomint]);
 		cards.score_cards.splice(randomint,1);	
 		return;
-	}
+	}*/
 }
 //--------------------------------------------------------
 // 与银行交易
@@ -310,15 +243,13 @@ function trade_with_bank(give_list,get_list,trader_index){
 	game_info.active_trades.splice(game_info.active_trades.indexOf(0),1);
 	//进行资源转移
 	for(var src_id in give_list){
-		var src_num=order[src_id]+"_num";
-		trader[src_num]-=give_list[src_id];
-		bank[src_num]+=give_list[src_id];
+		trader.src(src_id,"-=",give_list[src_id]);
+		$gameBank.src(src_id,"+=",give_list[src_id]);
 		his_window.push(game_info.player_list[trader_index][1]+" 给了银行 "+order_ch[src_id]+" x "+give_list[src_id]);
 	}
 	for(var src_id in get_list){
-		var src_num=order[src_id]+"_num";
-		trader[src_num]+=get_list[src_id];
-		bank[src_num]-=get_list[src_id];
+		trader.src(src_id,"+=",get_list[src_id]);
+		$gameBank.src(src_id,"-=",get_list[src_id]);
 		his_window.push("银行给了 "+game_info.player_list[trader_index][1]+" "+order_ch[src_id]+" x "+get_list[src_id]);
 	}
 
@@ -401,26 +332,47 @@ function trade_with_player(trade_id,accepter_index){
 	var trade_accepter=game_info.players[trade.final_accepter];
 	var names=game_info.player_list
 	//进行资源转移
-	for(var src_id in trade.starter_list){
-		var src_name=order[src_id]+"_num";
-		var src_num=trade.starter_list[src_id];
-		trade_starter[src_name]-=src_num;
-		trade_accepter[src_name]+=src_num;
+	for(let src_id in trade.starter_list){
+		let src_num = trade.starter_list[src_id];
+		trade_starter.src(src_id,"-=",src_num);
+		trade_accepter.src(src_id,"+=",src_num);
 		his_window.push(names[trade.starter][1]+" 给了 "+names[trade.final_accepter][1]+" "+order_ch[src_id]+" x "+src_num);
 	}
-	for(var src_id in trade.accepter_list){
-		var src_name=order[src_id]+"_num";
-		var src_num=trade.accepter_list[src_id];
-		trade_starter[src_name]+=src_num;
-		trade_accepter[src_name]-=src_num;
+	for(let src_id in trade.accepter_list){
+		let src_num = trade.starter_list[src_id];
+		trade_starter.src(src_id,"+=",src_num);
+		trade_accepter.src(src_id,"-=",src_num);
 		his_window.push(names[trade.final_accepter][1]+" 给了 "+names[trade.starter][1]+" "+order_ch[src_id]+" x "+src_num);
 	}
 	//UI回调,结束交易
 	window_finish_trade(trade);
 }
 //--------------------------------------------------------
-// 设置强盗
+// 设置强盗(投出7)
 //--------------------------------------------------------
+function set_robber_for_dice7(place_id,robber_index,victim_index,randomint){
+	//设置强盗的UI回调函数
+	clear_selectors();
+	hide_special_actions();
+
+	GameEvent.set_robber(place_id);
+	rob_player(robber_index,victim_index,randomint);
+	//打开建设界面,并设置步骤
+	$gameSystem.dice_7_step=0;
+	UI_start_build();
+}
+//--------------------------------------------------------
+// 士兵卡
+//--------------------------------------------------------
+function dev_soldier(place_id,robber_index,victim_index,randomint){
+	$gamePlayers[robber_index].dev("soldier","-=",1);
+	$gamePlayers[robber_index].dev_used=true;
+	$gamePlayers[robber_index].soldier_used++;
+	GameEvent.set_robber(place_id);
+	rob_player(robber_index,victim_index,randomint);
+	init_menu_lv(1,$("#action_use_dev_soldier"));
+	UI_use_dev_update();
+}
 function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false)
 {
 	//设置强盗的UI回调函数
@@ -441,13 +393,14 @@ function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false
 		init_menu_lv(1,$("#action_use_dev_soldier"));
 		UI_use_dev_update();
 	}
-	game_info.occupying=place_id;
-	var place=map_info.places[place_id];
-	his_window.push("强盗被放置在数字为 "+place.create_num+" 的 "+order_ch[place.create_type]+" 地块上");
+
+	GameEvent.set_robber(place_id);
+
 	rob_player(robber_index,victim_index,randomint);
 	//临时消息清空
-	game_temp.action_now="";
+	//game_temp.action_now="";
 }
+
 //--------------------------------------------------------
 // 掠夺资源
 //--------------------------------------------------------
@@ -460,13 +413,13 @@ function rob_player(robber_index,victim_index,randomint){
 	var victim=game_info.players[victim_index]
 	var count=randomint;
 	for(var i=1;count>=0;i++){
-		if(count<victim[order[i]+"_num"]){
-			victim[order[i]+"_num"]--;
-			game_info.players[robber_index][order[i]+"_num"]++;
+		if(count<victim.src(i)){
+			victim.src(i,"-=",1);
+			$gamePlayers[robber_index].src(i,"+=",1);
 			his_window.push(names[robber_index][1]+" 掠夺了 "+names[victim_index][1]+" 的一份 "+order_ch[i]);
 			break;
 		}
-		count-=victim[order[i]+"_num"];
+		count-=victim.src(i);
 	}
 }
 //--------------------------------------------------------
@@ -476,7 +429,7 @@ function drop_srcs(drop_list,dropper_index){
 	//遍历丢弃列表,舍弃对应数字
 	var dropper=game_info.players[dropper_index];
 	for(var src_id in drop_list){
-		dropper[order[src_id]+"_num"]-=drop_list[src_id];
+		dropper.src(src_id,"-=",drop_list[src_id]);
 		his_window.push(game_info.player_list[dropper_index][1]+" 丢弃了 "+order_ch[src_id]+" x "+drop_list[src_id]);
 	}
 	//更新该玩家的数据
@@ -566,8 +519,8 @@ function dev_road_making(road_id1,road_id2,builder_index){
 	builder.dev_used=true;
 	builder.dev("road_making","-=",1);
 	his_window.push(builder.name+" 使用了 "+"道路建设卡");
-	build_road(road_id1,builder_index,false);
-	build_road(road_id2,builder_index,false);
+	GameEvent.build_road(builder_index,road_id1);
+	GameEvent.build_road(builder_index,road_id2);
 	//UI回调,设置菜单级数为1
 	init_menu_lv(1,$("#action_use_dev_road_making"));
 	UI_use_dev_update();
@@ -578,7 +531,8 @@ function dev_road_making(road_id1,road_id2,builder_index){
 function show_score_card(card_name,player_index){
 	var player=$gamePlayers[player_index];
 	player.show_score_cards([card_name]);
-	his_window.push(player.name+" 展示了分数卡 "+card_name);
+	add_player_tag(player_index,"score_card");
+	his_window.push(player.name+" 展示了分数卡 "+score_ch[card_name]);
 	//UI回调,设置菜单级数为1
 	init_menu_lv(1,$("#action_show_score_cards"));
 	UI_use_dev_update();
@@ -622,8 +576,8 @@ function new_turn()
 	//清空所有玩家的发展卡get_before限制(尽管对于某位玩家来说只需要清除自己的)
 	for(player_index in $gamePlayers){
 		var player=$gamePlayers[player_index];	
-		for(var i=0;i<4;i++){
-			player[devs[i]+"_get_before"]=0;
+		for(let dev of dev_cards){
+			player[dev+"_get_before"]=0;
 			player.dev_used=false;
 			player.no_build_dev_used=false;
 		}
@@ -653,7 +607,8 @@ function set_home(step,val,setter_index){
 	switch(step%2){
 		//建立定居点
 		case 0:
-			build_city0(val,setter_index,false);
+			clear_selectors();
+			GameEvent.build_city(setter_index,val);
 			//判断轮数
 			if(step>1){
 				//收获资源
@@ -672,7 +627,7 @@ function set_home(step,val,setter_index){
 			break;
 		//修建道路
 		case 1:
-			build_road(val,setter_index,false);
+			GameEvent.build_road(setter_index,val);
 			//判断是否所有玩家都完成了一轮坐城
 			if(game_info.step_index==game_info.step_list.length-1){
 				//逆序行动列表
@@ -775,56 +730,55 @@ function update_vp_infos(){
 	var names=game_info.player_list;
 	//检查最长道路
     var max_length=0;
-	for(var player_index in game_info.player_list){
-		var player=game_info.players[player_index]
-		player.road_longest=cal_longest_road(player_index);
+	for(let player of Object.values($gamePlayers)){
+		player.road_longest=cal_longest_road(player.index);
 		max_length=Math.max(player.road_longest.length,max_length);
 	}
 	if(max_length<5){max_length=5;}
-	if(game_info.longest_road!=0 && game_info.players[game_info.longest_road].road_longest.length<max_length){		
-		his_window.push(game_info.player_list[game_info.longest_road][1]+" 不再是 最长道路 的修建者。");
-		game_info.longest_road=0;
+	if($gameSystem.longest_road!=0 && $gamePlayers[$gameSystem.longest_road].road_longest.length<max_length){		
+		his_window.push($gamePlayers[$gameSystem.longest_road].name+" 不再是 最长道路 的修建者。");
+		remove_player_tag($gamePlayers[$gameSystem.longest_road].index,"longest_road");
+		$gameSystem.longest_road=0;
 	}
 	var max_list=[];
-	for(var player_index in game_info.player_list){
-		var player=game_info.players[player_index]
+	for(let player of Object.values($gamePlayers)){
 		if(player.road_longest.length==max_length){
-			max_list.push(player_index);
+			max_list.push(player.index);
 		}
 	}
 	if(max_list.length==1){
-		if(game_info.longest_road==0){
-			his_window.push(game_info.player_list[max_list[0]][1]+"成为 最长道路 的修建者！");
-			game_info.longest_road=max_list[0];
+		if($gameSystem.longest_road==0){
+			his_window.push($gamePlayers[max_list[0]].name+" 成为 最长道路 的修建者！");
+			add_player_tag(max_list[0],"longest_road");
+			$gameSystem.longest_road=max_list[0];	
 		}		
 	}
-
+	var max_minitory=2;
 	//检查最大军队
-	if(game_info.max_minitory==0){
-		var max_minitory=2;
+	if($gameSystem.max_minitory!=0){
+		max_minitory=$gamePlayers[$gameSystem.max_minitory].soldier_used;
 	}
-	else{
-		var max_minitory=players[game_info.max_minitory].soldier_used;
-	}
-	for(var player_index in players){
-		if(players[player_index].soldier_used>max_minitory){
-			if(game_info.max_minitory==0){
-				his_window.push(names[player_index][1]+"成为了 最大军队 的建立者！");
+	for(let player of Object.values($gamePlayers)){
+		if(player.soldier_used>max_minitory){
+			if($gameSystem.max_minitory==0){
+				his_window.push(player.name+"成为了 最大军队 的建立者！");
+				add_player_tag(player.index,"max_minitory");
 			}
 			else{
-				his_window.push(names[player_index][1]+" 取代 "+names[game_info.max_minitory][1]+"成为了 最大军队 的建立者！");
+				his_window.push(player.name+" 取代 "+$gamePlayers[$gameSystem.max_minitory].name+"成为了 最大军队 的建立者！");
+				remove_player_tag($gameSystem.max_minitory,"max_minitory");
+				add_player_tag(player.index,"max_minitory");
 			}
-			game_info.max_minitory=player_index;
+			$gameSystem.max_minitory=player.index;
 		}
 	}
 
 	//计算总胜利点
 	for(var player_index in players){
 		var player=players[player_index];
-		if(player.vp_update(true)>=10){
-			if(player.index==game_info.step_list[game_info.step_index]){
-				player.show_score_cards();
-				his_window.push(player.name+"取得了胜利！","important");
+		if(player.vp()>=10){
+			if(player.index==$gameSystem.step_list[$gameSystem.step_index]){
+				GameEvent.game_over(player);
 			}		
 		}
 	}

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>正则表达式测试</title>
+</head>
+<body>
+<script type="text/javascript">
+	var ori_rule=/(https?:\/\/(?!tiebapic).*?)(?=\[\/img\])/g;
+	var rule=/(?<=\[img.*?\])(https?:\/\/.*?tiebapic.*?)(?=\[\/img\])/g;
+	var text="更新[br]游戏地址：[url]http://122.51.21.190/gamerelease[/url][br][img pic_type=0 width=248 height=250]https://tiebapic.baidu.com/forum/pic/item/0eb30f2442a7d93338b6330cba4bd11373f001b7.jpg[/img]HHHA[/img][img pic_type=0 width=248 height=250]https://tiebapic.baidu.com/forum/pic/item/0eb30f2442a7d93338b6330cba4bd11373f001b7.jpg[/img]HHHA[/img][img pic_type=0 width=248 height=250]https://tiebapic.baidu.com/forum/pic/item/0eb30f2442a7d93338b6330cba4bd11373f007.jpg[/img]HHHA[/img]"
+	var result=text.match(rule);
+	console.log(text.match(/https:\/\/tiebapic.*?(?=\[\/img\])/g));
+	console.log("http://[img]http://tiebapic/keke[/img]".match(/(?<=\[img.*?\])(https?:\/\/.*?tiebapic.*?)(?=\[\/img\])/g));
+
+</script>
+</body>
+</html>

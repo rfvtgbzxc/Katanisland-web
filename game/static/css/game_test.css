@@ -1,6 +1,121 @@
+/*开始界面*/
+#start_menu{
+	position: fixed;
+	width: 400px;
+	height: 345px;
+	top: 10%;
+	left: 50%;
+	transform: translate(-50%, 0);
+	font-size: 20px;
+}
+.dynamic_window{
+	transition: height 0.5s;
+}
+.dynamic_window .window_head{
+	position: absolute;
+	width: auto;
+	height: 50px;
+	top: 0;
+
+	font-size: 25px;
+
+	display: flex;
+	justify-content: space-around;
+}
+.dynamic_window .window_head .head_item{
+	cursor: pointer;
+	margin-left: 20px;
+}
+/*浅蓝*/
+.head_item:hover , .head_item.active{
+	color:rgb(30,144,255);
+}
+/*深蓝*/
+.head_item:active {
+	color:rgb(30,100,200);
+}
+.head_item.active{
+	color:rgb(30,144,255);
+}
+/*上下文指示光标*/
+.dynamic_window #window_linker{
+	position: absolute;
+	top: 30px;
+    left: 10px;
+    transition: left 0.5s;
+	border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 20px solid #ffffff;
+     	    
+}
+.dynamic_window #window_linker::after {	
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: 5px;
+    left: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 20px solid #000;
+    position: absolute;
+    margin-left: -12px;
+     
+    filter: blur(10px);
+    transform: translateZ(0);
+ }
+.dynamic_window .window_body{
+	z-index: -1;
+	position: absolute;
+	height: calc(100% - 50px);
+	width: 100%;
+	top: 50px;
+
+	background-color: white;
+	border-radius: 10px;
+	box-shadow: 10px 10px 25px #ccc;
+
+	transition: height 0.5s;
+}
+.content_fix_page{
+	width: 90%;
+	margin-left: 5%;
+}
+.content_fix_page label{
+	margin-left: 20px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+.content_page{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: start;
+	width: 90%;
+	margin-left: 5%;
+}
+.content_page > label{
+	margin-bottom: 20px;
+	margin-left: 20px;
+}
+.content_page > label input[type="checkbox"] , .content_page > label input[type="radio"]{
+	width: 20px;
+	height: 20px;
+}
+.content_page > button{
+	margin-bottom: 20px;
+	align-self: center;
+}
 .index_setter{
 	margin-right: 10px;
 }
+#room_checking_state{
+	font-size: 15px;
+	color: red;
+	position: relative;
+	bottom: 8px;
+}
+
+
 .plc
 {
 	position: absolute;
@@ -98,7 +213,10 @@ pre_pay
 actions0 button{
 	touch-action: none;
 }
-button.active:after
+actions0 button:focus{
+	outline: none;
+}
+button.active::after
 {
 	position: absolute;
 	content: "";
@@ -112,7 +230,7 @@ button.active:after
     cursor:default;
 
 }
-img.cost:after
+img.cost::after
 {
 	position:absolute;
 	content:attr(cost);
@@ -1046,7 +1164,7 @@ src_item.tooless{
 }
 /*回放控制器*/
 replay_controller{
-	z-index: 2000;
+	z-index: 4600;
 	position: fixed;
 	width: 400px;
 	height: 100px;
@@ -1059,6 +1177,18 @@ replay_controller{
 	display: flex;
 	justify-content: space-around;
 	align-items: center;
+}
+replay_controller timer_updater{
+	align-self: flex-end;
+	width: 20px;
+	height: 80px;
+	margin-bottom: 10px; 
+	background-color: rgb(30,144,255);
+	transition-property:height;
+	transition-timing-function: linear;
+}
+replay_controller timer_updater.play{
+	height: 0;
 }
 replay_controller action_play{
 	cursor: pointer;

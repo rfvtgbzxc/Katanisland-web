@@ -44,4 +44,78 @@ class Game_Bank{
 		}
 		return this[src_name+"_num"];
 	}
+	//--------------------------------------------------------
+	// 获取发展卡数
+	// 可以使用发展卡名称来获取,且可以使用操作符进行数量修改
+	//--------------------------------------------------------
+	dev(dev_name,op="null",op_num="null"){
+		if(typeof(op)=="number"){
+			op_num=op;
+			op="=";
+		}
+		if(op_num=="null"){
+			return this[dev_name+"_num"];
+		}
+		switch(op){
+			case "null":
+				this[dev_name+"_num"]=op_num;
+				break;
+			case "=":
+				this[dev_name+"_num"]=op_num;
+				break;
+			case "+=":
+				this[dev_name+"_num"]+=op_num;
+				break;
+			case "-=":
+				this[dev_name+"_num"]-=op_num;
+				break;
+		}
+		return this[dev_name+"_num"];
+	}
+	//--------------------------------------------------------
+	// 获取分数卡数
+	// 可以使用发展卡名称来获取,且可以使用操作符进行数量修改
+	//--------------------------------------------------------
+	score(card_tag,op="null",op_num="null"){
+		if(typeof(op)=="number"){
+			op_num=op;
+			op="=";
+		}
+		if(op_num=="null"){
+			return this.own_score_cards[card_tag];
+		}
+		switch(op){
+			case "=":
+				this.own_score_cards[card_tag]=op_num;
+				break;
+			case "+=":
+				this.own_score_cards[card_tag]+=op_num;
+				break;
+			case "-=":
+				this.own_score_cards[card_tag]-=op_num;
+				break;
+		}
+		return this.own_score_cards[card_tag];
+	}
+	//--------------------------------------------------------
+	// 获取总发展卡数(包括分数卡)
+	//--------------------------------------------------------
+	all_dev_num(){
+		let count = 0;
+		for(let card of dev_cards){
+			count+=this.dev(card);
+		}
+		count+=this.all_score_num();
+		return count;
+	}
+	//--------------------------------------------------------
+	// 获取总分数卡数
+	//--------------------------------------------------------
+	all_score_num(){
+		let count = 0;
+		for(let card of score_cards){
+			count+=this.score(card);
+		}
+		return count;
+	}
 }

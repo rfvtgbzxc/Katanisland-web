@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>地图测试</title>
+	<title>卡坦岛web版(测试模式)</title>
 	{% load static %}
 	{% csrf_token %}
 	<link rel="stylesheet" type="text/css" href="{%static 'css/game_test.css'%}">
@@ -38,38 +38,49 @@
 	<!--<span id="load_game" style="cursor:pointer;display: inline;z-index:100;">(离线)生成随机地图</span>-->
 	<!--初始界面-->
 	<span id="basic_cmd" style="position:absolute; left:20%"> 
-		<div>准备游戏</div>
-		<label><input id="type_create_room" name="set_basic_type" type="radio" value="create">创建房间</label>
-		<label><input id="type_join_room" name="set_basic_type" type="radio" value="join" checked>加入房间</label>
-		<br>
-		房间密码：<input id="room_pswd" type="text" style="width:150px" placeholder="由英文和数字构成"><span id="room_checking_state"></span>
-		<span id="cmd_create_room" style="display:none;">
-			<br>
-			游戏人数：<input id="room_size" type="text" style="width:100px" placeholder="2~6的数字">
-			<br>
-			回合时间：<input id="room_time_per_turn" type="text" style="width:120px" value="0" placeholder="设为0不启用">
-			<br>
-			地图模版：<select id="map_template" name="map_template">
-				<option value="default">默认</option>
-				<option value="fruitful">富饶</option>
-				<option value="mountains">山脉</option>
-				<option value="poor">贫瘠</option>
-			</select>
-			<br>
-			<span id="create_game_online" style="cursor:pointer;display: inline;z-index:100;">创建房间</span>
-		</span>
-		<span id="cmd_join_room" style="display: none;">
-			<br>
-			选择角色：<!--<input id="set_user_index" type="number" min="0" style="width:220px" placeholder="最大为游戏人数,0为观众">-->
-			<span id="set_user_index">
-				<label><input id="type_create_room" name="user_index" type="radio" value="0">0</label>
-			</span>
-			<br>
-			玩家昵称：<input id="set_user_name" type="text" style="width:120px" placeholder="可使用中文">
-			<label><input type="checkbox" name="remember_user_name">记住昵称</label>
-			<br>
-			<span id="load_game_online" style="cursor:pointer;display: inline;z-index:100;">加入房间</span>
-		</span>
+		<div id="start_menu" class="dynamic_window">
+			<div class="window_head">
+				<span class="head_item">创建房间</span><span class="head_item">加入房间</span>
+			</div>
+			<div id="window_linker"></div>
+			<div class="window_body">
+				<div class="content_fix_page">
+					<label>
+						房间密码：<input AUTOCOMPLETE="OFF" id="room_pswd" type="text" style="width:180px" placeholder="由英文和数字构成">
+						<br><span id="room_checking_state"></span>
+					</label>
+				</div>
+				<div class="content_page">
+					<label>
+						游戏人数：<input id="room_size" type="number" min="2" max="6" style="width:180px" placeholder="2~6的数字">
+					</label>
+					<label>
+						回合时间：<input id="room_time_per_turn" type="text" style="width:180px" value="0" placeholder="设为0不启用">
+					</label>
+					<label>
+						地图模版：<select id="map_template" name="map_template">
+						<option value="default">默认</option>
+						<option value="fruitful">富饶</option>
+						<option value="mountains">山脉</option>
+						<option value="poor">贫瘠</option>
+					</select>
+					</label>	
+					<button type="button" id="create_game_online" class="list-group-item-success">创建房间</button>		
+				</div>
+				<div class="content_page">
+					<label>选择角色：
+						<span id="set_user_index">
+							<label><input id="type_create_room" name="user_index" type="radio" value="0">0</label>
+						</span>
+					</label>
+					<label>
+						玩家昵称：<input id="set_user_name" type="text" style="width:120px" placeholder="可使用中文">
+						<label><input type="checkbox" name="remember_user_name">记住昵称</label>
+					</label>
+						<button type="button" id="load_game_online" class="list-group-item-success">加入房间</button>
+				</div>
+			</div>
+		</div>
 		<span style="display:none;">随机数种：<span id="seed_id"></span><span id="debuging"> debug</span></span>
 	</span>
 	<div></div>
@@ -250,10 +261,11 @@
 	</trade_window>
 	<!--回放控制器-->
 	<replay_controller style="display: none;">
+		<timer_updater class="active"></timer_updater>
 		<auto_play_speed>
-			<set_speed fq="1">1x</set_speed>
+			<set_speed fq="3">1x</set_speed>
 			<set_speed fq="2">2x</set_speed>
-			<set_speed fq="3">3x</set_speed>
+			<set_speed fq="1">3x</set_speed>
 		</auto_play_speed>
 		<action_play class="pause"></action_play>
 		<action_step_next></action_step_next>

@@ -20,8 +20,10 @@ def new_Edge(id):
 	#edge["road"]=0
 	return edge
 
-def new_Harbor():
+def new_Harbor(place_id,direct_in):
 	harbor={}
+	harbor["place_id"]=place_id
+	harbor["direct"]=direct_in
 	harbor["ex_type"]=0
 	return harbor
 
@@ -120,7 +122,7 @@ def createmap(var):
 	edges=[]
 	cities={}
 	players={}
-	harbors={}
+	harbors=[]
 	map_info={"places":places,
 		"points":points,
 		"xsize":xsize,
@@ -147,10 +149,7 @@ def createmap(var):
 	for place_id in place_set:
 		places[str(place_id)]=new_Place(str(place_id))
 		if(str(place_id) in harbor_set):
-			direction=harbor_set[str(place_id)]
-			if(str(place_id) not in harbors):
-				harbors[str(place_id)]={}
-			harbors[str(place_id)][harbor_set[str(place_id)]]=new_Harbor()
+			harbors.append(new_Harbor(str(place_id),harbor_set[str(place_id)]))
 		x=place_id//ysize
 		y=place_id%ysize
 		pts=[place_id*2,place_id*2+1,place_id*2+2,place_id*2+3,(place_id-ysize+x%2)*2+1,(place_id+ysize+x%2)*2]
@@ -245,12 +244,11 @@ def createmap(var):
 		harbor_srcs[ex_id]=t
 	#执行分配		
 	harbor_index=0
-	for harbor_place in harbors.values():
-		for harbor in harbor_place.values():
-			harbor["ex_type"]=harbor_srcs[harbor_index]
-			harbor_index+=1
+	for harbor in harbors:
+		harbor["ex_type"]=harbor_srcs[harbor_index]
+		harbor_index+=1
 	#print(harbors)
-	print(json.dumps(map_info))
+	#print(json.dumps(map_info))
 	#清除固定种子
 	random.seed()
 	return map_info

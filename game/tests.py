@@ -1,6 +1,5 @@
 from django.test import TestCase
-
+import json
 # Create your tests here.
-a="123"
-a[:-1]
-print(a)
+
+print(json.loads(json.dumps({"sm":True}))["sm"])
