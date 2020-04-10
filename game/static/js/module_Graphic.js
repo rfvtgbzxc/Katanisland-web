@@ -13,8 +13,7 @@ function update_static_Graphic(){
 	}
 	//刷新全玩家状态卡
 	$("player").each(function(){
-		var player_index=$(this).attr("id")
-		var player=$gamePlayers[player_index];
+		var player=$gamePlayers[$(this).attr("id")];
 		var attrs=$(this).children();
 		attrs.filter("src_state").text(player.all_src_num());
 		attrs.filter("vp_state").text(player.vp());
@@ -228,12 +227,15 @@ function load_map(){
 	}
 }
 //--------------------------------------------------------
-// 游戏数据加载(非地图UI)
+// 游戏UI生成(不包含地图UI)
 //--------------------------------------------------------
 function load_UI(){
 	var player_list=game_info.player_list;
 	var players=game_info.players;
 	var self_player=players[user_index];
+
+	//加载资源栏
+	create_source_list();
 	//显示回合数
 	set_rounds();
 	//加载玩家状态栏
@@ -274,7 +276,7 @@ function load_UI(){
 		if(players[player_index].all_score_num("shown")>0){$("score_card").filter("#"+player_index).addClass("active")};	
 	}
 	$("#players").css("height",(dy+20)+"px");
-	//加载交易/舍弃栏资源图标
+	//加载交易/舍弃/丰收栏资源图标
 	for(let src of src_cards){
 		$("srcs_selected").append("<src_item num='0' class='"+src+"'></src_item>");
 		$("srcs_available").append("<src_item num='0' class='"+src+"'></src_item>");
@@ -284,7 +286,7 @@ function load_UI(){
 	for(var i=1;i<7;i++){
 		$("actions2").append("<button trade_target='harbour' target_val='"+i+"' type='button' class='action_prepare_trade list-group-item'>"+order_ch[i]+"港</button>");
 	}
-	//加载垄断/丰收资源
+	//加载垄断资源按钮
 	for(var i=1;i<6;i++){
 		$("actions2").append("<button src_id='"+i+"' type='button' class='src_selector list-group-item'>"+order_ch[i]+"</button>");
 	}
@@ -303,6 +305,14 @@ function load_UI(){
 	create_trade_items();
 	//加载文字
 	$youziku.submit("playername_update");
+}
+//--------------------------------------------------------
+// 创建资源栏
+//--------------------------------------------------------
+function create_source_list(){
+	for(let src of src_cards){
+		$("source_list").append(`<img class="src_list_item" src="${cdn_url}/media/img/src_icon_${src}_withborder.png" width="25px"><span class="src_${src}"><truely_own>0</truely_own><pre_pay></pre_pay></span>`)
+	}
 }
 //--------------------------------------------------------
 // 设置强盗
@@ -515,23 +525,20 @@ function create_step_list(){
 
 function create_trade_items(){
 	if(game_UI.hasOwnProperty("trade_items_created")){return;}
-	for(var src_id=1;src_id<6;src_id++){
-		var src_name=order[src_id];
-		var src_num=0;
-
+	for(let src of src_cards){
 		var menu1=["give","get"];
 		var menu2=["selected","available"];
 
 		for(var v1 in menu1){
 			for(var v2 in menu2){
 				//0,0:给予栏选中 0,1：给予栏备选 1,0:索取栏选中 1,1:索取栏备选
-				var jqitem=$("trade_window src_select_window."+menu1[v1]+" srcs_"+menu2[v2]+" ."+src_name);
+				var jqitem=$("trade_window src_select_window."+menu1[v1]+" srcs_"+menu2[v2]+" ."+src);
 				if(v2==0){
-					var a_selected_item=new Selected_Trade_item(jqitem,null,src_name,menu1[v1]);
+					var a_selected_item=new Selected_Trade_item(jqitem,null,src,menu1[v1]);
 					var item=a_selected_item;
 				}
 				else{
-					var a_available_item_item=new Available_Trade_item(jqitem,a_selected_item,src_name,menu1[v1]);
+					var a_available_item_item=new Available_Trade_item(jqitem,a_selected_item,src,menu1[v1]);
 					a_selected_item.rlt_item=a_available_item_item;
 					var item=a_available_item_item;
 				}				

@@ -353,6 +353,7 @@ def t_update_initial_game_info(request):
 		return HttpResponse("找不到房间!")
 	room=room[0]
 	room.initial_game_info=request.POST.get("game_info")
+	room.game_info=request.POST.get("game_info")
 	room.save()
 	return HttpResponse("更新成功!")
 #---------------------------------------------------

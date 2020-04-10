@@ -248,7 +248,7 @@ cost
 	z-index:4000;
 	padding-left:5px;
 }
-cost.brick:after
+cost.brick::after
 {
 	content:"";
 	display:inline-block;
@@ -257,11 +257,11 @@ cost.brick:after
 	height:20px;
 	left:-2px;
 	bottom:15px;
-	background:url(/media/img/icon_1.png);
+	background:url(/media/img/src_icon_brick_withborder.png);
 	background-size:cover;
 
 }
-cost.wood:after
+cost.wood::after
 {
 	content:"";
 	display:inline-block;
@@ -270,11 +270,10 @@ cost.wood:after
 	height:20px;
 	left:-2px;
 	bottom:15px;
-	background:url(/media/img/icon_2.png);
+	background:url(/media/img/src_icon_wood_withborder.png);
 	background-size:cover;
-
 }
-cost.wool:after
+cost.wool::after
 {
 	content:"";
 	display:inline-block;
@@ -283,11 +282,10 @@ cost.wool:after
 	height:20px;
 	left:-2px;
 	bottom:15px;
-	background:url(/media/img/icon_3.png);
+	background:url(/media/img/src_icon_wool_withborder.png);
 	background-size:cover;
-
 }
-cost.grain:after
+cost.grain::after
 {
 	content:"";
 	display:inline-block;
@@ -296,11 +294,10 @@ cost.grain:after
 	height:20px;
 	left:-2px;
 	bottom:15px;
-	background:url(/media/img/icon_4.png);
+	background:url(/media/img/src_icon_grain_withborder.png);
 	background-size:cover;
-
 }
-cost.ore:after
+cost.ore::after
 {
 	content:"";
 	display:inline-block;
@@ -309,7 +306,7 @@ cost.ore:after
 	height:20px;
 	left:-2px;
 	bottom:15px;
-	background:url(/media/img/icon_5.png);
+	background:url(/media/img/src_icon_ore_withborder.png);
 	background-size:cover;
 
 }
@@ -711,11 +708,14 @@ map
 source_list
 {
 	position:fixed;
-	width:200px;
+	width:400px;
 	height:25px;
 	top:0;
 	z-index:4000;
-	background:white;
+}
+source_list > img
+{
+	margin-left: 5px; 
 }
 actions0
 {
@@ -1120,7 +1120,7 @@ src_item{
 	margin-top:3px;
 	cursor:pointer;
 }
-src_item:after
+src_item::after
 {
 	content: attr(num);
 	position:relative;
@@ -1129,25 +1129,26 @@ src_item:after
 	
 }
 src_item.brick{
-	background: url(/media/img/harbor_icon_1.png);
+	background: url(/media/img/src_icon_brick.png);
 	background-size: cover;
 }
 src_item.wood{
-	background: url(/media/img/harbor_icon_2.png);
+	background: url(/media/img/src_icon_wood.png);
 	background-size: cover;
 }
 src_item.wool{
-	background: url(/media/img/harbor_icon_3.png);
+	background: url(/media/img/src_icon_wool.png);
 	background-size: cover;
 }
 src_item.grain{
-	background: url(/media/img/harbor_icon_4.png);
+	background: url(/media/img/src_icon_grain.png);
 	background-size: cover;
 }
 src_item.ore{
-	background: url(/media/img/harbor_icon_5.png);
+	background: url(/media/img/src_icon_ore.png);
 	background-size: cover;
 }
+
 src_item.disabled{
 	 -webkit-filter: grayscale(100%);
     -moz-filter: grayscale(100%);

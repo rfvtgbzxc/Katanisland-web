@@ -55,6 +55,7 @@ DataManager.extractSaveContents = function(contents) {
     $gameRoads         = contents.roads;
     $gameTrades        = contents.trades;
     $gameBank          = contents.bank;
+    ExtendManager.extractSaveContents(contents);
     this.applyObject();
     this.load_old_data();
 }
@@ -70,6 +71,7 @@ DataManager.makeSaveContents = function() {
 	contents.roads     = $gameRoads;
 	contents.trades    = $gameTrades;
 	contents.bank      = $gameBank;
+	ExtendManager.makeSaveContents(contents);
 	return contents;
 }
 

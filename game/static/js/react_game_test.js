@@ -801,7 +801,7 @@ $(document).ready(function(){
 			var selector=$("edge_selector").filter("#"+edges[i])
 			selector.addClass("active").show();
 			//资源不足则改变样式
-			if(player.brick_num==0 || player.wood_num==0){
+			if(player.src("brick")==0 || player.src("wood")==0){
 				selector.attr("tip","资源不足").addClass("selector_disabled");
 			}
 			else
@@ -830,7 +830,7 @@ $(document).ready(function(){
 			var selector=$("pt_selector").filter("#"+points[i])
 			selector.addClass("active").show();
 			//资源不足则改变样式
-			if(player.brick_num==0 || player.wood_num==0 || player.wool_num==0 || player.grain_num==0){
+			if(player.src("brick")==0 || player.src("wood")==0 || player.src("wool")==0 || player.src("grain")==0){
 				selector.attr("tip","资源不足").addClass("selector_disabled");
 			}
 			else
@@ -858,7 +858,7 @@ $(document).ready(function(){
 			var selector=$("pt_selector").filter("#"+points[i])
 			selector.addClass("active").show();
 			//资源不足则改变样式
-			if(player.grain_num<2 || player.ore_num<3){
+			if(player.src("grain")<2 || player.src("ore")<3){
 				selector.attr("tip","资源不足").addClass("selector_disabled");
 			}
 			else{
@@ -877,7 +877,7 @@ $(document).ready(function(){
 		if(init_menu_lv(1,$(this))==false){return;}
 		//如果资源不足,则提示后返回
 		var player=game_info.players[user_index];
-		if(player.wool_num==0 || player.grain_num==0 || player.ore_num==0){
+		if(player.src("wool") || player.src("grain") || player.src("ore")){
 			game_temp.action_now="alert";
 			confirm_window.set("资源不足！");
 			confirm_window.show();
@@ -1326,7 +1326,7 @@ function UI_use_dev_update(){
 		else if(self_player.dev_used){
 			$("#action_use_dev_"+dev).attr("tip","本回合已使用发展卡").addClass("part_disabled");
 		}
-		else if(self_player.dev(dev)<=self_player[dev+"_get_before"]){
+		else if(self_player.dev(dev)<=self_player.dev_get_record(dev)){
 			$("#action_use_dev_"+dev).attr("tip","本回合获得的发展卡不能使用").addClass("part_disabled");
 		}
 		count+=1;
@@ -1445,7 +1445,7 @@ function UI_start_build(){
 // 刷新正常行动选项按钮的可用性
 //--------------------------------------------------------
 function UI_basic_action_udpate(){
-	$("actions0").children().not("actions1").children().removeClass("disabled part_disabled");
+	$("actions0").children().not("fst_action").not("actions1").children().removeClass("disabled part_disabled");
 	if($gameSystem.self_player().all_dev_num()==0){
 		$("#action_develop").attr("tip","尚未获得发展卡").addClass("part_disabled");
 	}
@@ -1887,5 +1887,7 @@ class Available_Trade_item extends Available_item{
 		this.own_num<0?this.jqdom.addClass("tooless"):this.jqdom.removeClass("tooless");
 	}
 }
+
+
 
 

@@ -14,7 +14,8 @@ function load_ws_function_msg(){
 		if(!async){
 			//打开等待窗口
 			$("wait_window").show();
-		}	
+		}
+		//添加消息序号
 		var evt={"type":typ,"message":mes};
 		if(offline){
 			this.send("data="+JSON.stringify(evt));
@@ -220,4 +221,25 @@ function upload_game_info(event,game_over=false){
 			alert("更新服务器数据失败!");
 		} 
 	}); 
+}
+//--------------------------------------------------------
+// 从外部(游戏扩展)加载js
+//--------------------------------------------------------
+function requestJs(extendName,jsName){
+	return $.ajax({
+		type:"get",
+		url:`${cdn_url}/media/${extendName}/${jsName}`,
+		dataType:"script"
+	});
+}
+//--------------------------------------------------------
+// 从外部(游戏扩展)加载css
+//--------------------------------------------------------
+function requestCss(extendName,cssName){
+	var link = document.createElement('link');
+	link.rel = "stylesheet";
+	link.type = "text/css";
+	link.href = `${cdn_url}/media/${extendName}/${cssName}`;
+	var head = document.getElementsByTagName("head")[0];
+	head.appendChild(link);
 }

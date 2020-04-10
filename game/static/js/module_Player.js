@@ -26,30 +26,30 @@ class Game_Player{
 			op="=";
 		}
 		if(op_num=="null"){
-			return this[src_name+"_num"];
+			return this.own_sources[src_name];
 		}
 		var src_change = 0;	
 		switch(op){		
 		case "null":
-			src_change = op_num - this[src_name+"_num"];
+			src_change = op_num - this.own_sources[src_name];
 			if(show){his_window.player_get_item(this,src_id,src_change);}
-			this[src_name+"_num"]=op_num;
+			this.own_sources[src_name]=op_num;
 			break;
 		case "=":
 			src_change = op_num - this[src_name+"_num"];
 			if(show){his_window.player_get_item(this,src_id,src_change);}
-			this[src_name+"_num"]=op_num;
+			this.own_sources[src_name]=op_num;
 			break;
 		case "+=":
-			this[src_name+"_num"]+=op_num;
+			this.own_sources[src_name]+=op_num;
 			if(show){his_window.player_get_item(this,src_id,op_num);}
 			break;
 		case "-=":
-			this[src_name+"_num"]-=op_num;
+			this.own_sources[src_name]-=op_num;
 			if(show){his_window.player_get_item(this,src_id,op_num);}
 			break;
 		}
-		return this[src_name+"_num"];
+		return this.own_sources[src_name];
 	}
 	//--------------------------------------------------------
 	// 获取发展卡数
@@ -61,23 +61,20 @@ class Game_Player{
 			op="=";
 		}
 		if(op_num=="null"){
-			return this[dev_name+"_num"];
+			return this.own_dev_cards[dev_name];
 		}
 		switch(op){
-			case "null":
-				this[dev_name+"_num"]=op_num;
-				break;
 			case "=":
-				this[dev_name+"_num"]=op_num;
+				this.own_dev_cards[dev_name]=op_num;
 				break;
 			case "+=":
-				this[dev_name+"_num"]+=op_num;
+				this.own_dev_cards[dev_name]+=op_num;
 				break;
 			case "-=":
-				this[dev_name+"_num"]-=op_num;
+				this.own_dev_cards[dev_name]-=op_num;
 				break;
 		}
-		return this[dev_name+"_num"];
+		return this.own_dev_cards[dev_name];
 	}
 	//--------------------------------------------------------
 	// 获取未展示分数卡数
@@ -128,6 +125,16 @@ class Game_Player{
 				break;
 		}
 		return this.own_score_shown[card_tag];
+	}
+	//--------------------------------------------------------
+	// 记录卡片的获得
+	//--------------------------------------------------------
+	dev_get_record(dev_name,op_num="null"){
+		if(op_num=="null"){
+			return this.dev_get_before[dev_name];
+		}
+		this.dev_get_before[dev_name]=op_num;
+		return this.dev_get_before[dev_name];
 	}
 	//--------------------------------------------------------
 	// 获取总资源数

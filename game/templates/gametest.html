@@ -29,6 +29,7 @@
 	<script src="{% static 'js/module_Connection.js' %}"></script>
 	<script src="{% static 'js/module_DataManager.js' %}"></script>
 	<script src="{% static 'js/module_GameEvent.js' %}"></script>
+	<script src="{% static 'js/module_ExtendManager.js' %}"></script>
 	<meta http-equiv="Pragma" content="no-cache">
 	<meta http-equiv="Cache-Control" content="no-cache">
 	<meta http-equiv="Expires" content="0">	 
@@ -77,7 +78,7 @@
 						玩家昵称：<input id="set_user_name" type="text" style="width:120px" placeholder="可使用中文">
 						<label><input type="checkbox" name="remember_user_name">记住昵称</label>
 					</label>
-						<button type="button" id="load_game_online" class="list-group-item-success">加入房间</button>
+					<button type="button" id="load_game_online" class="list-group-item-success">加入房间</button>
 				</div>
 			</div>
 		</div>
@@ -131,12 +132,7 @@
 	</confirm_window>
 	<!--资源栏(暂定为静态资源,而非动态加载)-->
 	<source_list>
-		<img src="/media/img/icon_1.png" width="25px"><span class="src_brick"><truely_own>0</truely_own><pre_pay></pre_pay></span>
-		<img src="/media/img/icon_2.png" width="25px"><span class="src_wood"><truely_own>0</truely_own><pre_pay></pre_pay></span>
-		<img src="/media/img/icon_3.png" width="25px"><span class="src_wool"><truely_own>0</truely_own><pre_pay></pre_pay></span>
-		<img src="/media/img/icon_4.png" width="25px"><span class="src_grain"><truely_own>0</truely_own><pre_pay></pre_pay></span>
-		<img src="/media/img/icon_5.png" width="25px"><span class="src_ore"><truely_own>0</truely_own><pre_pay></pre_pay></span>
-	</source_list>
+	</source_list> 
 	<!--骰子-->
 	<dice dice_id="0" style="left:10px;"><span id="debug_show_selectors" on="off">打开选择器</span><span id="debug_show_ids" on="off">显示元素id</span></dice>
 	<dice dice_id="1" style="left:63px;"><div id="plc_info"></div></dice>

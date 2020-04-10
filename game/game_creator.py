@@ -1,4 +1,14 @@
 import json
+def new_SourceCards(bank=False):
+	sourceCards={}
+	cards=["brick","wood","wool","grain","ore","coin"]
+	for card in cards:
+		if(bank):
+			sourceCards[card]=20
+		else:
+			sourceCards[card]=0
+	return sourceCards
+
 def new_ScoreCards(bank=False):
 	scoreCards={}
 	cards=["artemis","oxford","panama","forbiddencity","vasili"]
@@ -9,6 +19,21 @@ def new_ScoreCards(bank=False):
 			scoreCards[card]=0
 	return scoreCards
 
+def new_DevCards(bank=False):
+	devCards={}
+	cards={
+		"soldier":14,
+		"plenty":2,
+		"monopoly":2,
+		"road_making":2
+	}
+	for card in cards.keys():
+		if(bank):
+			devCards[card]=cards[card]
+		else:
+			devCards[card]=0
+	return devCards
+
 def new_Player(index):
 	player={}
 	# 基本参数
@@ -16,27 +41,18 @@ def new_Player(index):
 	player["src_secret"]=True
 	player["own_cities"]=[]
 	player["own_roads"]=[]
-	player["brick_num"]=0
-	player["wool_num"]=0
-	player["wood_num"]=0
-	player["grain_num"]=0
-	player["ore_num"]=0
-	player["soldier_num"]=0
+	player["own_sources"]=new_SourceCards()
+	player["own_dev_cards"]=new_DevCards()
 	player["own_score_unshown"]=new_ScoreCards()
 	player["own_score_shown"]=new_ScoreCards()
-	player["plenty_num"]=0
-	player["monopoly_num"]=0
-	player["road_making_num"]=0
-	# 状态参数
+	# 状态参数(进度)
 	player["first_dice"]=[0,0]
 	player["home_step"]=0
 	player["drop_required"]=0
+	# 状态参数(菜单)
 	player["dev_used"]=False
 	player["no_build_dev_used"]=False
-	player["soldier_get_before"]=0
-	player["plenty_get_before"]=0
-	player["monopoly_get_before"]=0
-	player["road_making_get_before"]=0
+	player["dev_get_before"]=new_DevCards()
 	# 其他参数
 	player["soldier_used"]=0
 	player["road_longest"]=[]
@@ -44,19 +60,11 @@ def new_Player(index):
 
 def new_Cards():
 	cards={}
-	cards["brick_num"]=19
-	cards["wool_num"]=19
-	cards["wood_num"]=19
-	cards["grain_num"]=19
-	cards["ore_num"]=19
-
-	cards["soldier_num"]=14
+	cards["own_sources"]=new_SourceCards(True)
 	#cards["score_cards"]=["The Temple of Artemis","Oxford University","Panama Canal","the Forbidden City","Bishop of Saint Vasili"]
 	#cards["score_cards"]=["阿尔忒弥斯神庙","牛津大学","巴拿马运河","紫禁城","圣瓦西里大教堂"]
 	cards["own_score_cards"]=new_ScoreCards(True)
-	cards["plenty_num"]=2
-	cards["monopoly_num"]=2
-	cards["road_making_num"]=2
+	cards["own_dev_cards"]=new_DevCards(True)
 	return cards
 
 def new_Trade(starter,accepter,id):

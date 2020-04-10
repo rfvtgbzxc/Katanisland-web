@@ -9,7 +9,7 @@ offline=false;
 //测试版本
 test_model=true;
 //是否使用cdn
-use_cdn=true;
+use_cdn=false;
 
 //服务器websocket地址
 if(test_model){

@@ -26,23 +26,20 @@ class Game_Bank{
 			op="=";
 		}
 		if(op_num=="null"){
-			return this[src_name+"_num"];
+			return this.own_sources[src_name];
 		}
 		switch(op){
-			case "null":
-				this[src_name+"_num"]=op_num;
-				break;
 			case "=":
-				this[src_name+"_num"]=op_num;
+				this.own_sources[src_name];
 				break;
 			case "+=":
-				this[src_name+"_num"]+=op_num;
+				this.own_sources[src_name];
 				break;
 			case "-=":
-				this[src_name+"_num"]-=op_num;
+				this.own_sources[src_name];
 				break;
 		}
-		return this[src_name+"_num"];
+		return this.own_sources[src_name];
 	}
 	//--------------------------------------------------------
 	// 获取发展卡数
@@ -54,23 +51,23 @@ class Game_Bank{
 			op="=";
 		}
 		if(op_num=="null"){
-			return this[dev_name+"_num"];
+			return this.own_dev_cards[dev_name];
 		}
 		switch(op){
 			case "null":
-				this[dev_name+"_num"]=op_num;
+				this.own_dev_cards[dev_name]=op_num;
 				break;
 			case "=":
-				this[dev_name+"_num"]=op_num;
+				this.own_dev_cards[dev_name]=op_num;
 				break;
 			case "+=":
-				this[dev_name+"_num"]+=op_num;
+				this.own_dev_cards[dev_name]+=op_num;
 				break;
 			case "-=":
-				this[dev_name+"_num"]-=op_num;
+				this.own_dev_cards[dev_name]-=op_num;
 				break;
 		}
-		return this[dev_name+"_num"];
+		return this.own_dev_cards[dev_name];
 	}
 	//--------------------------------------------------------
 	// 获取分数卡数

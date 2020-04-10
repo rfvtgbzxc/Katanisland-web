@@ -20,9 +20,8 @@ function handle_msg(msg){
 
 	};
 	//最后关闭等待窗口
-	if((game_temp.action_now!="action_drop_srcs_for_7") || offline){
-		$("wait_window").hide();
-	}	
+	//(game_temp.action_now!="action_drop_srcs_for_7")
+	$("wait_window").hide();
 }
 
 //--------------------------------------------------------
@@ -149,18 +148,18 @@ function build_city1(point_id,player_index){
 function extract_dev_card(randomint,player_index){
 	//设置抽取发展卡的UI回调函数,只需要清除active
 	$("#action_buy_dev_card").removeClass("active");
-	var cards=game_info.cards;
-	var player=game_info.players[player_index];
+	var player=$gamePlayers[player_index];
 	//扣除资源
-	/*player.grain_num-=1;
-	player.wool_num-=1;
-	player.ore_num-=1;*/
-	his_window.push(game_info.player_list[player_index][1]+" 抽取了一张发展卡");
+	/*player.src("wool","-=",1);
+	player.src("grain","-=",1);
+	player.src("ore","-=",1);*/
+	his_window.push(player.name+" 抽取了一张发展卡");
 	//根据随机数判断发展卡的类型
 	var count=randomint;
 	for(let dev of dev_cards){
 		if(count<$gameBank.dev(dev)){
-			$gamePlayers[player_index].dev(dev,"+=",1);
+			player.dev(dev,"+=",1);
+			player.dev_get_record(dev,player.dev_get_record(dev)+1);
 			$gameBank.dev(dev,"-=",1);
 			his_window.push(`(你获得了发展卡:${dev_ch[dev]})`);
 			return;
@@ -176,60 +175,6 @@ function extract_dev_card(randomint,player_index){
 		}
 		count-=$gameBank.score(score);
 	}
-	/*
-	if(randomint<cards.soldier_num){
-		if(user_index==player_index){
-			his_window.push("(你获得了士兵卡)");
-		}
-		//获得士兵卡
-		cards.soldier_num--;
-		player.soldier_num++;
-		player.soldier_get_before++;
-		return;
-	}
-	randomint-=cards.soldier_num;
-	if(randomint<cards.plenty_num){
-		if(user_index==player_index){
-			his_window.push("(你获得了丰收卡)");
-		}
-		//获得丰收卡
-		cards.plenty_num--;
-		player.plenty_num++;
-		player.plenty_get_before++;
-		return;
-	}
-	randomint-=cards.plenty_num;
-	if(randomint<cards.monopoly_num){
-		if(user_index==player_index){
-			his_window.push("(你获得了垄断卡)");
-		}
-		//获得垄断卡
-		cards.monopoly_num--;
-		player.monopoly_num++;
-		player.monopoly_get_before++;
-		return;
-	}
-	randomint-=cards.monopoly_num;
-	if(randomint<cards.road_making_num){
-		if(user_index==player_index){
-			his_window.push("(你获得了修路卡)");
-		}
-		//获得修路卡
-		cards.road_making_num--;
-		player.road_making_num++;
-		player.road_making_get_before++;
-		return;
-	}
-	randomint-=cards.road_making_num;
-	if(randomint<cards.score_cards.length){
-		if(user_index==player_index){
-			his_window.push("(你获得了分数卡:"+cards.score_cards[randomint]+")");
-		}
-		//获得分数卡
-		player.score_unshown.push(cards.score_cards[randomint]);
-		cards.score_cards.splice(randomint,1);	
-		return;
-	}*/
 }
 //--------------------------------------------------------
 // 与银行交易
@@ -575,9 +520,9 @@ function new_turn()
 	$gameSystem.recive_list=[].concat(game_info.online_list);
 	//清空所有玩家的发展卡get_before限制(尽管对于某位玩家来说只需要清除自己的)
 	for(player_index in $gamePlayers){
-		var player=$gamePlayers[player_index];	
+		let player=$gamePlayers[player_index];	
 		for(let dev of dev_cards){
-			player[dev+"_get_before"]=0;
+			player.dev_get_record(dev,0);
 			player.dev_used=false;
 			player.no_build_dev_used=false;
 		}
