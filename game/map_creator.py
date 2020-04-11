@@ -250,7 +250,7 @@ def createmap(var):
 			harbor["ex_type"]=harbor_srcs[harbor_index]
 			harbor_index+=1
 	#print(harbors)
-	print(json.dumps(map_info))
+	#print(json.dumps(map_info))
 	#清除固定种子
 	random.seed()
 	return map_info

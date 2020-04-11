@@ -5,6 +5,7 @@ from django.db.models import F,Max
 from . import game_templates as gm_temp
 from . import map_creator as gm_map
 from . import game_creator as gm_game
+from . import extendInfos as gm_extend
 import json,copy
 #from dwebsocket.decorators import accept_websocket
 import time,random
@@ -250,6 +251,7 @@ def t_createMap(request):
 	map_setting=gm_temp.map_setting("fruitful")
 	map_info=gm_map.createmap(json.dumps(map_setting))
 	return HttpResponse(json.dumps(map_info))
+
 #---------------------------------------------------
 # 获取房间基本数据
 #---------------------------------------------------
@@ -260,6 +262,10 @@ def getRoomInfo(request):
 	room=Room.objects.filter(password=room_pswd)
 	if(room.exists()):
 		room=room[0]
+		extends=[]
+		for extend_name in json.loads(room.extend_list):
+			extends.append(gm_extend.extendInfo(extend_name))
+		info["extend_list"]=extends
 		if(room.game_state==3):
 			info["state"]="over"
 		else:
@@ -275,11 +281,13 @@ def getRoomInfo(request):
 # 创建房间
 #---------------------------------------------------
 def t_createRoom(request):
-	#获取房间大小
+	#获取房间数据
 	room_size=int(request.GET.get("room_size"))
 	room_pswd=request.GET.get("room_pswd")
 	room_time_per_turn=int(request.GET.get("time_per_turn"))
 	room_map_template=request.GET.get("map_template")
+	room_extend_list=request.GET.get("extend_list")
+
 	if(Room.objects.filter(password=room_pswd)):
 		return HttpResponse("密码重复！")
 	if(room_pswd==""):
@@ -289,13 +297,15 @@ def t_createRoom(request):
 	maxid=Room.objects.all().aggregate(Max('out_room_ID'))
 	map_setting=gm_temp.map_setting(room_map_template)
 	map_info=gm_map.createmap(json.dumps(map_setting))
-	base_game_info=gm_game.init_game_info(room_size,room_time_per_turn,map_info)
+	extends=json.loads(room_extend_list)
+	base_game_info=gm_game.init_game_info(room_size,room_time_per_turn,map_info,extends)
 	new_room=Room(
 		out_room_ID=maxid["out_room_ID__max"]+1,
 		room_owner=1,
 		member_max=room_size,
 		password=room_pswd,
 		map_setting=json.dumps(map_setting),
+		extend_list=room_extend_list,
 		map_info=json.dumps(map_info),
 		game_info=json.dumps(base_game_info),
 		room_name="新房间")

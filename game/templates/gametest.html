@@ -60,20 +60,26 @@
 					</label>
 					<label>
 						地图模版：<select id="map_template" name="map_template">
-						<option value="default">默认</option>
-						<option value="fruitful">富饶</option>
-						<option value="mountains">山脉</option>
-						<option value="poor">贫瘠</option>
-					</select>
-					</label>	
+							<option value="default">默认</option>
+							<option value="fruitful">富饶</option>
+							<option value="mountains">山脉</option>
+							<option value="poor">贫瘠</option>
+						</select>
+					</label>
+					<div>
+						模式：
+						<label><input name="setExtend" value="BasicExtend" type="radio" checked>原版</label>
+						<label><input name="setExtend" value="SaberExtend" type="radio">骑士拓</label>
+					</div>
 					<button type="button" id="create_game_online" class="list-group-item-success">创建房间</button>		
 				</div>
 				<div class="content_page">
-					<label>选择角色：
+					<div>使用拓展：<span id="extend_using_state"></span></div>
+					<div>选择角色：
 						<span id="set_user_index">
 							<label><input id="type_create_room" name="user_index" type="radio" value="0">0</label>
 						</span>
-					</label>
+					</div>
 					<label>
 						玩家昵称：<input id="set_user_name" type="text" style="width:120px" placeholder="可使用中文">
 						<label><input type="checkbox" name="remember_user_name">记住昵称</label>

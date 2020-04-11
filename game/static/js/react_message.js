@@ -315,37 +315,9 @@ function dev_soldier(place_id,robber_index,victim_index,randomint){
 	$gamePlayers[robber_index].soldier_used++;
 	GameEvent.set_robber(place_id);
 	rob_player(robber_index,victim_index,randomint);
-	init_menu_lv(1,$("#action_use_dev_soldier"));
+	init_menu_lv(1,$(`.use_dev[dev='soldier']`));
 	UI_use_dev_update();
 }
-function set_robber_info(place_id,robber_index,victim_index,randomint,cost=false)
-{
-	//设置强盗的UI回调函数
-	clear_selectors();
-	$("#action_use_dev_soldier").removeClass("active");
-	$("#cancel_robbing").hide();
-	$("#to_before_action").hide();
-	//如果是因为丢出七,额外打开建设界面,并设置步骤
-	if(!cost){
-		$gameSystem.dice_7_step=0;
-		UI_start_build();
-	}	
-	if(cost){
-		game_info.players[robber_index].soldier_num--;
-		game_info.players[robber_index].soldier_used++;
-		$gamePlayers[robber_index].dev_used=true;
-		//UI回调,设置菜单级数为1
-		init_menu_lv(1,$("#action_use_dev_soldier"));
-		UI_use_dev_update();
-	}
-
-	GameEvent.set_robber(place_id);
-
-	rob_player(robber_index,victim_index,randomint);
-	//临时消息清空
-	//game_temp.action_now="";
-}
-
 //--------------------------------------------------------
 // 掠夺资源
 //--------------------------------------------------------
@@ -429,7 +401,7 @@ function dev_plenty(src_list,player_index){
 	player.dev("plenty","-=",1);
 	//UI回调,设置菜单级数为1
 	close_simple_item_select_window();
-	init_menu_lv(1,$("#action_use_dev_plenty"));
+	init_menu_lv(1,$(`.use_dev[dev='plenty']`));
 	UI_use_dev_update();
 }
 //--------------------------------------------------------
@@ -453,7 +425,7 @@ function dev_monopoly(src_id,starter_index){
 		player.src(src_id,0,false);
 	}	
 	//UI回调,设置菜单级数为1
-	init_menu_lv(1,$("#action_use_dev_monopoly"));
+	init_menu_lv(1,$(`.use_dev[dev='monopoly']`));
 	UI_use_dev_update();
 }
 //--------------------------------------------------------
@@ -467,7 +439,7 @@ function dev_road_making(road_id1,road_id2,builder_index){
 	GameEvent.build_road(builder_index,road_id1);
 	GameEvent.build_road(builder_index,road_id2);
 	//UI回调,设置菜单级数为1
-	init_menu_lv(1,$("#action_use_dev_road_making"));
+	init_menu_lv(1,$(`.use_dev[dev='road_making']`));
 	UI_use_dev_update();
 }
 //--------------------------------------------------------
@@ -518,15 +490,6 @@ function new_turn()
 	}
 	//重置recive_list
 	$gameSystem.recive_list=[].concat(game_info.online_list);
-	//清空所有玩家的发展卡get_before限制(尽管对于某位玩家来说只需要清除自己的)
-	for(player_index in $gamePlayers){
-		let player=$gamePlayers[player_index];	
-		for(let dev of dev_cards){
-			player.dev_get_record(dev,0);
-			player.dev_used=false;
-			player.no_build_dev_used=false;
-		}
-	}	
 	//清空所有交易
 	game_info.active_trades.length=0;
 	//offline模式下,核心角色移交
@@ -541,6 +504,7 @@ function new_turn()
 	//emmm好像没什么要做的了= =||
 	//UI更新
 	UI_begin_turn();
+	ExtendManager.new_turn();
 }
 //--------------------------------------------------------
 // 初始坐城

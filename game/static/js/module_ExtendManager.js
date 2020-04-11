@@ -5,14 +5,15 @@
 function ExtendManager() {
     throw new Error('This is a static class');
 }
-ExtendManager.extendList=[];         //extend信息列表
+ExtendManager.extendList=null;         //extend信息列表
 ExtendManager.extends=[];            //extend实例列表
 ExtendManager.extendDataList=[];     //extend游戏数据注册表
+ExtendManager.newTurnList=[]         //事件：新的回合注册表
 //--------------------------------------------------------
-// 调用插件列表,并获取对应的文件数据
+// 加载列表中的所有插件
 //--------------------------------------------------------
-ExtendManager.initializeExtendList = async function(extendList,callback){
-	for(let extendInfo of extendList){
+ExtendManager.loadExtend = async function(callback){
+	for(let extendInfo of this.extendList){
 		let extendName = extendInfo.name;
 		for(let extendjsName of extendInfo.fileList.js){
 			await requestJs(extendName,extendjsName).catch(()=>console.error(`获取扩展${extendName}的${extendjsName}失败！`));
@@ -31,8 +32,12 @@ ExtendManager.initializeExtendList = async function(extendList,callback){
 //--------------------------------------------------------
 ExtendManager.registExtend = function(extend){
 	//包含额外数据
-	if(extend.extraData){
+	if(!!extend.extraData){
 		this.extendDataList.push(extend);
+	}
+	//额外事件：新的回合
+	if(!!extend.extraNewTurnAction){
+		this.newTurnList.push(extend);
 	}
 }
 
@@ -51,5 +56,14 @@ ExtendManager.extractSaveContents = function(contents){
 ExtendManager.makeSaveContents = function(contents){
 	for(let extend of this.extendDataList){
 		extend.saveExtraData(contents);
+	}
+}
+
+//--------------------------------------------------------
+// 新的回合
+//--------------------------------------------------------
+ExtendManager.new_turn = function(){
+	for(let extend of this.newTurnList){
+		extend.new_turn();
 	}
 }

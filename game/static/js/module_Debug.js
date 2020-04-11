@@ -123,6 +123,7 @@ var UI_page_joinRoom={
 	dom:null,
 	initialize:function(dom){
 		this.dom=dom;
+		this.extendList=document.getElementById("extend_using_state");
 	},
 	onSelect:function(){
 		UI_start_menu.hidePage();
@@ -160,6 +161,15 @@ var UI_page_joinRoom={
 			$("#set_user_index").append("<label class='index_setter'><input id='type_create_room' name='user_index' type='radio' value='0'>查看回放</label>");
 			break;
 		}
+		//设置extend列表
+		ExtendManager.extendList = info.extend_list;
+		var text = "";
+		//显示extend列表
+		for(let extendInfo of info.extend_list){
+			text+=extendInfo.name_Ch+" "
+		}
+		$(this.extendList).text(text);
+
 		//通过,展示更大的界面
 		this.showPage();
 		//自动填充	
@@ -256,13 +266,14 @@ $(document).ready(function(){
 		var room_pswd=$("#room_pswd").val();
 		var room_time_per_turn=parseInt($("#room_time_per_turn").val());
 		var map_template=$("#map_template").val();
+		var extend_list=[];
+		extend_list.push($("input[name='setExtend']:checked").val())
 		if(isNaN(player_size)){
 			alert("请输入玩家数！");
 			return;
 		}
-		//发起请求
-		
-		
+		extend_list=JSON.stringify(extend_list);
+		//发起请求	
 		$.ajax({
 	        async:false,
 	        url:"/ajax/t_create_room/",
@@ -271,11 +282,11 @@ $(document).ready(function(){
 	        	room_pswd:room_pswd,
 	        	room_size:player_size,
 	        	time_per_turn:room_time_per_turn,
-	        	map_template:map_template
+	        	map_template:map_template,
+	        	extend_list:extend_list
 	        },
 	        headers:{"X-CSRFToken":$.cookie("csrftoken")},
-	        success:function(info){
-	        	
+	        success:function(info){	        	
 	        	alert(info);
 	        	if(info=="创建成功!"){
 	        		UI_start_menu.setMenuIndex(1);
@@ -350,47 +361,50 @@ function load_game_offline(){
 	request_t_game_info();
 }
 //--------------------------------------------------------
-// 获取游戏数据
+// 进入游戏
 //--------------------------------------------------------
 function request_t_game_info(){
-	//加载游戏数据
-	$.ajax({
-		async:false,
-		url:"/ajax/t_load_game/",
-		type:"get",
-		data:"&room_pswd=" + room_pswd,
-		dataType:"json",
-		headers:{"X-CSRFToken":$.cookie("csrftoken")},
-		success:function(info){
-			map_info=JSON.parse(info.map_info);
-			DataManager.extractSaveContents(JSON.parse(info.game_info));
-			//初始化准备状态
-			for(let player_index in game_info.players){
-				ready_list[player_index]=false;
-			}
-			//创建必要的页面元素
-			load_map();
-			load_UI();
-			//保存当前的房间密码、玩家序号、名称
-			$.cookie("room_pswd",room_pswd);
-			$.cookie("user_index",user_index);
-			$.cookie("user_name",user_name);
-			if($("input[name='remember_user_name']").prop("checked")){$.cookie("remember_user_name",true);}
-			else{$.removeCookie("remember_user_name");}
-			//在此处添加页面构造完成以后的代码
-			//回放模式
-			if(!!game_temp.replay_model){
-				GameEvent.initial_replay_event_queue(JSON.parse(info.event_list));
-				UI_show_replay_controller();
-			}
-			init_t_ui();
-			$("#basic_cmd").hide();
-			if(!offline && !$gameSystem.is_audience()){
-				//一切就绪后,发送ready消息
-				ws.sendmsg("mes_member",{change:"ready",value:[user_index,user_name]});
-			}
-		},
-	});
+	//加载拓展数据
+	ExtendManager.loadExtend(()=>{
+		//加载游戏数据
+		$.ajax({
+			async:false,
+			url:"/ajax/t_load_game/",
+			type:"get",
+			data:"&room_pswd=" + room_pswd,
+			dataType:"json",
+			headers:{"X-CSRFToken":$.cookie("csrftoken")},
+			success:function(info){
+				map_info=JSON.parse(info.map_info);
+				DataManager.extractSaveContents(JSON.parse(info.game_info));
+				//初始化准备状态
+				for(let player_index in game_info.players){
+					ready_list[player_index]=false;
+				}
+				//创建必要的页面元素
+				load_map();
+				load_UI();
+				//保存当前的房间密码、玩家序号、名称
+				$.cookie("room_pswd",room_pswd);
+				$.cookie("user_index",user_index);
+				$.cookie("user_name",user_name);
+				if($("input[name='remember_user_name']").prop("checked")){$.cookie("remember_user_name",true);}
+				else{$.removeCookie("remember_user_name");}
+				//在此处添加页面构造完成以后的代码
+				//回放模式
+				if(!!game_temp.replay_model){
+					GameEvent.initial_replay_event_queue(JSON.parse(info.event_list));
+					UI_show_replay_controller();
+				}
+				init_t_ui();
+				$("#basic_cmd").hide();
+				if(!offline && !$gameSystem.is_audience()){
+					//一切就绪后,发送ready消息
+					ws.sendmsg("mes_member",{change:"ready",value:[user_index,user_name]});
+				}
+			},
+		});
+	});	
 }
 //--------------------------------------------------------
 // UI初始化,确定当前状态

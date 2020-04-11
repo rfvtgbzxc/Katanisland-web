@@ -771,10 +771,6 @@ $(document).ready(function(){
 		//设置菜单级数为0
 		if(init_menu_lv(0,$(this))==false){return;}
 		//如果有卡则激活下一级窗口：五种发展卡
-		var self_player=game_info.players[user_index];
-		for(let dev of dev_cards){
-			$("#action_use_dev_"+dev).show();
-		}
 		var count=UI_use_dev_update();
 		if(count==-1){
 			return;
@@ -877,7 +873,7 @@ $(document).ready(function(){
 		if(init_menu_lv(1,$(this))==false){return;}
 		//如果资源不足,则提示后返回
 		var player=game_info.players[user_index];
-		if(player.src("wool") || player.src("grain") || player.src("ore")){
+		if(player.src("wool")==0 || player.src("grain")==0 || player.src("ore")==0){
 			game_temp.action_now="alert";
 			confirm_window.set("资源不足！");
 			confirm_window.show();
@@ -889,7 +885,22 @@ $(document).ready(function(){
 		confirm_window.set("要抽取发展卡吗?");
 		confirm_window.show();
 	});
-
+	//--------------------------------------------------------
+	// UI：使用发展卡
+	// 层级：1  值：1
+	//--------------------------------------------------------
+	$("actions1").on("click",".use_dev",function(){
+		//设置菜单级数为1
+		if(init_menu_lv(1,$(this))==false){return;}
+		//调用处理函数
+		var count = use_dev[$(this).attr("dev")]();
+		//激活自己
+		$(this).addClass("active");
+		//安置按钮组位置
+		if(!!count){
+			$("actions2").css("top",$(this).position().top-count*25);
+		}		
+	});
 	//--------------------------------------------------------
 	// UI：士兵卡
 	// 层级：1  值：1
@@ -920,8 +931,6 @@ $(document).ready(function(){
 		his_window.push("选择要丰收的资源:");
 		UI_start_plenty_select();
 		$(this).addClass("active");
-		//安置按钮组位置
-		$("actions2").css("top",$(this).position().top-4*25);
 	});
 	//--------------------------------------------------------
 	// UI：垄断卡
@@ -1317,20 +1326,23 @@ function init_menu_lv(menu_level,menu_item){
 function UI_use_dev_update(){
 	var self_player=$gameSystem.self_player();
 	var count=-1;
-	//如果某种发展卡已使用完,不显示;或之前购买的已使用完,变灰
-	for(let dev of dev_cards){
+	$(".use_dev").each(function(){
+		let dev = $(this).attr("dev");
+		//如果某种发展卡已使用完,不显示;或之前购买的已使用完,变灰
 		if(self_player.dev(dev)==0){
-			$("#action_use_dev_"+dev).hide();
-			continue;
+			$(this).hide();
 		}
-		else if(self_player.dev_used){
-			$("#action_use_dev_"+dev).attr("tip","本回合已使用发展卡").addClass("part_disabled");
+		else{
+			$(this).show();
+			if(self_player.dev_used){
+				$(this).attr("tip","本回合已使用发展卡").addClass("part_disabled");
+			}
+			else if(self_player.dev(dev)<=self_player.dev_get_record(dev)){
+				$(this).attr("tip","本回合获得的发展卡不能使用").addClass("part_disabled");
+			}
+			count+=1;
 		}
-		else if(self_player.dev(dev)<=self_player.dev_get_record(dev)){
-			$("#action_use_dev_"+dev).attr("tip","本回合获得的发展卡不能使用").addClass("part_disabled");
-		}
-		count+=1;
-	}
+	});
 	//如果有分数卡,显示激活分数卡
 	if($gameSystem.self_player().all_score_num("unshown")>0){
 		count+=1;
@@ -1445,7 +1457,7 @@ function UI_start_build(){
 // 刷新正常行动选项按钮的可用性
 //--------------------------------------------------------
 function UI_basic_action_udpate(){
-	$("actions0").children().not("fst_action").not("actions1").children().removeClass("disabled part_disabled");
+	$("actions0").children().not(".fst_action").not("actions1").children().removeClass("disabled part_disabled");
 	if($gameSystem.self_player().all_dev_num()==0){
 		$("#action_develop").attr("tip","尚未获得发展卡").addClass("part_disabled");
 	}
@@ -1617,7 +1629,7 @@ function UI_start_robber_set(){
 function UI_cancel_menu_active(){
 	switch(game_temp.action_now){
 	case "action_use_dev_plenty":
-		init_menu_lv(1,$("#action_use_dev_plenty"));
+		init_menu_lv(1,$(`.use_dev[dev='plenty']`));
 		break;
 	case "action_show_score_cards":
 		init_menu_lv(1,$("#action_show_score_cards"));

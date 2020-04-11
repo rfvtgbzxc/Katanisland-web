@@ -8,7 +8,7 @@ function update_static_Graphic(){
 		}
 		//刷新选项中的发展卡数量
 		for(let dev of dev_cards){
-			$(`#action_use_dev_${dev} > .dev_num`).text(self_player.dev(dev));
+			$(`.use_dev[dev='${dev}'] > .dev_num`).text(self_player.dev(dev));
 		}
 	}
 	//刷新全玩家状态卡
@@ -282,6 +282,10 @@ function load_UI(){
 		$("srcs_available").append("<src_item num='0' class='"+src+"'></src_item>");
 	}
 	//加载动态菜单
+	//加载发展卡
+	for(let dev of dev_cards){
+		$("actions1").append(`<button type="button" class="use_dev list-group-item" dev="${dev}" help="${dev_cards_intro[dev]}">${dev_ch[dev]}<span class="dev_num"></span></button>`)
+	}
 	//加载港口
 	for(var i=1;i<7;i++){
 		$("actions2").append("<button trade_target='harbour' target_val='"+i+"' type='button' class='action_prepare_trade list-group-item'>"+order_ch[i]+"港</button>");

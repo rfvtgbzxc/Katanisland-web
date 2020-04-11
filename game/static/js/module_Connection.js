@@ -142,6 +142,7 @@ function member_handle_msg(message){
 function player_relink(relinker_id){
 	//暂不设置游戏进度为0时的操作
 	if(game_info.game_process==0){return;}
+	if(relinker_id==user_index){return;}
 	//获取玩家
 	var relinker_index=game_info.user_list[relinker_id];
 	var relinker=game_info.players[relinker_index];
@@ -205,7 +206,7 @@ function upload_initial_game_info(){
 //--------------------------------------------------------
 function upload_game_info(event,game_over=false){
 	var game_save = DataManager.makeSaveContents();
-	console.log(JSON.stringify(game_save));
+	//console.log(JSON.stringify(game_save));
 	$.ajax({ 
 		type : "post", 
 		url : "/ajax/t_update_game_info/", 

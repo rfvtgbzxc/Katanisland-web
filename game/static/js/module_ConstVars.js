@@ -73,9 +73,9 @@ load_process={
 	"map":false,
 	"game":false,
 };
-dev_cards=["soldier","plenty","monopoly","road_making"];
+dev_cards=[];
 src_cards=["brick","wood","wool","grain","ore"];
-score_cards=["artemis","oxford","panama","forbiddencity","vasili"];
+score_cards=[];
 order={
 		0:"desert",
 		1:"brick",
@@ -102,12 +102,7 @@ src_reflection={
 	"grain":4,
 	"ore":5,
 };
-dev_ch={
-	"soldier":"士兵",
-	"plenty":"丰收之年",
-	"monopoly":"垄断",
-	"road_making":"道路建设"
-};
+dev_ch={};
 score_ch={
 	"artemis":"阿尔忒弥斯神庙",
 	"oxford":"牛津大学",
@@ -146,3 +141,5 @@ vp_info_text=[
 "最大军队：",
 "拥有的奇观："
 ];
+dev_cards_intro={};
+use_dev={};

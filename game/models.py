@@ -8,6 +8,7 @@ class Room(models.Model):
 	password=models.CharField(max_length=20,default="",null=True)#房间密码
 	game_state=models.IntegerField(null=True,default=0) #游戏状态
 	map_size=models.IntegerField(null=True,default=0) #地图大小
+	extend_list=models.CharField(max_length=200,default="") #游戏扩展数据
 	initial_game_info=models.CharField(max_length=100000,default="") #初始游戏数据
 	game_info=models.CharField(max_length=100000) #游戏数据
 	event_list=models.CharField(max_length=1000000,default="") #游戏信息记录
@@ -28,3 +29,7 @@ class User(models.Model):
 	def __str__(self):
 		return self.name
 
+class Extend(models.Model):
+	ID=models.AutoField(primary_key=True)     #拓展ID
+	name=models.CharField(max_length=20)      #拓展名
+	name_Ch=models.CharField(max_length=40)   #拓展中文名
