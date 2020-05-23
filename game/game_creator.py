@@ -7,7 +7,9 @@ class GameCreator:
 		"score_cards":[]
 		}
 		self.extendListener={
-			"Player":[]
+			"Player":[],
+			"Game":[],
+			"System":[],
 		}
 	def new_SourceCards(self,bank=False):
 		sourceCards={}
@@ -58,7 +60,6 @@ class GameCreator:
 		for extend in self.extendListener["Player"]:
 			extend.extendPlayer(player)
 		# 其他参数
-		player["soldier_used"]=0
 		player["road_longest"]=[]
 		return player
 
@@ -74,8 +75,8 @@ class GameCreator:
 	def new_Trade(self,starter,accepter,id):
 		trade={}
 		trade["id"]=id
-		trade["starter"]=starter
-		trade["accepter"]=accepter
+		trade["starter_index"]=starter
+		trade["accepter_index"]=accepter
 		trade["trade_state"]="prepare"
 		trade["starter_list"]={}
 		trade["accepter_list"]={}
@@ -90,7 +91,6 @@ class GameCreator:
 		system["longest_road"]=0
 		system["max_minitory"]=0
 		system["play_turns"]=0
-		system["dice_num"]=[0,0]
 		system["owner"]=1
 		system["active_trades"]=[]
 		system["step_list"]=[]
@@ -98,6 +98,9 @@ class GameCreator:
 		system["player_list"]={}
 		system["user_list"]={}
 		system["recive_list"]=[]
+		# 拓展额外参数
+		for extend in self.extendListener["System"]:
+			extend.extendSystem(system)
 		return system
 
 	def new_Game(self,player_size,time_per_turn,map_info,extends):
@@ -135,14 +138,23 @@ class GameCreator:
 
 		#初始化强盗位置
 		game_info["system"]["occupying"]=map_info["basic_roober"]
+
+		# 拓展额外参数
+		for extend in self.extendListener["Game"]:
+			extend.extendGame(game_info)
+		print(game_info)
 		return game_info
 
 	def regist_extend(self,extend_name,gameData,extendListener):
 		if(extend_name=="BasicExtend"):
 			basicExtend = BasicExtend(self)
+			self.extendListener["System"].append(basicExtend)
 			self.extendListener["Player"].append(basicExtend)
 		if(extend_name=="SaberExtend"):
-			basicExtend = SaberExtend(self)
+			saberExtend = SaberExtend(self)
+			self.extendListener["Game"].append(saberExtend)
+			self.extendListener["System"].append(saberExtend)
+			self.extendListener["Player"].append(saberExtend)
 
 def init_game_info(player_size,time_per_turn,map_info,extends):
 	return GameCreator().new_Game(player_size,time_per_turn,map_info,extends)
@@ -166,6 +178,11 @@ class BasicExtend:
 		player["dev_used"]=False
 		player["no_build_dev_used"]=False
 		player["dev_get_before"]=self.upCrt.new_DevCards()
+		player["soldier_used"]=0
+
+	def extendSystem(self,system):
+		system["dice_num"]=[0,0]
+		system["dice_7_step"]=0
 
 class SaberExtend:
 	def __init__(self,gameCreator):
@@ -173,8 +190,41 @@ class SaberExtend:
 		self.extendSrc()
 		self.extendDevs()
 	def extendDevs(self):
+		self.upCrt.gameData["dev_cards"]["alchemist"]=2
+		self.upCrt.gameData["dev_cards"]["crane"]=2
+		self.upCrt.gameData["dev_cards"]["engineer"]=1
+		self.upCrt.gameData["dev_cards"]["inventor"]=2
 		self.upCrt.gameData["dev_cards"]["irrigation"]=2
+		self.upCrt.gameData["dev_cards"]["medicine"]=2
+		self.upCrt.gameData["dev_cards"]["mining"]=2
+		self.upCrt.gameData["dev_cards"]["road_building"]=2
+		self.upCrt.gameData["dev_cards"]["smith"]=2
+
+		self.upCrt.gameData["dev_cards"]["bishop"]=2
+		self.upCrt.gameData["dev_cards"]["diplomat"]=2
+		self.upCrt.gameData["dev_cards"]["deserter"]=2
+		self.upCrt.gameData["dev_cards"]["intrigue"]=2
+		self.upCrt.gameData["dev_cards"]["saboteur"]=2
+		self.upCrt.gameData["dev_cards"]["spy"]=3
+		self.upCrt.gameData["dev_cards"]["warlord"]=2
+		self.upCrt.gameData["dev_cards"]["wedding"]=2
+
+		self.upCrt.gameData["dev_cards"]["commercial_harbor"]=2
+		self.upCrt.gameData["dev_cards"]["master_merchant"]=2
+		self.upCrt.gameData["dev_cards"]["merchant"]=6
+		self.upCrt.gameData["dev_cards"]["merchant_fleet"]=2
+		self.upCrt.gameData["dev_cards"]["resource_monopoly"]=4
+		self.upCrt.gameData["dev_cards"]["trade_monopoly"]=2
+
 	def extendSrc(self):
 		self.upCrt.gameData["src_cards"]+=["coin","paper","crystal"]
+	def extendGame(self,game):
+		game["sabers"]={}
+	def extendSystem(self,system):
+		system["dice_num"]=[0,0,0]
+		system["dice_step"]=0
+	def extendPlayer(self,player):
+		player["dev_process"]={"commerce":0,"science":0,"politic":0}
+
 #print(init_game_info(2))
 

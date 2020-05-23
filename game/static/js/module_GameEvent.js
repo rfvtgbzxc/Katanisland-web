@@ -6,6 +6,7 @@
 function GameEvent() {
     throw new Error('This is a static class');
 }
+GameEvent.eventListeners={"new_turn":[]};
 GameEvent.initial_replay_event_queue = function(event_queue){
 	this.replay_queue = event_queue;
 	//this.replay_statu_index = 0;
@@ -34,7 +35,7 @@ GameEvent.execute_event = function(event){
 	switch(val[0]){
 	//骰子,一定是获取点数
 	case 0:
-		set_dice(val[2],val[3]);
+		if(val[1]==1){set_dice(val[2],val[3]);}
 		break;
 	//建造
 	case 1:
@@ -54,6 +55,7 @@ GameEvent.execute_event = function(event){
 		//抽取发展卡
 		case 4 :
 			extract_dev_card(val[3],event.starter);
+			break;
 		}
 		break;
 	//交易
@@ -133,7 +135,7 @@ GameEvent.execute_event = function(event){
 		break;
 	//初始坐城内容
 	case 8:
-		set_home(val[1],val[2],event.starter);
+		this.set_home(val[1],val[2],event.starter);
 		break;
 	//初始投骰
 	case 9:
@@ -144,6 +146,8 @@ GameEvent.execute_event = function(event){
 		new_talk_message(val[1],event.starter);
 		break;
 	}
+	//执行拓展中注册的事件
+	ExtendManager.execute_event(event);
 	//然后检查胜利条件
 	update_vp_infos();
 	//然后由房主更新game_info
@@ -163,7 +167,14 @@ GameEvent.execute_event = function(event){
 	}
 	update_static_Graphic();
 }
-
+GameEvent.addEventListener = function(eventName,func){
+	this.eventListeners[eventName].push(func);
+};
+GameEvent.eventUpdate = function(eventName){
+	for(let func of this.eventListeners[eventName]){
+		func();
+	}
+}
 //--------------------------------------------------------
 // 建造道路
 // builder_index:修建者index ,edge_id:道路的id
@@ -187,11 +198,10 @@ GameEvent.remove_road = function(edge_id){
 	remove_road(edge_id);
 }
 //--------------------------------------------------------
-// 建造最低级城市(定居点)
-// builder_index:修建者index ,point_id:城市的id
+// 获取交易能力
+// point_id：地点id
 //--------------------------------------------------------
-GameEvent.build_city = function(builder_index,point_id){
-	//检查该点附近是否有港口,添加交易能力
+GameEvent.get_extype = function(point_id){
 	var ex_type=new Set();
 	sQuery("point",point_id).near_places().filter((place_id)=>map_info.harbors.hasOwnProperty(place_id)).each((place_id)=>{
 		for(let direction in map_info.harbors[place_id]){
@@ -200,9 +210,22 @@ GameEvent.build_city = function(builder_index,point_id){
 			ex_type.add(map_info.harbors[place_id][direction].ex_type);
 		}
 	});
-	game_info.cities[point_id]=new City(builder_index,Array.from(ex_type));
-	game_info.players[builder_index].own_cities.push(point_id);
-	his_window.push($gamePlayers[builder_index].name+" 建立了一个新定居点");
+	return Array.from(ex_type);
+} 
+//--------------------------------------------------------
+// 建造城市(定居点)
+// builder_index:修建者index ,point_id:城市的id ,level:城市的等级
+//--------------------------------------------------------
+GameEvent.build_city = function(builder_index,point_id,level=0){
+	//检查该点附近是否有港口,添加交易能力
+	$gameCities[point_id]=new City(builder_index,this.get_extype(point_id));
+	$gamePlayers[builder_index].own_cities.push(point_id);
+	if(level==0){
+		his_window.push($gamePlayers[builder_index].name+" 建立了一个新定居点");
+	}
+	else{
+		his_window.push($gamePlayers[builder_index].name+" 建造了一座新城市");
+	}
 	//更新画面
 	add_city(point_id);
 }
@@ -235,6 +258,59 @@ GameEvent.set_robber = function(place_id){
 	his_window.push("强盗被放置在数字为 "+place.create_num+" 的 "+order_ch[place.create_type]+" 地块上");
 	//画面更新
 	set_robber(game_info.occupying);
+}
+//--------------------------------------------------------
+// 初始坐城
+//--------------------------------------------------------
+GameEvent.set_home = function(step,val,setter_index){
+	var setter=game_info.players[setter_index];
+	//更新坐城状态
+	setter.home_step=step+1;
+	switch(step%2){
+		//建立定居点
+		case 0:
+			clear_selectors();
+			GameEvent.build_city(setter_index,val);
+			//判断轮数
+			if(step>1){
+				//收获资源
+				var places=pt_round_places(val);
+				for(i in places){
+					var place=map_info.places[places[i]];
+					if(place==null){continue;}
+					setter.src(place.create_type,"+=",1);
+				}				
+			}
+			his_window.push("由 "+setter.name+" 建设道路");
+			if(setter_index==user_index){
+				//接着请求修建道路
+				UI_start_set_home(setter.home_step,val);
+			}	
+			break;
+		//修建道路
+		case 1:
+			GameEvent.build_road(setter_index,val);
+			//判断是否所有玩家都完成了一轮坐城
+			if(game_info.step_index==game_info.step_list.length-1){
+				//逆序行动列表
+				game_info.step_list.reverse();
+				//判断轮数
+				if(step>2){
+					if(!offline || step>Object.keys(game_info.player_list).length*4-2){
+						//更改游戏状态,正式游戏开始
+						game_info.game_process=3;
+					}					
+				}
+
+			}
+			//结束回合,移交行动权
+			new_turn();
+			//如果接下来是自己的回合,且没有进入下一个游戏阶段,请求修建定居点
+			if($gameSystem.is_own_turn() && game_info.game_process!=3){		
+				UI_start_set_home($gameSystem.active_player().home_step);
+			}
+			break;
+	}
 }
 //--------------------------------------------------------
 // 游戏结束

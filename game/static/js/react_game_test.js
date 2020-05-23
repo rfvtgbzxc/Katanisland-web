@@ -31,11 +31,13 @@ his_window={
 	"push":function(text,type="normal"){
 		$("his_text").append("<his_text_line class='"+type+"'>"+text+"</his_text_line>");
 	},
-	"player_get_item":function(player,src_id,num){
+	"player_get_item":function(player,src_name,num){
 		if(num==0){return;}
-		let change = num > 0 ? "获得" : "失去";
-		num = num > 0 ? num : -num;
-		this.push(player.name+" "+change+" "+order_ch[src_id]+" x "+num);
+		this.push(player.name+" 获得 "+src_ch[src_name]+" x "+num);
+	},
+	"player_lose_item":function(player,src_name,num){
+		if(num==0){return;}
+		this.push(player.name+" 失去 "+src_ch[src_name]+" x "+num);
 	},
 	"clear":function(){$("his_text").empty();}
 };
@@ -245,6 +247,8 @@ $(document).ready(function(){
 			case "alert":
 				$("wait_window").hide();
 				break;
+			case "action_promise":
+				game_temp.action_resolve("confirm","confirm");
 		}
 		//临时消息清空
 		//game_temp.action_now="";
@@ -283,6 +287,8 @@ $(document).ready(function(){
 					var selector=$("edge_selector").filter("#"+edges[i]).addClass("active selector_available").show();
 				}
 				break;
+			case "action_promise":
+				game_temp.action_resolve("special","to_start");
 		}
 		$("special_actions").children().hide();
 		//game_temp.action_now=game_temp.action_base;
@@ -356,40 +362,45 @@ $(document).ready(function(){
 	$("#places").on("click","plc_selector",
 	    function(){
 	    	//无效的边无法确认
-	    	if($(this).hasClass("selector_available")==false){
+	    	if($(this).hasClass("selector_disabled")||$(this).hasClass("selector_selected")){
 	    		return;
 	    	}   	
 	    	$(this).addClass("selector_selected");
-	    	confirm_window.clear(); 
-	    	//处于强盗设置时,再触发玩家选择
-	    	if(game_temp.action_now=="action_set_robber_for_7" || game_temp.action_now=="action_use_dev_soldier"){
-	    		game_temp.selected_place=parseInt($(this).attr("id"));
-	    		var ever_find_city=false;
-	    		//获取地块附近的玩家
-	    		var points=plc_round_points($(this).attr("id"));
-	    		for(var i in points){
-	    			if(game_info.cities.hasOwnProperty(points[i])){
-	    				var city=game_info.cities[points[i]];
-	    				//激活非自己的玩家选框
-	    				if(user_index!=city.owner){
-	    					ever_find_city=true;
-	    					$("player").filter("#"+city.owner).addClass("active player_select_available");
-	    				}			
-	    			}
-	    		}
-	    		//如果附近没有可以掠夺的玩家,则设置确认内容
-	    		if(ever_find_city)
-	    		{
-	    			his_window.push("请选择要掠夺的玩家:");
-	    			$("plc_selector").not($(this)).removeClass("selector_available");
-	    			//显示"不掠夺"、"重新选择"按钮
-	    			show_special_actions("cancel_robbing","to_before_action");
-	    			return;
-	    		}
-	    		confirm_window.set("此处没有可以掠夺的城市,要将强盗放在这里吗?");
-	    		game_temp.selected_player=0;
-	    	}
-	    	confirm_window.show();
+	    	game_temp.top_active_UI=$(this);
+	    	if(game_temp.action_now=="action_promise"){
+    			game_temp.action_resolve("place",parseInt($(this).attr("id")));
+    		}
+    		else{
+    			//处于强盗设置时,再触发玩家选择
+		    	if(game_temp.action_now=="action_set_robber_for_7" || game_temp.action_now=="action_use_dev_soldier"){
+		    		game_temp.selected_place=parseInt($(this).attr("id"));
+		    		var ever_find_city=false;
+		    		//获取地块附近的玩家
+		    		var points=plc_round_points($(this).attr("id"));
+		    		for(var i in points){
+		    			if(game_info.cities.hasOwnProperty(points[i])){
+		    				var city=game_info.cities[points[i]];
+		    				//激活非自己的玩家选框
+		    				if(user_index!=city.owner){
+		    					ever_find_city=true;
+		    					$("player").filter("#"+city.owner).addClass("active player_select_available");
+		    				}			
+		    			}
+		    		}
+		    		//如果附近没有可以掠夺的玩家,则设置确认内容
+		    		if(ever_find_city)
+		    		{
+		    			his_window.push("请选择要掠夺的玩家:");
+		    			$("plc_selector").not($(this)).removeClass("selector_available");
+		    			//显示"不掠夺"、"重新选择"按钮
+		    			show_special_actions("cancel_robbing","to_before_action");
+		    			return;
+		    		}
+		    		confirm_window.set("此处没有可以掠夺的城市,要将强盗放在这里吗?");
+		    		game_temp.selected_player=0;
+		    	}
+		    	confirm_window.show();
+    		}
 	    }
 	);
 	$("#places").on("mouseleave","plc_selector",
@@ -419,8 +430,7 @@ $(document).ready(function(){
 	    		return;
 	    	}
 	    	$(this).addClass("selector_selected"); 
-	    	//打开确认窗口
-		    confirm_window.clear();
+	    	game_temp.top_active_UI=$(this);
 	    	if(game_temp.action_now=="action_build_road" || game_temp.action_now=="fst_set_home"){
 	    		game_temp.selected_edge=parseInt($(this).attr("id"));
 		    	confirm_window.set("要在此处建造道路吗?");
@@ -441,7 +451,9 @@ $(document).ready(function(){
 			    	confirm_window.show();
 	    		} 		
 	    	}
-	    	
+	    	if(game_temp.action_now=="action_promise"){
+	    		game_temp.action_resolve("edge",parseInt($(this).attr("id")));
+	    	}
 	    	
 	    }
 	);
@@ -468,21 +480,26 @@ $(document).ready(function(){
 	$("#points").on("click","pt_selector",
 	    function(){
 	    	//无效的点无法确认
-	    	if($(this).hasClass("selector_disabled")){
-	    		return;
-	    	}
+	    	if($(this).hasClass("selector_disabled")||$(this).hasClass("selector_selected")){return;}	    	
+	    	$(this).addClass("selector_selected");  	
+	    	game_temp.top_active_UI=$(this);
 	    	game_temp.selected_point=parseInt($(this).attr("id"));
 	    	//打开确认窗口
-	    	confirm_window.clear();
-	    	if(game_temp.action_now=="action_build_city0" || game_temp.action_now=="fst_set_home"){
-	    		confirm_window.set("要在此处建立定居点吗?");
-	    	}
-	    	else if(game_temp.action_now=="action_build_city1"){
-	    		confirm_window.set("要将该定居点升级成城市吗?");
-	    	}	
-	    	$(this).addClass("selector_selected"); 
-	    	confirm_window.show();
+	    	if(game_temp.action_now=="action_promise"){
+    			game_temp.action_resolve("point",parseInt($(this).attr("id")));
+    		}
+    		else{
+    			if(game_temp.action_now=="action_build_city0" || game_temp.action_now=="fst_set_home"){
+	    			confirm_window.set("要在此处建立定居点吗?");
+		    	}
+		    	else if(game_temp.action_now=="action_build_city1"){
+		    		confirm_window.set("要将该定居点升级成城市吗?");
+		    	}	
+		    	
+		    	confirm_window.show();
+    		} 	
 	    }
+	    
 	);
 	$("#points").on("mouseleave","pt_selector",
 	    function(){
@@ -497,22 +514,27 @@ $(document).ready(function(){
 	    function(){
 	    	if($(this).hasClass("active")==false){return;}
 	    	game_temp.selected_player=parseInt($(this).attr("id"));
-	    	//打开确认窗口
-	    	confirm_window.clear();
-	    	if(game_temp.action_now=="action_set_robber_for_7" || game_temp.action_now=="action_use_dev_soldier"){
-	    		//选择玩家没有资源卡则提示
-	    		if($gamePlayers[game_temp.selected_player].all_src_num()==0)
-	    		{
-	    			confirm_window.set("该玩家没有资源卡可以掠夺。");
-	    			game_temp.end_confirm=true;
-	    		}
-	    		else{
-	    			game_temp.selected_player=parseInt($(this).attr("id"));
-	    			confirm_window.set("要掠夺该玩家吗?");
-	    		}
-	    	}	
 	    	$(this).addClass("player_select_selected"); 
-	    	confirm_window.show();
+	    	game_temp.top_active_UI=$(this);
+	    	//打开确认窗口
+	    	if(game_temp.action_now=="action_promise"){
+    			game_temp.action_resolve("player",parseInt($(this).attr("id")));
+    		}
+    		else{
+    			if(game_temp.action_now=="action_set_robber_for_7" || game_temp.action_now=="action_use_dev_soldier"){
+		    		//选择玩家没有资源卡则提示
+		    		if($gamePlayers[game_temp.selected_player].all_src_num()==0)
+		    		{
+		    			confirm_window.set("该玩家没有资源卡可以掠夺。");
+		    			game_temp.end_confirm=true;
+		    		}
+		    		else{
+		    			game_temp.selected_player=parseInt($(this).attr("id"));
+		    			confirm_window.set("要掠夺该玩家吗?");
+		    		}
+		    	}			    	
+		    	confirm_window.show();
+    		}	
 	    }
 	);
 	//--------------------------------------------------------
@@ -562,22 +584,15 @@ $(document).ready(function(){
 			}	
 			$("#item_count").text(""+game_temp.plenty_count);
 			break;
+		case "action_in_config":
+			if(game_temp.item_select_count==game_temp.item_top_limit){
+				$("#action_confirm_selected_items").removeClass("disabled");
+			}
+			else{
+				$("#action_confirm_selected_items").addClass("disabled");
+			}	
+			$("#item_count").text(""+game_temp.item_select_count);
 		}			
-	});
-	//--------------------------------------------------------
-	// UI：关闭窗口
-	//--------------------------------------------------------
-	$("confirm_window").on("click","#close",function(){
-		close_confirm_window();
-	})
-	$("simple_item_select_window").on("click","#close",function(){
-		close_simple_item_select_window();
-	});
-	$("trade_window").on("click","#close",function(){
-		if(game_temp.trade_step=="requesting_trade"){
-			return;
-		}
-		close_trade_window();
 	});
 	//--------------------------------------------------------
 	// UI：确认资源选择
@@ -597,11 +612,13 @@ $(document).ready(function(){
 		case "action_use_dev_plenty":
 			items = game_UI_list.plenty_items.selected;
 			break;
+		case "action_in_config":
+			items = game_UI_list[game_temp.active_window.key+"_items"].selected;
 		}
 		for(let UI_id of items){
 			let item=game_UI[UI_id];
 			if(item.own_num==0){continue;}
-			selected_list[src_reflection[item.item_type]]=item.own_num;
+			selected_list[item.item_type]=item.own_num;
 		}
 		//发送消息
 		switch(game_temp.action_now){
@@ -609,8 +626,10 @@ $(document).ready(function(){
 			ws.sendmsg("mes_action",{"starter":user_index,"val":[5,selected_list]});
 			break;
 		case "action_use_dev_plenty":
-			ws.sendmsg("mes_action",{"starter":user_index,"val":[3,2,selected_list]});;
+			ws.sendmsg("mes_action",{"starter":user_index,"val":[3,2,selected_list]});
 			break;
+		case "action_in_config":
+			game_temp.active_window.final(selected_list);
 		}
 		
 	});
@@ -640,17 +659,8 @@ $(document).ready(function(){
 	// 层级：0  值：0
 	//--------------------------------------------------------
 	$("#action_dice").click(function(){
-		//已投掷的情况下不能触发
-		if(game_info.dice_num[0]!=0){
-			return;
-		}
-		//发送消息
-		if(game_info.game_process==1){
-			ws.sendmsg("mes_action",{"starter":user_index,"val":[9,0]});
-		}
-		else{
-			ws.sendmsg("mes_action",{"val":[0,0]});
-		}	
+		if($(this).hasClass("disabled")){return;}
+		drop_dice();	
 	});
 	//--------------------------------------------------------
 	// UI：建设选项
@@ -659,16 +669,17 @@ $(document).ready(function(){
 	$("#action_contribute").click(function(){
 		//设置菜单级数为0
 		if(init_menu_lv(0,$(this))==false){return;}
-		var next_action=["#action_build_road","#action_build_city0","#action_build_city1","#action_buy_dev_card"];
-		//激活下一级窗口：四项建设
-		for(let action of next_action){
-			$(action).show();
-			if($gameSystem.self_player().no_build_dev_used){
-				$(action).attr("tip","本回合使用过垄断等使用后禁止建设的发展卡").addClass("part_disabled");
-			}
+		//激活下一级窗口：各种建设
+		UI_base_build_update();
+		//var count = $("actions1 > *:visible").length;
+		//激活自己
+		$(this).addClass("active");
+		//安置按钮组位置
+		/*if(!!count){
+			$("actions2").css("top",$(this).position().top-(count-1)*25);
 		}
 		//安置按钮组位置
-		$("actions1").css("top",$(this).position().top-3*25);
+		$("actions1").css("top",$(this).position().top-3*25);*/
 	});
 	//--------------------------------------------------------
 	// UI：交易
@@ -683,6 +694,9 @@ $(document).ready(function(){
 		$("#action_trade_with_players").show();
 		if($gameSystem.self_player().all_harbours().length==0){
 			$("#action_trade_with_harbours").attr("tip","尚未在港口附近建立城市").addClass("part_disabled");
+		}
+		else{
+			$("#action_trade_with_harbours").attr("tip","").removeClass("part_disabled");
 		}
 		//安置按钮组位置
 		$("actions1").css("top",$(this).position().top-2*25);
@@ -770,184 +784,60 @@ $(document).ready(function(){
 	$("#action_develop").click(function(){
 		//设置菜单级数为0
 		if(init_menu_lv(0,$(this))==false){return;}
-		//如果有卡则激活下一级窗口：五种发展卡
-		var count=UI_use_dev_update();
-		if(count==-1){
-			return;
-		}
-		//激活自己
-		$(this).addClass("active");
-		//安置按钮组位置
-		$("actions1").css("top",$(this).position().top-count*25);
-	});
-	//--------------------------------------------------------
-	// UI：建设道路
-	// 层级：1  值：1
-	//--------------------------------------------------------
-	$("#action_build_road").click(function(){
-		//设置菜单级数为1
-		if(init_menu_lv(1,$(this))==false){return;}
-		//当前行动记为"action_build_road"
-		game_temp.action_now="action_build_road";
-		//激活道路选择器,只激活可以建设道路的地方
-		var edges=available_edges(user_index);
-		//资源消耗提示
-		var player=game_info.players[user_index];
-		for(var i in edges){
-			var selector=$("edge_selector").filter("#"+edges[i])
-			selector.addClass("active").show();
-			//资源不足则改变样式
-			if(player.src("brick")==0 || player.src("wood")==0){
-				selector.attr("tip","资源不足").addClass("selector_disabled");
-			}
-			else
-			{
-				selector.addClass("selector_available");
-			}
-		}
-		//激活自己
-		$(this).addClass("active");
-
-	});
-	//--------------------------------------------------------
-	// UI：建立定居点
-	// 层级：1  值：2
-	//--------------------------------------------------------
-	$("#action_build_city0").click(function(){
-		//设置菜单级数为1
-		if(init_menu_lv(1,$(this))==false){return;}
-		//当前行动记为"action_build_city0"
-		game_temp.action_now="action_build_city0";
-		//激活点选择器,只激活可以定居的地方
-		var points=available_points(user_index);
-		//资源消耗提示
-		var player=game_info.players[user_index];
-		for(var i in points){
-			var selector=$("pt_selector").filter("#"+points[i])
-			selector.addClass("active").show();
-			//资源不足则改变样式
-			if(player.src("brick")==0 || player.src("wood")==0 || player.src("wool")==0 || player.src("grain")==0){
-				selector.attr("tip","资源不足").addClass("selector_disabled");
-			}
-			else
-			{
-				selector.addClass("selector_available");
-			}
-		}
-		//激活自己
-		$(this).addClass("active");
-	});
-	//--------------------------------------------------------
-	// UI：建设新城市
-	// 层级：1  值：3
-	//--------------------------------------------------------
-	$("#action_build_city1").click(function(){
-		//设置菜单级数为1
-		if(init_menu_lv(1,$(this))==false){return;}
-		//当前行动记为"action_build_city1"
-		game_temp.action_now="action_build_city1";
-		//资源消耗提示
-		var player=game_info.players[user_index];
-		//激活点选择器,只激活可以升级的地方
-		var points=city_num(player,0,"all");
-		for(var i in points){
-			var selector=$("pt_selector").filter("#"+points[i])
-			selector.addClass("active").show();
-			//资源不足则改变样式
-			if(player.src("grain")<2 || player.src("ore")<3){
-				selector.attr("tip","资源不足").addClass("selector_disabled");
-			}
-			else{
-				selector.addClass("selector_available");
-			}
-		}
-		//激活自己
-		$(this).addClass("active");
-	});
-	//--------------------------------------------------------
-	// UI：购买发展卡
-	// 层级：1  值：4
-	//--------------------------------------------------------
-	$("#action_buy_dev_card").click(function(){
-		//设置菜单级数为1
-		if(init_menu_lv(1,$(this))==false){return;}
-		//如果资源不足,则提示后返回
-		var player=game_info.players[user_index];
-		if(player.src("wool")==0 || player.src("grain")==0 || player.src("ore")==0){
-			game_temp.action_now="alert";
-			confirm_window.set("资源不足！");
-			confirm_window.show();
-			return;
-		}
-		//当前行动记为"action_buy_dev_card"
-		game_temp.action_now="action_buy_dev_card";
-		game_temp.bank_dev_cards=$gameBank.all_dev_num();
-		confirm_window.set("要抽取发展卡吗?");
-		confirm_window.show();
-	});
-	//--------------------------------------------------------
-	// UI：使用发展卡
-	// 层级：1  值：1
-	//--------------------------------------------------------
-	$("actions1").on("click",".use_dev",function(){
-		//设置菜单级数为1
-		if(init_menu_lv(1,$(this))==false){return;}
-		//调用处理函数
-		var count = use_dev[$(this).attr("dev")]();
+		//激活下一级窗口：五种发展卡
+		UI_use_dev_update();
+		var count = $("actions1 > *:visible").length;
 		//激活自己
 		$(this).addClass("active");
 		//安置按钮组位置
 		if(!!count){
-			$("actions2").css("top",$(this).position().top-count*25);
-		}		
+			$("actions2").css("top",$(this).position().top-(count-1)*25);
+		}	
 	});
 	//--------------------------------------------------------
-	// UI：士兵卡
-	// 层级：1  值：1
+	// UI：发起建设
+	// 层级：1
 	//--------------------------------------------------------
-	$("#action_use_dev_soldier").click(function(){
+	$("actions1").on("click",".base_build",function(){
 		//设置菜单级数为1
 		if(init_menu_lv(1,$(this))==false){return;}
-		//设置基础行动
-		game_temp.action_base="action_use_dev_soldier";
-		//当前行动记为"action_use_dev_soldier"
-		game_temp.action_now="action_use_dev_soldier";
-		his_window.push("由你设置强盗:");
-		//启动强盗选择
-		UI_start_robber_set();
-		//激活自己
-		$(this).addClass("active");
-	});
-	//--------------------------------------------------------
-	// UI：丰收卡
-	// 层级：1  值：2
-	//--------------------------------------------------------
-	$("#action_use_dev_plenty").click(function(){
-		//设置菜单级数为1
-		if(init_menu_lv(1,$(this))==false){return;}
-		//当前行动记为"action_use_dev_plenty"
-		game_temp.action_now="action_use_dev_plenty";
-		game_temp.item_top_limit = 2;
-		his_window.push("选择要丰收的资源:");
-		UI_start_plenty_select();
-		$(this).addClass("active");
-	});
-	//--------------------------------------------------------
-	// UI：垄断卡
-	// 层级：1  值：3
-	//--------------------------------------------------------
-	$("#action_use_dev_monopoly").click(function(){
-		//设置菜单级数为1
-		if(init_menu_lv(1,$(this))==false){return;}
-		//当前行动记为"action_use_dev_monopoly"
-		game_temp.action_now="action_use_dev_monopoly";
-		his_window.push("选择要垄断的资源:");
-		$(".src_selector").show();
+		//设置UI记录
+		[...game_temp.activeMenuItem] = [1,$(this)];
+		game_temp.top_active_UI=$(this);
+		//调用处理函数
+		if(!!menu_actions.base_build[$(this).attr("action")].on_active.run)
+			{game_temp.action_now="action_promise";menu_actions.base_build[$(this).attr("action")].on_active.run();}
+		else{menu_actions.base_build[$(this).attr("action")].on_active()}
+		var count = $("actions1 > *:visible").length;
 		//激活自己
 		$(this).addClass("active");
 		//安置按钮组位置
-		$("actions2").css("top",$(this).position().top-4*25);
-	});	
+		if(!!count){
+			$("actions2").css("top",$(this).position().top-(count-1)*25);
+		}		
+	});
+	//--------------------------------------------------------
+	// UI：使用发展卡
+	// 层级：1
+	//--------------------------------------------------------
+	$("actions1").on("click",".use_dev",function(){
+		//设置菜单级数为1
+		if(init_menu_lv(1,$(this))==false){return;}
+		//设置UI记录
+		[...game_temp.activeMenuItem] = [1,$(this)];
+		game_temp.top_active_UI=$(this);
+		//调用处理函数
+		if(!!menu_actions.use_dev[$(this).attr("action")].on_active.run)
+			{game_temp.action_now="action_promise";menu_actions.use_dev[$(this).attr("action")].on_active.run();}
+		else{menu_actions.use_dev[$(this).attr("action")].on_active()}
+		var count = $("actions1 > *:visible").length;
+		//激活自己
+		$(this).addClass("active");
+		//安置按钮组位置
+		if(!!count){
+			$("actions2").css("top",$(this).position().top-(count-1)*25);
+		}		
+	});
 	//--------------------------------------------------------
 	// UI：展示分数卡
 	// 层级：1  值：3
@@ -1006,28 +896,6 @@ $(document).ready(function(){
 		confirm_window.show();
 	});
 	//--------------------------------------------------------
-	// UI：修路卡
-	// 层级：1  值：4
-	//--------------------------------------------------------
-	$("#action_use_dev_road_making").click(function(){
-		//如果处于无效状态则无反馈
-		if($(this).hasClass("part_disabled")){
-			return;
-		}
-		//设置菜单级数为1
-		if(init_menu_lv(1,$(this))==false){return;}
-		//激活自己
-		$(this).addClass("active");
-		//当前行动记为"action_use_dev_road_making"
-		game_temp.action_now="action_use_dev_road_making";
-		game_temp.selected_edge=[];
-		//激活道路选择器,只激活可以建设道路的地方
-		var edges=available_edges(user_index);
-		for(var i in edges){
-			var selector=$("edge_selector").filter("#"+edges[i]).addClass("active selector_available").show();
-		}
-	});
-	//--------------------------------------------------------
 	// UI：结束回合
 	// 层级：0  值：1
 	//--------------------------------------------------------
@@ -1044,7 +912,7 @@ $(document).ready(function(){
 	    function(event){
 			//设置内容
 			info_window.empty();
-			var info=$gamePlayers[$(this).attr("id")].vp_info(false);
+			var info=$gamePlayers[$(this).parent().attr("id")].vp_info(false);
 			for(var i in info){
 				if(info[i]!=0)
 				{
@@ -1066,7 +934,7 @@ $(document).ready(function(){
 	    function(event){
 			//设置内容
 			info_window.empty();
-			var player_index=$(this).attr("id");
+			var player_index=$(this).parent().attr("id");
 			var roads=game_info.players[player_index].road_longest;
 			if(game_info.longest_road==player_index){
 				info_window.push("已建成最长道路:"+roads.length);
@@ -1077,7 +945,7 @@ $(document).ready(function(){
 			//显示对应的道路
 			$("edge_selector").filter(function(){
 				return roads.indexOf(parseInt(($(this).attr("id"))))!=-1;
-			}).css({"color":color_reflection_hex[color_reflection[$(this).attr("id")]]}).addClass("selector_displaying").show();
+			}).css({"color":color_reflection_hex[color_reflection[player_index]]}).addClass("selector_displaying").show();
 			$("info_window").fadeIn("fast");
 	    }
 	);
@@ -1101,7 +969,7 @@ $(document).ready(function(){
 	    function(event){
 			//设置内容
 			info_window.empty();
-			var player_index=$(this).attr("id");
+			var player_index=$(this).parent().attr("id");
 			if(game_info.max_minitory==player_index){
 				info_window.push("已拥有最大军队:"+game_info.players[player_index].soldier_used);
 			}
@@ -1123,7 +991,7 @@ $(document).ready(function(){
 	    function(event){
 			//设置内容
 			info_window.empty();
-			var player=$gamePlayers[$(this).attr("id")];
+			var player=$gamePlayers[$(this).parent().attr("id")];
 			if(player.all_score_num("shown")==0){
 				info_window.push("尚未拥有奇观");
 			}
@@ -1218,10 +1086,11 @@ $(document).ready(function(){
 			});
 		}
 	});
-	var $box = $('.flex_window').mousedown(function(e) {
-	    var offset = $(this).offset();	    
-	    this.posix = {'x': e.pageX - offset.left, 'y': e.pageY - offset.top};
-	    $.extend(document, {'move': true, 'move_target': this});
+	var $box = $('.flex_window > window_head').on("mousedown",function(e) {
+		var window_content = this.parentElement;
+	    var offset = $(window_content).offset();	    
+	    window_content.posix = {'x': e.pageX - offset.left, 'y': e.pageY - offset.top};
+	    $.extend(document, {'move': true, 'move_target': window_content});
 	}).on('mousedown', '#resize', function(e) {
 			var fBox = $(this).parent().parent();
 		
@@ -1244,6 +1113,48 @@ $(document).ready(function(){
 	    return false;
 	});
 	//--------------------------------------------------------
+	// UI：关闭窗口
+	//--------------------------------------------------------
+	$("confirm_window").on("click","#close",function(e){
+		close_confirm_window();
+	});
+	$("confirm_window").on("mousedown","#close",function(e){
+		//清空拖动项,避免拖动
+		$.extend(document, {
+			'move': false,
+			'move_target': null,
+			'call_down': false,
+			'call_up': false
+		});
+	});
+	$("simple_item_select_window").on("click","#close",function(e){
+		close_simple_item_select_window();
+	});
+	$("simple_item_select_window").on("mousedown","#close",function(e){
+		//清空拖动项,避免拖动
+		$.extend(document, {
+			'move': false,
+			'move_target': null,
+			'call_down': false,
+			'call_up': false
+		});
+	});
+	$("trade_window").on("click","#close",function(e){
+		if(game_temp.trade_step=="requesting_trade"){
+			return;
+		}
+		close_trade_window();
+	});
+	$("trade_window").on("mousedown","#close",function(e){
+		//清空拖动项,避免拖动
+		$.extend(document, {
+			'move': false,
+			'move_target': null,
+			'call_down': false,
+			'call_up': false
+		});
+	});
+	//--------------------------------------------------------
 	// UI:回放控制器
 	//--------------------------------------------------------
 	$("replay_controller action_play").click(function(){
@@ -1262,12 +1173,26 @@ $(document).ready(function(){
 
 });
 //--------------------------------------------------------
+// 投骰子
+//--------------------------------------------------------
+function drop_dice(){
+	//发送消息
+	if(game_info.game_process==1){
+		ws.sendmsg("mes_action",{"starter":user_index,"val":[9,0]});
+	}
+	else{
+		ws.sendmsg("mes_action",{"val":[0,0]});
+	}
+}
+//--------------------------------------------------------
 // UI控制类函数
 //--------------------------------------------------------
 //--------------------------------------------------------
 // 菜单层级初始化
 //--------------------------------------------------------
 function init_menu_lv(menu_level,menu_item){
+	//终止可能的promiseLine
+	if(!!game_temp.action_reject){game_temp.action_reject()};
 	//如果本身处于无效状态不作任何响应
 	if(menu_item.hasClass("disabled") || menu_item.hasClass("part_disabled")){return false;}
 	//清除选择器
@@ -1321,24 +1246,45 @@ function init_menu_lv(menu_level,menu_item){
 	}
 }
 //--------------------------------------------------------
+// 更新基本建设菜单
+//--------------------------------------------------------
+function UI_base_build_update(){
+	var count = -1;
+	$(".base_build").each(function(){
+		let action = menu_lists.base_build.items[$(this).attr("action")];
+		if(!$gameSystem.visible_base_build(action)){
+			$(this).hide();
+		}
+		else{
+			$(this).show();
+			let [result,reason] = $gameSystem.usable_base_build(action);
+			if(!result){
+				$(this).attr("tip",reason).addClass("part_disabled");
+			}
+			count+=1;
+		}
+	});
+	//安置按钮组位置
+	$("actions1").css("top",$("#action_contribute").position().top-count*25);
+}
+//--------------------------------------------------------
 // 更新可用发展卡
 //--------------------------------------------------------
 function UI_use_dev_update(){
 	var self_player=$gameSystem.self_player();
 	var count=-1;
 	$(".use_dev").each(function(){
-		let dev = $(this).attr("dev");
+		let action = menu_lists.use_dev.items[$(this).attr("action")];
 		//如果某种发展卡已使用完,不显示;或之前购买的已使用完,变灰
-		if(self_player.dev(dev)==0){
+		if(!$gameSystem.visible_use_dev(action)){
 			$(this).hide();
 		}
 		else{
 			$(this).show();
-			if(self_player.dev_used){
-				$(this).attr("tip","本回合已使用发展卡").addClass("part_disabled");
-			}
-			else if(self_player.dev(dev)<=self_player.dev_get_record(dev)){
-				$(this).attr("tip","本回合获得的发展卡不能使用").addClass("part_disabled");
+			$(this).children(".dev_num").text(self_player.dev(action.key));
+			let [result,reason] = $gameSystem.usable_use_dev(action);
+			if(!result){
+				$(this).attr("tip",reason).addClass("part_disabled");
 			}
 			count+=1;
 		}
@@ -1353,7 +1299,6 @@ function UI_use_dev_update(){
 	}
 	//安置按钮组位置
 	$("actions1").css("top",$("#action_develop").position().top-count*25);
-	return count;
 }
 //--------------------------------------------------------
 // 展开特殊选项
@@ -1489,38 +1434,29 @@ function UI_start_set_home(step,point_id=0){
 //--------------------------------------------------------
 // 创建简单UI,以在简单资源选择栏中使用
 //--------------------------------------------------------
-function create_simple_items(type){
+function create_simple_items(window_config){
 	var selected_item_class = null;
 	var availale_item_class = null;
-	switch(type){
-		case "drop":
-			selected_item_class = Selected_Drop_item;
-			availale_item_class = Available_Drop_item;
-			break;
-		case "plenty":
-			selected_item_class = Selected_Plenty_item;	
-			availale_item_class = Available_Plenty_item;
-			break;
-	}
-	game_UI_list[type+"_items"]={
+	selected_item_class = window_config.selected_item_class;
+	availale_item_class = window_config.availale_item_class;
+	game_UI_list[window_config.key+"_items"]={
 		selected:[],
 		available:[]
 	};
-	for(var src_id=1;src_id<6;src_id++){
-		var src_name=order[src_id];
+	for(let src_name of src_cards){
 
 		var jqitem=$("simple_item_select_window").children().filter("src_select_window").children().filter("srcs_selected").children().filter("."+src_name);
 		var a_selected_item=new selected_item_class(jqitem,null,src_name);
 		a_selected_item.ratio_num=1;
 		game_UI[game_UI.UI_count]=a_selected_item;
-		game_UI_list[type+"_items"].selected.push(game_UI.UI_count);
+		game_UI_list[window_config.key+"_items"].selected.push(game_UI.UI_count);
 		game_UI.UI_count++;
 
 		jqitem=$("simple_item_select_window").children().filter("src_select_window").children().filter("srcs_available").children().filter("."+src_name);
 		var a_available_item=new availale_item_class(jqitem,a_selected_item,src_name);
 		a_available_item.ratio_num=1;
 		game_UI[game_UI.UI_count]=a_available_item;
-		game_UI_list[type+"_items"].available.push(game_UI.UI_count);
+		game_UI_list[window_config.key+"_items"].available.push(game_UI.UI_count);
 		game_UI.UI_count++;
 
 		a_selected_item.rlt_item=a_available_item;
@@ -1614,6 +1550,60 @@ function UI_start_drop_select(){
 	$("#action_confirm_selected_items").text("舍弃资源");
 }
 //--------------------------------------------------------
+// 开始选择资源(统一化)
+//--------------------------------------------------------
+function UI_start_simple_item_select_window(type){
+	//获取窗口相关信息
+	var config=window_configs[type];
+	//设置窗口
+	game_temp.active_window=config;
+	//显示资源窗口
+	$("simple_item_select_window").show();
+	$("#action_confirm_selected_items").addClass("disabled");
+	//按需显示关闭按钮
+	if(config.controller.close_button){
+		$("simple_item_select_window #close").show();
+	}
+	else{
+		$("simple_item_select_window #close").hide();
+	}
+	//没有打开过窗口则先生成UI
+	if(game_UI.hasOwnProperty(config.key+"_items_created")==false){
+		create_simple_items(config);
+		game_UI[config.key+"_items_created"]=true;
+	}
+	//反查,重设按钮对应UI的id
+	for(let UI_id of game_UI_list[config.key+"_items"].selected.concat(game_UI_list[config.key+"_items"].available)){
+		let item = game_UI[UI_id];
+		item.jqdom.attr("id",UI_id);
+	}
+	var items=game_UI_list[config.key+"_items"].selected;
+	for(var i=0;i<items.length;i++){
+		var UI_id=items[i];
+		var item=game_UI[UI_id];
+		item.own_num=0;
+		item.jqdom_init();
+	}
+	var items=game_UI_list[config.key+"_items"].available;
+	for(var i=0;i<items.length;i++){
+		var UI_id=items[i];
+		var item=game_UI[UI_id];
+		var src_num=config.item_num(item.item_type);
+		item.own_num=src_num;
+		item.jqdom_init();
+	}
+	//额外初始化
+	!!config.initial?config.initial():null;
+	game_temp.item_select_count=0;
+	game_temp.item_top_limit=config.controller.top_limit;
+	$("#item_count").text("0");
+	$("#item_top_limit").text(""+game_temp.item_top_limit);
+	//设置文字
+	$("simple_item_select_window").children().filter("window_head").children().filter("head_text").text(config.controller.window_head_text);
+	$("simple_item_select_window").children().filter("src_select_window").children().filter("head_text").children().filter("content").text(config.controller.inner_head_text);
+	$("#action_confirm_selected_items").text(config.controller.confirm_button_text);
+}
+//--------------------------------------------------------
 // 启动设置强盗
 //--------------------------------------------------------
 function UI_start_robber_set(){
@@ -1627,6 +1617,11 @@ function UI_start_robber_set(){
 // 清除菜单的活跃性
 //--------------------------------------------------------
 function UI_cancel_menu_active(){
+	if(!!game_temp.activeMenuItem[1]){
+		init_menu_lv(game_temp.activeMenuItem[0],game_temp.activeMenuItem[1]);
+		game_temp.activeMenuItem[1]=null;
+		return;
+	}
 	switch(game_temp.action_now){
 	case "action_use_dev_plenty":
 		init_menu_lv(1,$(`.use_dev[dev='plenty']`));
@@ -1647,6 +1642,9 @@ function close_simple_item_select_window(){
 // 关闭确认窗口
 //--------------------------------------------------------
 function close_confirm_window(){
+	if(game_temp.action_now=="action_promise"){
+		game_temp.action_resolve("cofirm","cancel");
+	}
 	//关闭窗口
 	$("confirm_window").hide();
 	if(game_temp.action_now=="action_use_dev_road_making"){
@@ -1654,9 +1652,10 @@ function close_confirm_window(){
 		game_temp.selected_edge.splice(1,1);
 	}
 	else{
-		cancel_selectors();
+		cancel_selector(game_temp.top_active_UI);
+		game_temp.top_active_UI=null;
 	}	
-	UI_cancel_menu_active();
+	//UI_cancel_menu_active();
 
 }
 //--------------------------------------------------------
@@ -1725,9 +1724,180 @@ function union(arr1,arr2){
 	return arr1.concat(arr2.filter(function(v) {
         return arr1.indexOf(v) === -1}))
 }
-
 //--------------------------------------------------------
-// 交易资源的对象,用于处理复杂的前置判断和资源交换
+// 三种基础建设
+//--------------------------------------------------------
+//--------------------------------------------------------
+// 建造道路
+//--------------------------------------------------------
+DynamicMenu.add_menu_item("base_build",{
+	key:"build_road",
+	name:"建设道路",
+	intro:"建设一条道路,必须沿着你的道路、定居点或城市修建。",
+	costlist:[{type:"brick",num:1},{type:"wood",num:1}],
+	on_active:{
+		selected_edge:0,
+		run:async function(){
+			try{
+				var selector,edge_id,action;
+				if(this.start()){
+					while(true){
+						[selector,edge_id] = await GameUI.next_step();
+						this.select_edge(edge_id);
+						[selector,action] = await GameUI.next_step();
+						if(action=="confirm"){
+							this.final();
+							break;
+						}
+					}
+				}	
+			}
+			catch(e){
+				//使用trycatch来以更直接的方式结束等待闭环
+				if(e.message=="breakPromiseLine"){return;}
+				throw e;
+			}
+		},
+		start:function(){
+			//激活道路选择器,只激活可以建设道路的地方
+			var edges=available_edges(user_index);
+			//资源消耗提示
+			var player=$gameSystem.self_player();
+			for(var edge_id of edges){
+				var selector=$("edge_selector").filter("#"+edge_id)
+				selector.addClass("active").show();
+				//资源不足则改变样式
+				if(player.src("brick")==0 || player.src("wood")==0){
+					selector.attr("tip","资源不足").addClass("selector_disabled");
+				}
+				else
+				{
+					selector.addClass("selector_available");
+				}
+			}
+			return !(player.src("brick")==0 || player.src("wood")==0);
+		},
+		select_edge:function(edge_id){
+			this.selected_edge=edge_id;
+			//打开确认窗口
+			confirm_window.set("要在这里建造道路吗?");
+			confirm_window.show();
+		},
+		final:function(){
+			ws.sendmsg("mes_action",{"starter":user_index,"val":[1,1,this.selected_edge]});	
+		}
+	}
+});
+//--------------------------------------------------------
+// 建立定居点
+//--------------------------------------------------------
+DynamicMenu.add_menu_item("base_build",{
+	key:"build_city0",
+	name:"建立定居点",
+	intro:"建设一个新的定居点,需要有你的道路相连,且附近没有任何人的定居点。骰子的总值与该定居点附近地块上的数字相同时,可以收获该地块类型产出的资源一份。",
+	costlist:[{type:"brick",num:1},{type:"wood",num:1},{type:"wool",num:1},{type:"grain",num:1}],
+	on_active:new PromiseLineBase({
+		selected_point:0,
+		promiseLine:async function(){
+			var selector,point_id,action;
+			if(this.start()){
+				while(true){
+					[selector,point_id] = await GameUI.next_step();
+					//打开确认窗口
+					this.selected_point=point_id;
+					confirm_window.set("要在这里建造定居点吗?");
+					confirm_window.show();
+					[selector,action] = await GameUI.next_step();
+					if(action=="confirm"){
+						this.final();
+						break;
+					}
+				}
+			}
+		},
+		start:function(){
+			//激活点选择器,只激活可以定居的地方
+			var points=available_points(user_index);
+			//资源消耗提示
+			var player=$gameSystem.self_player();
+			for(var point_id of points){
+				var selector=$("pt_selector").filter("#"+point_id)
+				selector.addClass("active").show();
+				//资源不足则改变样式
+				if(player.src("brick")==0 || player.src("wood")==0 || player.src("wool")==0 || player.src("grain")==0){
+					selector.attr("tip","资源不足").addClass("selector_disabled");
+				}
+				else
+				{
+					selector.addClass("selector_available");
+				}
+			}
+			return !(player.src("brick")==0 || player.src("wood")==0 || player.src("wool")==0 || player.src("grain")==0);
+		},
+		final:function(){
+			ws.sendmsg("mes_action",{"starter":user_index,"val":[1,2,this.selected_point]});
+		}
+	})
+});/*
+//--------------------------------------------------------
+// 建设新城市
+//--------------------------------------------------------
+DynamicMenu.add_menu_item("base_build",{
+	key:"build_city1",
+	name:"建设新城市",
+	intro:"将定居点升级为城市,每次从对应骰子点数收获资源时,城市可以获得双倍的资源。",
+	costlist:[{type:"grain",num:2},{type:"ore",num:3}],
+	on_active:{
+		selected_point:0,
+		run:async function(){
+			try{
+				var selector,point_id,action;
+				if(this.start()){
+					while(true){
+						[selector,point_id] = await GameUI.next_step();
+						//打开确认窗口
+						this.selected_point=point_id;
+						confirm_window.set("要在这里建造新城市吗?");
+						confirm_window.show();
+						[selector,action] = await GameUI.next_step();
+						if(action=="confirm"){
+							this.final();
+							break;
+						}
+					}
+				}					
+			}
+			catch(e){
+				//使用trycatch来以更直接的方式结束等待闭环
+				if(e.message=="breakPromiseLine"){return;}
+				throw e;
+			}
+		},
+		start:function(){
+			//资源消耗提示
+			var player=$gameSystem.self_player();
+			//激活点选择器,只激活可以升级的地方
+			var points=city_num(player,0,"all");
+			for(var i in points){
+				var selector=$("pt_selector").filter("#"+points[i])
+				selector.addClass("active").show();
+				//资源不足则改变样式
+				if(player.src("grain")<2 || player.src("ore")<3){
+					selector.attr("tip","资源不足").addClass("selector_disabled");
+				}
+				else{
+					selector.addClass("selector_available");
+				}
+			}
+			return !(player.src("grain")<2 || player.src("ore")<3);
+		},
+		final:function(){
+			ws.sendmsg("mes_action",{"starter":user_index,"val":[1,3,this.selected_point]});
+		}
+	}
+});*/
+//--------------------------------------------------------
+// 交易资源的UI对象,用于处理复杂的前置判断和资源交换
 //--------------------------------------------------------
 class Src_item {
     constructor(jq_object,relative_object,item_type){
@@ -1801,11 +1971,11 @@ class Selected_Drop_item extends Selected_item{
 	}
 	reduce(){
 		super.reduce();
-		game_temp.dropped--;
+		game_temp.item_select_count--;
 	}
 	increase(){
 		super.increase();
-		game_temp.dropped++;
+		game_temp.item_select_count++;
 	}
 }
 class Available_Drop_item extends Available_item{
@@ -1816,7 +1986,7 @@ class Available_Drop_item extends Available_item{
 		if(super.can_reduce()==false){
 			return false;
 		}
-		if(game_temp.dropped==game_temp.drop_required){
+		if(game_temp.item_select_count==game_temp.item_top_limit){
 			return false;
 		}
 		return true;
@@ -1828,11 +1998,11 @@ class Selected_Plenty_item extends Selected_item{
 	}
 	reduce(){
 		super.reduce();
-		game_temp.plenty_count--;
+		game_temp.item_select_count--;
 	}
 	increase(){
 		super.increase();
-		game_temp.plenty_count++;
+		game_temp.item_select_count++;
 	}
 }
 class Available_Plenty_item extends Available_item{
@@ -1843,7 +2013,7 @@ class Available_Plenty_item extends Available_item{
 		if(super.can_reduce()==false){
 			return false;
 		}
-		if(game_temp.plenty_count==game_temp.item_top_limit){
+		if(game_temp.item_select_count==game_temp.item_top_limit){
 			return false;
 		}
 		return true;

@@ -14,19 +14,19 @@
 //game.active_trades=[];
 
 class Transaction{
-	constructor(id,starter=0,accepter=0,starter_list={},accepter_list={}){
+	constructor(id,starter_index=0,accepter_index=0,starter_list={},accepter_list={}){
 		if(typeof(id)=="object"){
 			this.id=id.id;
-			this.starter=id.starter;
-			this.accepter=id.accepter;
+			this.starter_index=id.starter_index;
+			this.accepter_index=id.accepter_index;
 			this.trade_state=id.trade_state;
 			this.starter_list=id.starter_list;
 			this.accepter_list=id.accepter_list;
 		}
 		else{
 			this.id=id;
-			this.starter=starter;
-			this.accepter=accepter;
+			this.starter_index=starter_index;
+			this.accepter_index=accepter_index;
 			this.trade_state="prepare";
 			this.starter_list=starter_list;
 			this.accepter_list=accepter_list;
@@ -50,6 +50,7 @@ class Transaction{
 		this.accepter_list={};
 	}
 	//交易列表更新
+	/*
 	item_refresh(){
 		//获取交易栏的所有资源
 		this.starter_list={};
@@ -68,18 +69,16 @@ class Transaction{
 			if(item.own_num==0){continue;}
 			this.accepter_list[src_reflection[item.item_type]]=item.own_num;
 		}
-	}
+	}*/
 }
-
 //--------------------------------------------------------
-// 启动交易窗口
+// 初始化交易数据与可用资源
 //--------------------------------------------------------
-function start_trade_window(target="bank",target_val=0){
-	var init_give_items_available=[];
-	var init_wonder_items_available=[];
-	var self_player=game_info.players[user_index];
-	var starter_cards=self_player;
-	var accepter_cards=game_info.cards;
+function initialize_trade_config(target,target_val){
+	var starter_available=[];
+	var accepter_available=[];
+	var starter=$gameSystem.self_player();
+	var accepter=$gameBank;
 	var action_text;
 	var head_text;
 	var trade_state="";
@@ -88,6 +87,7 @@ function start_trade_window(target="bank",target_val=0){
 	var trades=game_info.trades;
 	var can_trade=true;
 	var secret;
+	var trade_now_id;
 	target_val=parseInt(target_val);
 	game_temp.action_now="action_trade";
 	game_temp.trade_target=target;
@@ -100,67 +100,62 @@ function start_trade_window(target="bank",target_val=0){
 	switch(target){
 		//银行,目标可以是任何银行还有的资源,给予栏只显示有的
 		case "bank":
-			game_temp.trade_now_id=0;
+			trade_now_id=0;
 			trade_ratio=4;
 			action_text="发起交易";
 			head_text="与银行交易 4:1";
-			init_wonder_items_available.push(1,2,3,4,5);
-			init_give_items_available.push(1,2,3,4,5);
+			accepter_available.push(...src_cards);
+			starter_available.push(...src_cards);
 			break;
 		//港口,实际交易目标还是银行
 		case "harbour":
-			game_temp.trade_now_id=0;
+			trade_now_id=0;
 			game_temp.trade_target="bank";
 			action_text="发起交易";
 			if(target_val=="6"){
 				trade_ratio=3;
-				init_give_items_available.push(1,2,3,4,5);
+				starter_available.push(...src_cards);
 				head_text="与"+order_ch[target_val]+"港交易 3:1";
 			}
 			else{
 				trade_ratio=2;
-				init_give_items_available.push(parseInt(target_val));
+				starter_available.push(order[target_val]);
 				head_text="与"+order_ch[target_val]+"港交易 2:1";
 			}
-			init_wonder_items_available.push(1,2,3,4,5);
+			accepter_available.push(...src_cards);
 			break;
 		//玩家,交易的各个选项都不受限制,且出于资源保密,会设置不显示资源数
 		case "player":
-		    secret=target_val==0?true:game_info.players[target_val].src_secret;
-			//检查是否有target玩家发起给本机玩家的进行中交易
-			var recive_trade_id=target_val*(Object.keys(game_info.players).length+1)+user_index;
-			if(game_info.active_trades.indexOf(recive_trade_id)==-1){
+			//检查是否有target玩家发起到本机玩家的进行中交易
+			var recive_trade_id=target_val*(Object.keys($gamePlayers).length+1)+user_index;
+			if(!$gameSystem.active_trades.includes(recive_trade_id)){
 				//没有则认为是在向target发起交易
-				game_temp.trade_now_id=user_index*(Object.keys(game_info.players).length+1)+target_val;
-				starter_cards=game_info.players[user_index];
-				accepter_cards=secret?null:game_info.players[target_val];
+				trade_now_id=user_index*(Object.keys($gamePlayers).length+1)+target_val;
+				starter=$gamePlayers[user_index];
+				accepter=$gamePlayers[target_val];
 			}
 			else{
-				game_temp.trade_now_id=recive_trade_id;
-				starter_cards=secret?null:game_info.players[target_val];
-				accepter_cards=game_info.players[user_index];
+				trade_now_id=recive_trade_id;
+				starter=$gamePlayers[target_val];
+				accepter=$gamePlayers[user_index];
 				person="他";
 			}				
 			action_text="发起交易";
 			trade_ratio=1;
-			init_give_items_available.push(1,2,3,4,5);
-			init_wonder_items_available.push(1,2,3,4,5);
-			if(target_val=="0"){
-				head_text=game_info.players[target_val].name+" 的公开交易"
-			}
-			else{
-				head_text="与 "+game_info.player_list[target_val][1]+" 交易";
-			}	
+			starter_available.push(...src_cards);
+			accepter_available.push(...src_cards);
+			head_text=target_val=="0"?`${$gamePlayers[target_val].name} 的公开交易`:`与 ${$gamePlayers[target_val].name} 交易`;	
 			break;
 	}
 	//设置已选择资源
-	var trade=trades[game_temp.trade_now_id];
+	var trade=trades[trade_now_id];
 	//如果并非正在进行的交易,对交易内容进行初始化(对于银行的交易一定生效)	
-	if(game_info.active_trades.indexOf(game_temp.trade_now_id)==-1){		
+	if(!$gameSystem.active_trades.includes(trade.id)){		
 		trade.clear();
+		can_trade=false;
 	}
 	else{
-		if(trade.starter==user_index){
+		if(trade.starter_index==user_index){
 			trade_state="等待对方响应...";
 			action_text="取消交易";
 			game_temp.action_trade_items_function=cancel_trade;
@@ -171,62 +166,71 @@ function start_trade_window(target="bank",target_val=0){
 			game_temp.action_trade_items_function=accept_trade;
 			$("#action_refuse_trade_items").show();
 		}
-		
 	}
-	game_temp.trade_now=trade;
+	var src_secret_starter = (game_temp.trade_target=="player" && trade.accepter_index==user_index)?$gamePlayers[trade.starter_index].src_secret:false;
+	var src_secret_accepter = (game_temp.trade_target=="player" && trade.starter_index==user_index)?$gamePlayers[trade.accepter_index].src_secret:false;
 	var starter_selected=trade.starter_list;
 	var accepter_selected=trade.accepter_list;
-	var items=game_UI_list.trade_items._give.selected;
+	game_temp.trade_now=trade;
+	game_temp.trade_now_id=trade_now_id;
+	$("trade_window window_head head_text").text(head_text);
+	$("trade_window person").text(person);
+	$("#action_trade_items").text(action_text);
+	$("trade_state").text(trade_state);
+	$("trade_window").show();
+
+	return [trade_ratio,starter_available,accepter_available,starter_selected,accepter_selected,src_secret_starter,src_secret_accepter,starter,accepter,can_trade];
+}
+//--------------------------------------------------------
+// 启动交易窗口
+//--------------------------------------------------------
+function start_trade_window(target="bank",target_val=0){
+	var [trade_ratio,starter_available,accepter_available,starter_selected,accepter_selected,src_secret_starter,src_secret_accepter,starter,accepter,can_trade]=initialize_trade_config(target,target_val);
+	//遍历UI并设置参数
+	//交易发起方想要资源
+	var items=game_UI_list.trade_items._give.selected;	
 	for(var i=0;i<items.length;i++){
 		var UI_id=items[i];
 		var item=game_UI[UI_id];
-		var src_id=src_reflection[item.item_type];
+		var src_key=item.item_type;
 		item.ratio_num=trade_ratio;
-		item.own_num=starter_selected.hasOwnProperty(src_id)?starter_selected[src_id]:0;
+		item.own_num=!!starter_selected[src_key]?starter_selected[src_key]:0;
 		item.jqdom_init();
 	}
+	//交易接收方想要资源
 	items=game_UI_list.trade_items._get.selected;
 	for(var i=0;i<items.length;i++){
 		var UI_id=items[i];
 		var item=game_UI[UI_id];
-		var src_id=src_reflection[item.item_type];
+		var src_key=item.item_type;
 		item.ratio_num=1;
-		item.own_num=accepter_selected.hasOwnProperty(src_id)?accepter_selected[src_id]:0;
+		item.own_num=!!accepter_selected[src_key]?accepter_selected[src_key]:0;
 		item.jqdom_init();
 	}
+	//拥有的资源
+	//交易发起方拥有的资源
 	items=game_UI_list.trade_items._give.available;
 	for(var i=0;i<items.length;i++){
 		var UI_id=items[i];
 		var item=game_UI[UI_id];
-		//如果目标玩家选择保密自己的资源数,则应用secret属性
-		item.secret=(game_temp.trade_target=="player" && person=="他")?secret:false;
-		if(init_give_items_available.indexOf(src_reflection[item.item_type])==-1){
-			var src_num=0;
-		}
-		else{
-			var src_num=(!!starter_cards) ? starter_cards.src(item.item_type) : 99;
-		}
+		//如果与玩家交易,交易接收方能否看见资源数与发起方设置有关
+		item.secret=src_secret_starter;
 		item.ratio_num=trade_ratio;
-		item.own_num=src_num;
+		item.own_num=starter_available.includes(item.item_type) ? (src_secret_starter ? 99 : starter.src(item.item_type)) : 0;
 		item.jqdom_init();
 		//扣除已置于列表中的资源
 		item.own_num-=item.rlt_item.own_num;
 		item.jqdom_update();
 	}
+	//交易接收方拥有的资源	
 	items=game_UI_list.trade_items._get.available;
 	for(var i=0;i<items.length;i++){
 		var UI_id=items[i];
 		var item=game_UI[UI_id];
 		item.ratio_num=1;
-		//如果目标玩家选择保密自己的资源数,则应用secret属性
-		item.secret=(game_temp.trade_target=="player" && person=="你")?secret:false;
-		if(init_wonder_items_available.indexOf(src_reflection[item.item_type])==-1){
-			var src_num=0;
-		}
-		else{
-			var src_num=(!!accepter_cards) ? accepter_cards.src(item.item_type) : 99;
-		}
-		item.own_num=src_num;
+		//如果与玩家交易,交易发起方能否看见资源数与接收方设置有关
+		item.secret=src_secret_accepter;
+		item.own_num=accepter_available.includes(item.item_type) ? (src_secret_accepter ? 99 : accepter.src(item.item_type)) : 0;
 		item.jqdom_init();
 		//扣除已置于列表中的资源
 		item.own_num-=item.rlt_item.own_num;
@@ -234,18 +238,7 @@ function start_trade_window(target="bank",target_val=0){
 		if(item.own_num<0){can_trade=false;}
 		item.jqdom_update();
 	}
-	if(game_info.active_trades.indexOf(game_temp.trade_now_id)==-1){
-		can_trade=false;			
-	}
-	else{
-		$("#action_trade_items").text("取消交易");
-	}
 	can_trade?$("#action_trade_items").removeClass("disabled"):$("#action_trade_items").addClass("disabled");	
-	$("trade_window window_head head_text").text(head_text);
-	$("trade_window person").text(person);
-	$("#action_trade_items").text(action_text);
-	$("trade_state").text(trade_state);
-	$("trade_window").show();
 }
 
 //--------------------------------------------------------
@@ -263,13 +256,13 @@ trade_items = function(){
 		var UI_id=items1[i];
 		var item=game_UI[UI_id];
 		if(item.own_num==0){continue;}
-		game_temp.trade_now.starter_list[src_reflection[item.item_type]]=item.own_num;
+		game_temp.trade_now.starter_list[item.item_type]=item.own_num;
 	}
 	for(var i in items2){
 		var UI_id=items2[i];
 		var item=game_UI[UI_id];
 		if(item.own_num==0){continue;}
-		game_temp.trade_now.accepter_list[src_reflection[item.item_type]]=item.own_num;
+		game_temp.trade_now.accepter_list[item.item_type]=item.own_num;
 	}
 	//更新交易状态
 	game_temp.trade_now.trade_state="requesting";
@@ -297,7 +290,7 @@ trade_items = function(){
 accept_trade=function(){
 	var trade=game_temp.trade_now;
 	//发送消息
-	ws.sendmsg("mes_action",{"starter":trade.accepter,"accepter":trade.starter,"val":[2,4,1,trade.id]});
+	ws.sendmsg("mes_action",{"starter":trade.accepter_index,"accepter":trade.starter_index,"val":[2,4,1,trade.id]});
 }
 //--------------------------------------------------------
 // 拒绝交易
@@ -305,7 +298,7 @@ accept_trade=function(){
 refuse_trade=function(){
 	var trade=game_temp.trade_now;
 	//发送消息 
-	ws.sendmsg("mes_action",{"starter":trade.accepter,"val":[2,4,2,trade.id]});
+	ws.sendmsg("mes_action",{"starter":trade.accepter_index,"val":[2,4,2,trade.id]});
 }
 //--------------------------------------------------------
 // 取消交易
@@ -327,11 +320,11 @@ window_finish_trade=function(trade,excutor=user_index){
 	//更新交易信息
 	var person;
 	//无关者
-	var neither=trade.starter!=user_index && trade.final_accepter!=user_index; //&& trade.accepter!=user_index ;
+	var neither=trade.starter_index!=user_index && trade.final_accepter!=user_index; //&& trade.accepter!=user_index ;
 	switch(trade.trade_state){
 		case "success":
 			if(neither){
-				his_window.push(game_info.player_list[trade.starter][1]+" 与 "+game_info.player_list[trade.accepter][1]+" 达成了交易！",'important');
+				his_window.push(game_info.player_list[trade.starter_index][1]+" 与 "+game_info.player_list[trade.accepter_index][1]+" 达成了交易！",'important');
 			}
 			else{
 				person=trade.final_accepter==user_index?"你":game_info.player_list[trade.final_accepter][1];
@@ -339,18 +332,18 @@ window_finish_trade=function(trade,excutor=user_index){
 			}		
 			break;
 		case "refused":
-			if(neither && trade.accepter!=0){break;}
-		    person=trade.accepter==user_index?"你":game_info.player_list[trade.accepter][1];
+			if(neither && trade.accepter_index!=0){break;}
+		    person=trade.accepter_index==user_index?"你":game_info.player_list[trade.accepter_index][1];
 			his_window.push(person+" 拒绝了交易!","important");
 			break;
 		case "canceled":
-			if(neither && trade.accepter!=0){break;}
-			person=trade.starter==user_index?"你":game_info.player_list[trade.starter][1];
+			if(neither && trade.accepter_index!=0){break;}
+			person=trade.starter_index==user_index?"你":game_info.player_list[trade.starter_index][1];
 			his_window.push("交易被 "+person+" 取消!","important");
 			break;
 	}
 	//如果正在查看与结束的交易无关的窗口,不会刷新窗口内容
-	if(game_temp.trade_now_id==trade.id && (trade.accepter==0?trade.trade_state!="refused":true))
+	if(game_temp.trade_now_id==trade.id && (trade.accepter_index==0?trade.trade_state!="refused":true))
 	{
 		switch(trade.trade_state){
 			case "success":
@@ -362,7 +355,7 @@ window_finish_trade=function(trade,excutor=user_index){
 			    }	
 				break;
 			case "refused":
-				person=trade.accepter==user_index?"":"对方";
+				person=trade.accepter_index==user_index?"":"对方";
 				$("trade_state").text(person+"拒绝交易!");
 				break;
 			case "canceled":
@@ -375,9 +368,9 @@ window_finish_trade=function(trade,excutor=user_index){
 	$("#action_refuse_trade_items").hide();
 	//关闭特殊选项中的快捷交易
 	$("special_actions").children().filter(function(){
-		return parseInt($(this).attr("target_val"))==trade.starter;
+		return parseInt($(this).attr("target_val"))==trade.starter_index;
 	}).hide();	
-	if(trade.accepter==0){
+	if(trade.accepter_index==0){
 		$("special_actions").children().filter(function(){
 			return parseInt($(this).attr("target_val"))=="0";
 		}).hide();	

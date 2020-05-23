@@ -824,3 +824,21 @@ SelectorQuery.prototype.near_points = function(){
 	this.id_list=points;
 	return this;
 };
+//--------------------------------------------------------
+// 显示对应的selector
+//--------------------------------------------------------
+SelectorQuery.prototype.show_selectors = function(){
+	//不同的SQ有不同的显示方式
+	switch(this.type){
+	case "place":
+		this.id_list.map((id)=>$("plc_selector").filter("#"+id).addClass("active selector_available").show());
+		break;
+	case "edge":
+		this.id_list.map((id)=>$("edge_selector").filter("#"+id).addClass("active selector_available").show());
+		break;
+	case "point":
+		this.id_list.map((id)=>$("pt_selector").filter("#"+id).addClass("active selector_available").show());
+		break;
+	}
+	return this;
+};

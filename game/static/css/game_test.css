@@ -321,14 +321,19 @@ button.part_disabled
 	color: grey;
 }
 /*骰子*/
+dice_list{
+	position: fixed;
+	left: 10px;
+	top: 30px;
+	display: flex; 
+	z-index: 4000;
+}
 dice
 {
-	position: fixed;
-	top: 30px;
 	height: 50px;
-	width: 50px;	
+	width: 50px;
+	margin-right: 5px;
 	background: url(/media/img/dice_num0.png);
-	z-index: 4000;
 }
 dice.num1
 {
@@ -519,14 +524,14 @@ player.player_select_selected
 playername
 {
 	left:73px;
-	top:30px;
+	top:26px;
 	position:absolute;
 	
 }
 playername.self
 {
 	left:95px;
-	top:39px;
+	top:33px;
 	position:absolute;
 	
 }
@@ -534,75 +539,78 @@ playername.self
 vp_state
 {
 	left:125px;
-	top:52px;
+	top:44px;
 	cursor: pointer;
 	position:absolute;
 }
 vp_state.self
 {
 	left:163px;
-	top:66px;
+	top:61px;
 }
 src_state
 {
 	left:87px;
-	top:71px;
+	top:64px;
 	position:absolute;
 }
 src_state.self
 {
 	left:113px;
-	top:91px;	
+	top:86px;	
 }
 dev_state
 {
 	left:87px;
-	top:90px;
+	top:82px;
 	position:absolute;
 }
 dev_state.self
 {
 	left:113px;
-	top:115px;
+	top:110px;
 }
 city0_state
 {
 	left:87px;
-	top:107px;
+	top:100px;
 	position:absolute;
 }
 city0_state.self
 {
 	left:113px;
-	top:138px;
+	top:134px;
 }
 city1_state
 {
 	left:71px;
-	top:126px;
+	top:118px;
 	position:absolute;
 }
 city1_state.self
 {
 	left:93px;
-	top:162px;
+	top:160px;
 }
 
 longest_road
 {
+	background: url(/media/img/longest_road.png);
+	background-size: cover;
+	background-repeat: no-repeat;
 	left:117px;
 	top:70px;
-	width: 75px;
-	height: 20px;
+	width: 72px;
+	height: 19px;
 	cursor: pointer;
 	position: absolute;
 }
 longest_road.self
 {
-	width: 100px;
-	height: 27px;
-	left:150px;
-	top:90px;
+	width: 98px;
+	height: 26px;
+	left:154px;
+	top:93px;
 }
 longest_road.active
 {
@@ -610,22 +618,24 @@ longest_road.active
 	background-size: cover;
 	background-repeat: no-repeat;
 }
-
 max_minitory
 {
+	background: url(/media/img/max_minitory.png);
+	background-size: cover;
+	background-repeat: no-repeat;
 	left:117px;
 	top:94px;
-	width: 75px;
-	height: 20px;
+	width: 72px;
+	height: 19px;
 	cursor: pointer;
 	position: absolute;
 }
 max_minitory.self
 {
-	width: 100px;
-	height: 27px;
-	left:150px;
-	top:123px;
+	width: 98px;
+	height: 26px;
+	left:154px;
+	top:127px;
 }
 max_minitory.active
 {
@@ -636,19 +646,22 @@ max_minitory.active
 
 score_card
 {
+	background: url(/media/img/score_card.png);
+	background-size: cover;
+	background-repeat: no-repeat;
 	left:117px;
 	top:118px;
-	width: 75px;
-	height: 20px;
+	width: 72px;
+	height: 19px;
 	cursor: pointer;
 	position: absolute;
 }
 score_card.self
 {
-	width: 100px;
-	height: 27px;
-	left:150px;
-	top:154px;
+	width: 98px;
+	height: 26px;
+	left:154px;
+	top:161px;
 }
 score_card.active
 {
@@ -890,8 +903,8 @@ confirm_window
 confirm_content
 {
 	position:absolute;
-	height:150px;
 	width:200px;
+	min-height: 150px;
 	top:calc(30% - 75px);
 	left:calc(50% - 100px);
 	background:red;
@@ -1002,6 +1015,7 @@ window_head{
 	border-top-left-radius: 10px;
 	border-top-right-radius: 10px;
 	background: #1E90FF;
+	cursor: move;
 }
 
 window_head head_text

@@ -430,76 +430,7 @@ function init_t_ui(){
 	//更新计时器
 	timer.reset();
 	//截至以上,是一个空白的的游戏中的状态
-
-	//检测当前游戏状态
-	switch($gameSystem.game_process){
-	//尚未开始
-	case 0:
-		//等待所有玩家加入完毕
-		break;
-	//投掷骰子
-	case 1:
-		if(!$gameSystem.is_audience()){		
-			UI_start_dice();
-			if($gameSystem.self_player().first_dice[0]!=0){
-				var nums = $gameSystem.self_player().first_dice;
-				var num_sum = nums[0] + nums[1];
-				his_window.push("正在确定行动顺序,你已投骰,共计 "+num_sum,"important");
-				UI_set_dices(nums[0],nums[1]);
-			}
-			else{
-				his_window.push("所有玩家准备就绪,开始确定行动顺序,请投骰子：","important");
-			}
-		}
-		break;
-	//前期坐城
-	case 2:
-		create_step_list();
-		if(!$gameSystem.is_audience()){
-			//在自己的回合,进行判断
-			if($gameSystem.is_own_turn()){
-				var own_cities = $gameSystem.active_player().own_cities
-				UI_start_set_home($gameSystem.active_player().home_step,own_cities[own_cities.length-1]);
-			}		
-		}
-		break;
-	//正常游戏
-	case 3:
-		create_step_list();
-		UI_begin_turn();
-		//是否已经投骰?
-		if($gameSystem.dice_num[0]!=0){
-			UI_set_dices($gameSystem.dice_num[0],$gameSystem.dice_num[1]);
-			//查看投出7的进行状态
-			if($gameSystem.dice_7_step==0){
-				//由于非正交的层级设计,如果不是自己回合该函数没有任何作用= =,不过会打开计时器
-				UI_start_build();
-			}
-			else{
-				if(!$gameSystem.is_audience()){
-					if($gameSystem.dice_7_step==1){
-					start_drop_select();
-					}
-					else if($gameSystem.dice_7_step==2 && $gameSystem.is_own_turn()){
-						start_robber_set();
-					}
-				}
-				break;
-			}
-			if(!$gameSystem.is_audience()){
-				//检查交易并显示
-				for(let trade_id of $gameSystem.active_trades){
-					let trade = $gameTrades[trade_id];
-					if(trade.accepter==user_index){
-						his_window.push($gamePlayers[trade.starter].name+" 想要与你交易","important");
-						show_special_actions("trade",trade.starter);
-						break;
-					}
-				}	
-			}			
-		}
-		break;	
-	}
+	reload_game();
 }
 //--------------------------------------------------------
 // 额外处理信息
@@ -543,7 +474,7 @@ function t_player_ready(player_index,player_name){
 		var player=game_info.players[player_index];
 		player.name=player_name;
 		game_info.player_list[player_index][1]=player_name;
-		$("playername").filter("#"+player_index).text(""+player_name);
+		$("player").filter("#"+player_index).children().filter("playername").text(""+player_name);
 		$("button").filter(function(){
 			return $(this).attr("trade_target")=="player" && $(this).attr("target_val")==player_index;
 		}).text(""+player_name);

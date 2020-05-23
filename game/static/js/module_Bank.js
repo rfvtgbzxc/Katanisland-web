@@ -115,4 +115,6 @@ class Game_Bank{
 		}
 		return count;
 	}
+
+	
 }

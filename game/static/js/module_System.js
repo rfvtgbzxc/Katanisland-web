@@ -31,6 +31,12 @@ class Game_System{
 		return user_index == 1;
 	}
 	//--------------------------------------------------------
+	// 判定是否在recive_list中
+	//--------------------------------------------------------
+	is_in_recive(){
+		return this.recive_list.includes(user_index);
+	}
+	//--------------------------------------------------------
 	// 获取本人对应的玩家
 	//--------------------------------------------------------
 	self_player(){
@@ -73,6 +79,12 @@ class Game_System{
 		return Object.keys(map_info.places).map(Number);
 	}
 	//--------------------------------------------------------
+	// 生成以当前玩家为起始的顺序列表
+	//--------------------------------------------------------
+	make_player_list_by_order(){
+		return this.step_list.slice(this.step_index,this.step_list.length).concat(this.step_list.slice(0,this.step_index));
+	}
+	//--------------------------------------------------------
 	// 同步操作完成人数
 	//--------------------------------------------------------
 	msg_recive(player_index){
@@ -83,5 +95,31 @@ class Game_System{
 			this.recive_list.splice(index,1);
 		}		
 		return this.recive_list.length==0 || offline;
+	}
+	//--------------------------------------------------------
+	// 检查发展卡可见性
+	//--------------------------------------------------------
+	visible_use_dev(action){
+		return this.self_player().dev(action.key)>0;
+	}
+	//--------------------------------------------------------
+	// 检查发展卡可用性
+	//--------------------------------------------------------
+	usable_use_dev(action){
+		var result = true,reason = "";
+		return [result,reason];
+	}
+	//--------------------------------------------------------
+	// 检查基本建设可见性
+	//--------------------------------------------------------	
+	visible_base_build(action){
+		return true;
+	}
+	//--------------------------------------------------------
+	// 检查基本建设可用性
+	//--------------------------------------------------------
+	usable_base_build(action){
+		var result = true,reason = "";
+		return [result,reason];
 	}
 }

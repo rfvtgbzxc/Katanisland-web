@@ -161,7 +161,7 @@ function extract_dev_card(randomint,player_index){
 			player.dev(dev,"+=",1);
 			player.dev_get_record(dev,player.dev_get_record(dev)+1);
 			$gameBank.dev(dev,"-=",1);
-			his_window.push(`(你获得了发展卡:${dev_ch[dev]})`);
+			his_window.push(`(你获得了发展卡:${menu_actions.use_dev[dev].name})`);
 			return;
 		}
 		count-=$gameBank.dev(dev);
@@ -186,16 +186,17 @@ function trade_with_bank(give_list,get_list,trader_index){
 	var trader=game_info.players[trader_index];
 	var bank=game_info.cards;
 	game_info.active_trades.splice(game_info.active_trades.indexOf(0),1);
+	his_window.push(`${trader.name} 与银行达成了交易！`,"important");
 	//进行资源转移
 	for(var src_id in give_list){
-		trader.src(src_id,"-=",give_list[src_id]);
-		$gameBank.src(src_id,"+=",give_list[src_id]);
-		his_window.push(game_info.player_list[trader_index][1]+" 给了银行 "+order_ch[src_id]+" x "+give_list[src_id]);
+		trader.src(src_id,"-=",give_list[src_id],false);
+		$gameBank.src(src_id,"+=",give_list[src_id],false);
+		his_window.push(`${trader.name} 给了银行${src_ch[src_id]} x ${src_num}`);
 	}
 	for(var src_id in get_list){
-		trader.src(src_id,"+=",get_list[src_id]);
-		$gameBank.src(src_id,"-=",get_list[src_id]);
-		his_window.push("银行给了 "+game_info.player_list[trader_index][1]+" "+order_ch[src_id]+" x "+get_list[src_id]);
+		trader.src(src_id,"+=",get_list[src_id],false);
+		$gameBank.src(src_id,"-=",get_list[src_id],false);
+		his_window.push(`银行给了 ${trader.name} ${src_ch[src_id]} x ${src_num}`);
 	}
 
 }
@@ -205,21 +206,21 @@ function trade_with_bank(give_list,get_list,trader_index){
 function give_trade_with_player(new_trade){
 	//更新交易状态
 	//如果是交易发起者则不需要
-	if(new_trade.starter!=user_index){
+	if(new_trade.starter_index!=user_index){
 		game_info.trades[new_trade.id].refresh(new_trade);
 		game_info.active_trades.push(new_trade.id);
-		if(new_trade.accepter==user_index){
-			his_window.push(game_info.player_list[new_trade.starter][1]+" 想要与你交易","important");
-			show_special_actions("trade",new_trade.starter);
+		if(new_trade.accepter_index==user_index){
+			his_window.push(game_info.player_list[new_trade.starter_index][1]+" 想要与你交易","important");
+			show_special_actions("trade",new_trade.starter_index);
 		}
-		else if(new_trade.accepter==0){
-			his_window.push(game_info.player_list[new_trade.starter][1]+" 发起了公开交易","important");	
+		else if(new_trade.accepter_index==0){
+			his_window.push(game_info.player_list[new_trade.starter_index][1]+" 发起了公开交易","important");	
 			show_special_actions("trade","0");	
 		}	
 		
 	}	
-	if(offline && new_trade.accepter!=0){
-		ws.sendmsg("mes_action",{"starter":new_trade.accepter,"accepter":new_trade.starter,"val":[2,4,1,new_trade.id]});
+	if(offline && new_trade.accepter_index!=0){
+		ws.sendmsg("mes_action",{"starter":new_trade.accepter_index,"accepter":new_trade.starter_index,"val":[2,4,1,new_trade.id]});
 	}
 }
 //--------------------------------------------------------
@@ -273,21 +274,21 @@ function trade_with_player(trade_id,accepter_index){
 	trade.trade_state="success";
 	game_info.active_trades.splice(game_info.active_trades.indexOf(trade_id),1);
 	//执行交易
-	var trade_starter=game_info.players[trade.starter];
+	var trade_starter=game_info.players[trade.starter_index];
 	var trade_accepter=game_info.players[trade.final_accepter];
 	var names=game_info.player_list
 	//进行资源转移
 	for(let src_id in trade.starter_list){
 		let src_num = trade.starter_list[src_id];
-		trade_starter.src(src_id,"-=",src_num);
-		trade_accepter.src(src_id,"+=",src_num);
-		his_window.push(names[trade.starter][1]+" 给了 "+names[trade.final_accepter][1]+" "+order_ch[src_id]+" x "+src_num);
+		trade_starter.src(src_id,"-=",src_num,false);
+		trade_accepter.src(src_id,"+=",src_num,false);
+		his_window.push(`${trade_starter.name} 给了 ${trade_accepter.name} ${src_ch[src_id]} x ${src_num}`);
 	}
 	for(let src_id in trade.accepter_list){
-		let src_num = trade.starter_list[src_id];
-		trade_starter.src(src_id,"+=",src_num);
-		trade_accepter.src(src_id,"-=",src_num);
-		his_window.push(names[trade.final_accepter][1]+" 给了 "+names[trade.starter][1]+" "+order_ch[src_id]+" x "+src_num);
+		let src_num = trade.accepter_list[src_id];
+		trade_starter.src(src_id,"+=",src_num,false);
+		trade_accepter.src(src_id,"-=",src_num,false);
+		his_window.push(`${trade_accepter.name} 给了 ${trade_starter.name} ${src_ch[src_id]} x ${src_num}`);
 	}
 	//UI回调,结束交易
 	window_finish_trade(trade);
@@ -326,17 +327,16 @@ function rob_player(robber_index,victim_index,randomint){
 	if(victim_index==0){
 		return;
 	}
-	var names=game_info.player_list;
 	var victim=game_info.players[victim_index]
 	var count=randomint;
-	for(var i=1;count>=0;i++){
-		if(count<victim.src(i)){
-			victim.src(i,"-=",1);
-			$gamePlayers[robber_index].src(i,"+=",1);
-			his_window.push(names[robber_index][1]+" 掠夺了 "+names[victim_index][1]+" 的一份 "+order_ch[i]);
+	for(let src of src_cards){
+		if(count<victim.src(src)){
+			victim.src(src,"-=",1,false);
+			$gamePlayers[robber_index].src(src,"+=",1,false);
+			his_window.push($gamePlayers[robber_index].name+" 掠夺了 "+victim.name+" 的一份 "+src_ch[src]);
 			break;
 		}
-		count-=victim.src(i);
+		count-=victim.src(src);
 	}
 }
 //--------------------------------------------------------
@@ -403,6 +403,7 @@ function dev_plenty(src_list,player_index){
 	close_simple_item_select_window();
 	init_menu_lv(1,$(`.use_dev[dev='plenty']`));
 	UI_use_dev_update();
+	
 }
 //--------------------------------------------------------
 // 垄断
@@ -484,7 +485,9 @@ function new_turn()
 	}
 	game_info.step_index=index;
 	//清空骰子值
-	game_info.dice_num=[0,0];
+	for(let i=0;i<$gameSystem.dice_num.length;i++){
+		$gameSystem.dice_num[i]=0;
+	}
 	if(game_info.game_process==3){
 		game_info.play_turns++;
 	}
@@ -504,62 +507,7 @@ function new_turn()
 	//emmm好像没什么要做的了= =||
 	//UI更新
 	UI_begin_turn();
-	ExtendManager.new_turn();
-}
-//--------------------------------------------------------
-// 初始坐城
-//--------------------------------------------------------
-function set_home(step,val,setter_index){
-	var setter=game_info.players[setter_index];
-	//更新坐城状态
-	setter.home_step=step+1;
-	switch(step%2){
-		//建立定居点
-		case 0:
-			clear_selectors();
-			GameEvent.build_city(setter_index,val);
-			//判断轮数
-			if(step>1){
-				//收获资源
-				var places=pt_round_places(val);
-				for(i in places){
-					var place=map_info.places[places[i]];
-					if(place==null){continue;}
-					setter.src(place.create_type,"+=",1);
-				}				
-			}
-			his_window.push("由 "+setter.name+" 建设道路");
-			if(setter_index==user_index){
-				//接着请求修建道路
-				UI_start_set_home(setter.home_step,val);
-			}	
-			break;
-		//修建道路
-		case 1:
-			GameEvent.build_road(setter_index,val);
-			//判断是否所有玩家都完成了一轮坐城
-			if(game_info.step_index==game_info.step_list.length-1){
-				//逆序行动列表
-				game_info.step_list.reverse();
-				//判断轮数
-				if(step>2){
-					if(!offline || step>Object.keys(game_info.player_list).length*4-2){
-						//更改游戏状态,正式游戏开始
-						game_info.game_process=3;
-					}					
-				}
-
-			}
-			//结束回合,移交行动权
-			new_turn();
-			//如果接下来是自己的回合,且没有进入下一个游戏阶段,请求修建定居点
-			if($gameSystem.is_own_turn() && game_info.game_process!=3){		
-				UI_start_set_home($gameSystem.active_player().home_step);
-			}
-			break;
-	}
-
-
+	GameEvent.eventUpdate("new_turn");
 }
 //--------------------------------------------------------
 // 初始投骰
@@ -664,9 +612,7 @@ function update_vp_infos(){
 	}
 	var max_minitory=2;
 	//检查最大军队
-	if($gameSystem.max_minitory!=0){
-		max_minitory=$gamePlayers[$gameSystem.max_minitory].soldier_used;
-	}
+	if($gameSystem.max_minitory!=0){max_minitory=$gamePlayers[$gameSystem.max_minitory].soldier_used;}
 	for(let player of Object.values($gamePlayers)){
 		if(player.soldier_used>max_minitory){
 			if($gameSystem.max_minitory==0){
@@ -681,7 +627,6 @@ function update_vp_infos(){
 			$gameSystem.max_minitory=player.index;
 		}
 	}
-
 	//计算总胜利点
 	for(var player_index in players){
 		var player=players[player_index];
@@ -691,7 +636,6 @@ function update_vp_infos(){
 			}		
 		}
 	}
-
 }
 //--------------------------------------------------------
 // 数据构造函数

@@ -8,7 +8,7 @@ function ExtendManager() {
 ExtendManager.extendList=null;         //extend信息列表
 ExtendManager.extends=[];            //extend实例列表
 ExtendManager.extendDataList=[];     //extend游戏数据注册表
-ExtendManager.newTurnList=[]         //事件：新的回合注册表
+ExtendManager.extendGameEventList=[];//extend游戏事件注册表
 //--------------------------------------------------------
 // 加载列表中的所有插件
 //--------------------------------------------------------
@@ -35,9 +35,9 @@ ExtendManager.registExtend = function(extend){
 	if(!!extend.extraData){
 		this.extendDataList.push(extend);
 	}
-	//额外事件：新的回合
-	if(!!extend.extraNewTurnAction){
-		this.newTurnList.push(extend);
+	//包含额外事件
+	if(!!extend.extraGameEvent){
+		this.extendGameEventList.push(extend);
 	}
 }
 
@@ -60,10 +60,10 @@ ExtendManager.makeSaveContents = function(contents){
 }
 
 //--------------------------------------------------------
-// 新的回合
+// 处理事件
 //--------------------------------------------------------
-ExtendManager.new_turn = function(){
-	for(let extend of this.newTurnList){
-		extend.new_turn();
+ExtendManager.execute_event = function(event){
+	for(let extend of this.extendGameEventList){
+		extend.execute_event(event);
 	}
 }

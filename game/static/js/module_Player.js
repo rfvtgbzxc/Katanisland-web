@@ -32,21 +32,21 @@ class Game_Player{
 		switch(op){		
 		case "null":
 			src_change = op_num - this.own_sources[src_name];
-			if(show){his_window.player_get_item(this,src_id,src_change);}
+			if(show){his_window.player_get_item(this,src_name,src_change);}
 			this.own_sources[src_name]=op_num;
 			break;
 		case "=":
 			src_change = op_num - this[src_name+"_num"];
-			if(show){his_window.player_get_item(this,src_id,src_change);}
+			if(show){his_window.player_get_item(this,src_name,src_change);}
 			this.own_sources[src_name]=op_num;
 			break;
 		case "+=":
 			this.own_sources[src_name]+=op_num;
-			if(show){his_window.player_get_item(this,src_id,op_num);}
+			if(show){his_window.player_get_item(this,src_name,op_num);}
 			break;
 		case "-=":
 			this.own_sources[src_name]-=op_num;
-			if(show){his_window.player_get_item(this,src_id,op_num);}
+			if(show){his_window.player_lose_item(this,src_name,op_num);}
 			break;
 		}
 		return this.own_sources[src_name];
@@ -152,6 +152,7 @@ class Game_Player{
 	all_dev_num(){
 		let count = 0;
 		for(let name of dev_cards){
+			//console.log(name,this.dev(name));
 			count+=this.dev(name);
 		}
 		count+=this.all_score_num("unshown");

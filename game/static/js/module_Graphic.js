@@ -6,10 +6,6 @@ function update_static_Graphic(){
 		for(let src of src_cards){
 			$(`.src_${src} > truely_own`).text(self_player.src(src));
 		}
-		//刷新选项中的发展卡数量
-		for(let dev of dev_cards){
-			$(`.use_dev[dev='${dev}'] > .dev_num`).text(self_player.dev(dev));
-		}
 	}
 	//刷新全玩家状态卡
 	$("player").each(function(){
@@ -47,6 +43,15 @@ function cancel_selectors(){
 	$("pt_selector").removeClass("selector_selected");
 	//清除玩家选择器
 	$("player").removeClass("player_select_selected");
+}
+function cancel_selector(jqfn){
+	//真是粗糙的写法
+	if(!!game_temp.activeMenuItem[1] && jqfn.get(0)===game_temp.activeMenuItem[1].get(0)){
+		init_menu_lv(...game_temp.activeMenuItem);
+	}
+	else{
+		jqfn.removeClass("selector_selected player_select_selected");
+	}
 }
 //--------------------------------------------------------
 // 回合轮盘跳转(反复运行直到step_index同步)
@@ -230,34 +235,47 @@ function load_map(){
 // 游戏UI生成(不包含地图UI)
 //--------------------------------------------------------
 function load_UI(){
-	var player_list=game_info.player_list;
-	var players=game_info.players;
-	var self_player=players[user_index];
-
 	//加载资源栏
 	create_source_list();
+	//加载骰子
+	create_dices();
 	//显示回合数
 	set_rounds();
 	//加载玩家状态栏
+	create_player_list();
+	//加载交易/舍弃/丰收栏资源图标
+	for(let src of src_cards){
+		$("srcs_selected").append("<src_item num='0' class='"+src+"'></src_item>");
+		$("srcs_available").append("<src_item num='0' class='"+src+"'></src_item>");
+	}
+	//加载动态菜单
+	create_menu();
+	//加载资源栏对象
+	create_trade_items();
+	//加载文字
+	$youziku.submit("playername_update");
+}
+//--------------------------------------------------------
+// 创建骰子
+//--------------------------------------------------------
+function create_dices(){
+	/*$("dice_list").append(`<dice dice_id="0"></dice>`);
+	$("dice_list").append(`<dice dice_id="1"></dice>`);*/
+}
+//--------------------------------------------------------
+// 创建玩家列表
+//--------------------------------------------------------
+function create_player_list(){
 	var dy=0;
-	if(!$gameSystem.is_audience()){
-		dy+=205;
-	}	
-	for(var player_index in player_list){
-		$("#players").append("<player id='"+player_index+"'></player>");
-		var player_state=$("player").filter("#"+player_index);
-		player_state.append("<img class='player_back' id='"+player_index+"' src='"+cdn_url+"/media/img/player_back_"+color_reflection[player_index]+".png'/>");	
-		player_state.append("<playername id='"+player_index+"'>"+player_list[player_index][1]+"</playername>");
-		player_state.append("<vp_state id='"+player_index+"'>"+"</vp_state>");
-		player_state.append("<src_state></src_state>")
-		player_state.append("<dev_state></dev_state>")
-		player_state.append("<city0_state></city0_state>")
-		player_state.append("<city1_state></city1_state>")
-		player_state.append("<longest_road id='"+player_index+"'></longest_road>")
-		player_state.append("<max_minitory id='"+player_index+"'></max_minitory>")
-		player_state.append("<score_card id='"+player_index+"'></score_card>")
+	//是观众则不需要为其预留一个位置
+	if(!$gameSystem.is_audience()){dy+=205;}	
+	for(let player of Object.values($gamePlayers)){
+		$("#players").append("<player id='"+player.index+"'></player>");
+		let player_state=$("player").filter("#"+player.index);
+		//加载内部UI
+		create_player_info(player_state,player);
 		//调整位置
-		if(player_index==user_index){
+		if(player.index==user_index){
 			player_state.addClass("self")
 			player_state.children().addClass("self");
 		}
@@ -268,23 +286,39 @@ function load_UI(){
 		}	
 		//调整颜色
 		player_state.css({
-			"color":color_reflection_hex[color_reflection[player_index]]
+			"color":color_reflection_hex[color_reflection[player.index]]
 		});	
-		//设置激活标记
-		if(game_info.longest_road==player_index){$("longest_road").filter("#"+player_index).addClass("active")};
-		if(game_info.max_minitory==player_index){$("max_minitory").filter("#"+player_index).addClass("active")};
-		if(players[player_index].all_score_num("shown")>0){$("score_card").filter("#"+player_index).addClass("active")};	
 	}
-	$("#players").css("height",(dy+20)+"px");
-	//加载交易/舍弃/丰收栏资源图标
-	for(let src of src_cards){
-		$("srcs_selected").append("<src_item num='0' class='"+src+"'></src_item>");
-		$("srcs_available").append("<src_item num='0' class='"+src+"'></src_item>");
-	}
-	//加载动态菜单
-	//加载发展卡
-	for(let dev of dev_cards){
-		$("actions1").append(`<button type="button" class="use_dev list-group-item" dev="${dev}" help="${dev_cards_intro[dev]}">${dev_ch[dev]}<span class="dev_num"></span></button>`)
+	$("#players").css("height",(dy+40)+"px");
+}
+//--------------------------------------------------------
+// 加载单个玩家的信息表
+//--------------------------------------------------------
+function create_player_info(player_state,player){
+	player_state.append("<img class='player_back' src='"+cdn_url+"/media/img/player_back_"+color_reflection[player.index]+".png'/>");	
+	player_state.append("<playername>"+player.name+"</playername>");
+	player_state.append("<vp_state></vp_state>");
+	player_state.append("<src_state></src_state>")
+	player_state.append("<dev_state></dev_state>")
+	player_state.append("<city0_state></city0_state>")
+	player_state.append("<city1_state></city1_state>")
+	player_state.append("<longest_road></longest_road>")	
+	player_state.append("<score_card></score_card>")
+	//设置激活标记
+	if($gameSystem.longest_road==player.index){add_player_tag(player.index,"longest_road");}
+	if(player.all_score_num("shown")>0){add_player_tag(player.index,"score_card");}	
+}
+//--------------------------------------------------------
+// 加载动态菜单
+//--------------------------------------------------------
+function create_menu(){
+	for(let menu_list of Object.values(menu_lists)){
+		if(!menu_actions.hasOwnProperty(menu_list.type)){menu_actions[menu_list.type]={};}
+		for(let item of Object.values(menu_list.items)){
+			let text = DynamicMenu.render(menu_list.template,item)
+			$(`actions${menu_list.level}`).append(text);
+			menu_actions[menu_list.type][item.key]=item;	
+		}
 	}
 	//加载港口
 	for(var i=1;i<7;i++){
@@ -305,10 +339,6 @@ function load_UI(){
 		$("actions2").append("<button trade_target='player' target_val='"+player_index+"' type='button' class='action_prepare_trade list-group-item'>"+game_info.player_list[player_index][1]+"</button>");
 		$("special_actions").append("<button trade_target='player' target_val='"+player_index+"' type='button' class='action_prepare_trade list-group-item'>"+game_info.player_list[player_index][1]+"</button>");
 	}
-	//加载资源栏对象
-	create_trade_items();
-	//加载文字
-	$youziku.submit("playername_update");
 }
 //--------------------------------------------------------
 // 创建资源栏
@@ -524,9 +554,8 @@ function create_step_list(){
 	game_UI.step_list_created=true;
 }
 //--------------------------------------------------------
-// 添加交易/丢弃单元
+// 添加交易单元
 //--------------------------------------------------------
-
 function create_trade_items(){
 	if(game_UI.hasOwnProperty("trade_items_created")){return;}
 	for(let src of src_cards){
@@ -567,4 +596,14 @@ function set_rounds(){
 		$("#rounds").text(''+$gameSystem.play_turns);
 	}
 	
+}
+
+GameGraphic = function(){
+	throw new Error('This is a static class');
+}
+GameGraphic.set_city_development = function(player_index,develop_type,develop_level){
+	var develop_state = $("player").filter("#"+player_index).children("dev_process_list").children("."+develop_type);
+	if(develop_level!=0){develop_state.removeClass("initial");}
+	else{develop_state.addClass("initial");}
+	develop_state.text(develop_level);
 }

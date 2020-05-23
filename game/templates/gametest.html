@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>卡坦岛web版(测试模式)</title>
 	{% load static %}
-	{% csrf_token %}
+	<title>卡坦岛web版(测试模式)</title>
 	<link rel="stylesheet" type="text/css" href="{%static 'css/game_test.css'%}">
 	<script type="text/javascript" src="http://cdn.repository.webfont.com/wwwroot/js/wf/youziku.api.min.js"></script>
 	<script type="text/javascript">
@@ -15,10 +14,9 @@
 	<script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
 
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-    
+    <script src="{% static 'js/module_ConstVars.js' %}"></script>
 	<script src="{% static 'js/react_game_test.js' %}"></script>
 	<script src="{% static 'js/react_message.js' %}"></script>
-	<script src="{% static 'js/module_ConstVars.js' %}"></script>
 	<script src="{% static 'js/module_System.js' %}"></script>
 	<script src="{% static 'js/module_Bank.js' %}"></script>
 	<script src="{% static 'js/module_Player.js' %}"></script>	
@@ -36,6 +34,7 @@
 	<meta name="viewport" content="user-scalable=false">
 </head>
 <body style="background: none;">
+	{% csrf_token %}
 	<!--<span id="load_game" style="cursor:pointer;display: inline;z-index:100;">(离线)生成随机地图</span>-->
 	<!--初始界面-->
 	<span id="basic_cmd" style="position:absolute; left:20%"> 
@@ -140,8 +139,9 @@
 	<source_list>
 	</source_list> 
 	<!--骰子-->
-	<dice dice_id="0" style="left:10px;"><span id="debug_show_selectors" on="off">打开选择器</span><span id="debug_show_ids" on="off">显示元素id</span></dice>
-	<dice dice_id="1" style="left:63px;"><div id="plc_info"></div></dice>
+	<dice_list></dice_list>
+	<!--<dice dice_id="0" style="left:10px;"><span id="debug_show_selectors" on="off">打开选择器</span><span id="debug_show_ids" on="off">显示元素id</span></dice>
+	<dice dice_id="1" style="left:63px;"><div id="plc_info"></div></dice>-->
 	<!--0级菜单：投掷、建设、交易、发展-->
 	<actions0>		
 		<div class="fst_action list-group">
@@ -159,19 +159,9 @@
 	  	</div>
 	  	<!--1级菜单-->
 	  	<actions1 class="list-group">
-	  		<button type="button" id="action_build_road" class="list-group-item" help="建设一条道路,必须沿着你的道路、定居点或城市修建。">建设道路<cost class="brick">1</cost><cost class="wood">1</cost></button>
-	  		<button type="button" id="action_build_city0" class="list-group-item" help="建设一个新的定居点,需要有你的道路相连,且附近没有任何人的定居点。骰子的总值与该定居点附近地块上的数字相同时,可以收获该地块类型产出的资源一份。">建立定居点<cost class="brick">1</cost><cost class="wood">1</cost><cost class="wool">1</cost><cost class="grain">1</cost></button>
-	  		<button type="button" id="action_build_city1" class="list-group-item" help="将定居点升级为城市,每次收获资源时,城市可以获得双倍的资源。">建设新城市<cost class="grain">2</cost><cost class="ore">3</cost></button>
-	  		<button type="button" id="action_buy_dev_card" class="list-group-item" help="抽一张发展卡,之后可以使用发展卡来帮助你赢得胜利。抽到的发展卡不能立刻使用(除分数卡)。">抽取发展卡<cost class="wool">1</cost><cost class="grain">1</cost><cost class="ore">1</cost></button>
-
 	  		<button trade_target="bank" type="button" id="action_trade_with_bank" class="action_prepare_trade list-group-item" help="银行可以给你任何想要的资源,但你需要4份相同资源才能换取一份想要的资源。">与银行交易</button>
 	  		<button type="button" id="action_trade_with_harbours" class="list-group-item" help="当自己的城市坐落于港口,可以以更优惠的价格换取资源。">与港口交易</button>
 	  		<button type="button" id="action_trade_with_players" class="list-group-item" help="向在场的玩家提出你的交易,没有任何限制。">与玩家交易</button>
-
-	  		<button type="button" id="action_use_dev_soldier" class="list-group-item" help="移动强盗,之后可以掠夺强盗附近城市所有者的资源卡。">士兵<span class="dev_num"></span></button>
-	  		<button type="button" id="action_use_dev_plenty" class="list-group-item" help="立刻获得两份资源,类型不限。">丰收之年<span class="dev_num"></span></button>
-	  		<button type="button" id="action_use_dev_monopoly" class="list-group-item" help="从其他玩家手上拿走所有你指定的资源,但使用后本回合不能进行修建。">垄断<span class="dev_num"></span></button>
-	  		<button type="button" id="action_use_dev_road_making" class="list-group-item" help="立刻无消耗修建两条道路,只要满足修建的基本规则即可。">道路建设<span class="dev_num"></span></button>
 	  		<button type="button" id="action_show_score_cards" class="list-group-item" help="展示自己还未展示的分数卡,即使不展示,依然会算入总分,最后胜利时统一展示。">展示分数卡</button>
 	  		<!--2级菜单-->
 	  		<actions2 class="list-group">
@@ -242,7 +232,7 @@
 			</window_head>
 			<!--资源选框1-->
 			<src_select_window class="give">
-				<head_text><person></person>想给予：</head_text>
+				<head_text><person></person>想提供：</head_text>
 				<srcs_selected></srcs_selected>
 				<srcs_available></srcs_available>
 			</src_select_window>

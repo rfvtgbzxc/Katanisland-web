@@ -1,7 +1,182 @@
 /*-------------------------------------------------------------------------
+ 红色骰子、发展骰子
+-------------------------------------------------------------------------*/
+dice[type="red"].num1{
+	background: url(/media/img/dice_red_num1.png);
+}
+dice[type="red"].num2{
+	background: url(/media/img/dice_red_num2.png);
+}
+dice[type="red"].num3{
+	background: url(/media/img/dice_red_num3.png);
+}
+dice[type="red"].num4{
+	background: url(/media/img/dice_red_num4.png);
+}
+dice[type="red"].num5{
+	background: url(/media/img/dice_red_num5.png);
+}
+dice[type="red"].num6{
+	background: url(/media/img/dice_red_num6.png);
+}
+dice[type="dev"].num0{
+	background: url(/media/img/dice_dev_barbarian.png);
+}
+dice[type="dev"].num1{
+	background: url(/media/img/dice_dev_commerce.png);
+}
+dice[type="dev"].num2{
+	background: url(/media/img/dice_dev_science.png);
+}
+dice[type="dev"].num3{
+	background: url(/media/img/dice_dev_politic.png);
+}
+/*-------------------------------------------------------------------------
  交易栏资源图标
 -------------------------------------------------------------------------*/
 src_item.coin{
 	background: url(/media/img/src_icon_coin.png);
 	background-size: cover;
+}
+src_item.paper{
+	background: url(/media/img/src_icon_paper.png);
+	background-size: cover;
+}
+src_item.crystal{
+	background: url(/media/img/src_icon_crystal.png);
+	background-size: cover;
+}
+/*-------------------------------------------------------------------------
+ 菜单资源图标
+-------------------------------------------------------------------------*/
+cost.coin::after
+{
+	content:"";
+	display:inline-block;
+	position:absolute;
+	width:20px;
+	height:20px;
+	left:-2px;
+	bottom:15px;
+	background:url(/media/img/src_icon_coin_withborder.png);
+	background-size:cover;
+
+}
+cost.paper::after
+{
+	content:"";
+	display:inline-block;
+	position:absolute;
+	width:20px;
+	height:20px;
+	left:-2px;
+	bottom:15px;
+	background:url(/media/img/src_icon_paper_withborder.png);
+	background-size:cover;
+
+}
+cost.crystal::after
+{
+	content:"";
+	display:inline-block;
+	position:absolute;
+	width:20px;
+	height:20px;
+	left:-2px;
+	bottom:15px;
+	background:url(/media/img/src_icon_crystal_withborder.png);
+	background-size:cover;
+
+}
+/*-------------------------------------------------------------------------
+ 发展卡领域标记
+-------------------------------------------------------------------------*/
+span.field_tag
+{
+	display: inline-block;
+	margin-right: 10px;  
+	height: 15px;
+	width: 15px;
+	position: relative;
+	top: 1px;
+}
+.field_tag[field="science"]
+{
+	background-color: rgb(58,180,113);
+}
+.field_tag[field="commerce"]
+{
+	background-color: rgb(243,153,2);
+}
+.field_tag[field="politic"]
+{
+	background-color: rgb(3,161,233);
+}
+/*-------------------------------------------------------------------------
+ 玩家信息
+-------------------------------------------------------------------------*/
+/*覆写:最长道路*/
+longest_road
+{
+	background: url(/media/img/longest_road.png);
+	background-size: cover;
+	background-repeat: no-repeat;
+	left:117px;
+	top:94px;
+	width: 72px;
+	height: 19px;
+	cursor: pointer;
+	position: absolute;
+}
+longest_road.self
+{
+	width: 98px;
+	height: 26px;
+	left:154px;
+	top:127px;
+}
+/*发展进度*/
+dev_process_list{
+	position: absolute;
+	top: 66px;
+	left: 117px;
+	width: 72px;
+	display: flex;
+	justify-content: space-between;
+	font-size: 12px;
+}
+dev_process_list.self{
+	top: 92px;
+	left: 155px;
+	width: 96px;
+	font-size: 18px;
+}
+dev_process{
+	width: 20px;
+	height: 20px;
+	display: flex;
+	justify-content: center;
+	align-items: flex-end;
+	color:white;
+	cursor: pointer;
+}
+dev_process.self{
+	width: 26px;
+	height: 26px;
+}
+dev_process.initial{
+			filter: brightness(0.7) grayscale(0.5);
+		}
+dev_process.politic{
+	background-color: rgb(3,161,233);
+}
+dev_process.commerce{
+	background-color: rgb(243,153,2);
+}
+dev_process.science{
+	background-color: rgb(58,180,113);
+}
+dev_process.active{
+	-webkit-mask-image: url("/media/img/metropolis.png");
+	-webkit-mask-size:cover; 
 }
